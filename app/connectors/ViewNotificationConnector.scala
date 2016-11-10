@@ -29,7 +29,7 @@ import uk.gov.hmrc.play.http.{HttpGet, HttpResponse}
 import scala.concurrent.{ExecutionContext, Future}
 
 
-trait ViewNotificationConnector extends Connector$View {
+trait ViewNotificationConnector extends DESConnector {
 
   private[connectors] def httpGet: HttpGet
 
