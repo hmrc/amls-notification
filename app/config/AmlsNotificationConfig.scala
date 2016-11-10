@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package metrics
+package config
 
-sealed trait APITypes {
-  def key: String
-}
+import uk.gov.hmrc.play.config.ServicesConfig
 
-case object API12 extends APITypes {
-  override val key: String = "etmp-amls-registration-view"
+object AmlsNotificationConfig extends ServicesConfig {
+
+  private def loadConfig(key: String) =
+    getConfString(key, throw new Exception(s"Config missing key: $key"))
+
+  lazy val desUrl = baseUrl("des")
+  lazy val desToken = loadConfig("des.auth-token")
+  lazy val desEnv = loadConfig("des.env")
 }
