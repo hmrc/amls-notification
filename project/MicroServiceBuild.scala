@@ -26,6 +26,7 @@ private object AppDependencies {
   private val pegdownVersion = "1.6.0"
 
   private val playReactivemongoVersion = "5.1.0"
+  private val scalatestPlusPlayVersion = "1.5.1"
 
   val compile = Seq(
     "uk.gov.hmrc" %% "play-reactivemongo" % playReactivemongoVersion,
@@ -64,6 +65,7 @@ private object AppDependencies {
       override lazy val test = Seq(
         "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % scope,
         "org.scalatest" %% "scalatest" % scalaTestVersion % scope,
+        "org.scalatestplus.play" %% "scalatestplus-play" % scalatestPlusPlayVersion,
         "org.pegdown" % "pegdown" % pegdownVersion % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope
       )
