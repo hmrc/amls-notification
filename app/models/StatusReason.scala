@@ -27,7 +27,7 @@ object StatusReason {
   implicit val jsonWrites: Writes[StatusReason] = {
     import play.api.libs.json._
     Writes[StatusReason] {
-      case a: RejectedReason =>
+      case a: RejectedReason => println("i am here==================================")
            __.write[RejectedReason].writes(a)
       case a: RevokedReason =>
         __.write[RevokedReason].writes(a)
