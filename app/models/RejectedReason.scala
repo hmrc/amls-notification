@@ -5,19 +5,19 @@ import play.api.libs.json._
 
 sealed trait RejectedReason extends StatusReason
 
-case object NonCompliant extends RejectedReason
-
-case object FailedToRespond extends RejectedReason
-
-case object FailedToPayCharges extends RejectedReason
-
-case object FitAndProperFailure extends RejectedReason
-
-case object OtherFailed extends RejectedReason
-
-case object OtherRefused extends RejectedReason
-
 object RejectedReason {
+
+  case object NonCompliant extends RejectedReason
+
+  case object FailedToRespond extends RejectedReason
+
+  case object FailedToPayCharges extends RejectedReason
+
+  case object FitAndProperFailure extends RejectedReason
+
+  case object OtherFailed extends RejectedReason
+
+  case object OtherRefused extends RejectedReason
 
   import utils.MappingUtils.Implicits._
 

@@ -5,17 +5,17 @@ import play.api.libs.json._
 
 sealed trait Status
 
-case object Approved extends Status
-
-case object Rejected extends Status
-
-case object Revoked extends Status
-
-case object DeRegistered extends Status
-
-case object Expired extends Status
-
 object Status {
+
+  case object Approved extends Status
+
+  case object Rejected extends Status
+
+  case object Revoked extends Status
+
+  case object DeRegistered extends Status
+
+  case object Expired extends Status
 
   import utils.MappingUtils.Implicits._
 

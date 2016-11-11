@@ -5,21 +5,21 @@ import play.api.libs.json._
 
 sealed trait RevokedReason extends StatusReason
 
-case object RevokedMissingTrader extends RevokedReason
-
-case object RevokedCeasedTrading extends RevokedReason
-
-case object RevokedNonCompliant extends RevokedReason
-
-case object RevokedFitAndProperFailure extends RevokedReason
-
-case object RevokedFailedToPayCharges extends RevokedReason
-
-case object RevokedFailedToRespond extends RevokedReason
-
-case object RevokedOther extends RevokedReason
-
 object RevokedReason {
+
+  case object RevokedMissingTrader extends RevokedReason
+
+  case object RevokedCeasedTrading extends RevokedReason
+
+  case object RevokedNonCompliant extends RevokedReason
+
+  case object RevokedFitAndProperFailure extends RevokedReason
+
+  case object RevokedFailedToPayCharges extends RevokedReason
+
+  case object RevokedFailedToRespond extends RevokedReason
+
+  case object RevokedOther extends RevokedReason
 
   import utils.MappingUtils.Implicits._
 

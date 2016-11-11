@@ -5,21 +5,22 @@ import play.api.libs.json._
 
 sealed trait DeregisteredReason extends StatusReason
 
-case object CeasedTrading extends DeregisteredReason
-
-case object HVDNoCashPayment extends DeregisteredReason
-
-case object OutOfScope extends DeregisteredReason
-
-case object NotTrading extends DeregisteredReason
-
-case object UnderAnotherSupervisor extends DeregisteredReason
-
-case object ChangeOfLegalEntity extends DeregisteredReason
-
-case object Other extends DeregisteredReason
-
 object DeregisteredReason {
+
+
+  case object CeasedTrading extends DeregisteredReason
+
+  case object HVDNoCashPayment extends DeregisteredReason
+
+  case object OutOfScope extends DeregisteredReason
+
+  case object NotTrading extends DeregisteredReason
+
+  case object UnderAnotherSupervisor extends DeregisteredReason
+
+  case object ChangeOfLegalEntity extends DeregisteredReason
+
+  case object Other extends DeregisteredReason
 
   import utils.MappingUtils.Implicits._
 

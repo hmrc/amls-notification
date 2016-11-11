@@ -4,7 +4,7 @@ import play.api.libs.json.Json
 
 case class NotificationPushRequest (name: String,
                                    email: String,
-                                   status: Option[String],
+                                   status: Option[Status],
                                    statusReason: Option[StatusReason],
                                    contactType: Option[String],
                                    contactNumber: Option[String],
