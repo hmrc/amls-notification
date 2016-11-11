@@ -24,6 +24,7 @@ import models.des
 import org.joda.time.{DateTimeUtils, LocalDateTime}
 import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
+import org.scalatest._
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.mock.MockitoSugar
@@ -51,7 +52,7 @@ class NotificationDESConnectorSpec
 
   trait Fixture {
 
-    object testConnector$View extends ViewNotificationConnector {
+    object testConnector extends ViewNotificationConnector {
       override private[connectors] val baseUrl: String = "baseUrl"
       override private[connectors] val token: String = "token"
       override private[connectors] val env: String = "ist0"
@@ -69,11 +70,11 @@ class NotificationDESConnectorSpec
     val amlsRegistrationNumber = "test"
     val contactNumber = "contactNumber"
 
-    val url = s"${testConnector$View.baseUrl}/anti-money-laundering/secure-comms/reg-number/$amlsRegistrationNumber/contact-number/$contactNumber"
+    val url = s"${testConnector.baseUrl}/anti-money-laundering/secure-comms/reg-number/$amlsRegistrationNumber/contact-number/$contactNumber"
 
-    when {
-      testConnector$View.metrics.timer(eqTo(API11))
-    } thenReturn mockTimer
+//    when {
+//      testConnector$View.metrics.timer(eqTo(API11))
+//    } thenReturn mockTimer
   }
 
   "DESConnector" must {
@@ -87,10 +88,10 @@ class NotificationDESConnectorSpec
       )
 
       when {
-        testConnector$View.httpGet.GET[HttpResponse](eqTo(url))(any(), any())
+        testConnector.httpGet.GET[HttpResponse](eqTo(url))(any(), any())
       } thenReturn Future.successful(response)
 
-      whenReady(testConnector$View.getNotification(amlsRegistrationNumber, contactNumber)) {
+      whenReady(testConnector.getNotification(amlsRegistrationNumber, contactNumber)) {
         _ mustEqual successModel
       }
     }
@@ -102,10 +103,10 @@ class NotificationDESConnectorSpec
         responseHeaders = Map.empty
       )
       when {
-        testConnector$View.httpGet.GET[HttpResponse](eqTo(url))(any(), any())
+        testConnector.httpGet.GET[HttpResponse](eqTo(url))(any(), any())
       } thenReturn Future.successful(response)
 
-      whenReady(testConnector$View.getNotification(amlsRegistrationNumber, contactNumber).failed) {
+      whenReady(testConnector.getNotification(amlsRegistrationNumber, contactNumber).failed) {
         case HttpStatusException(status, body) =>
           status mustEqual BAD_REQUEST
           body mustEqual None
@@ -121,10 +122,10 @@ class NotificationDESConnectorSpec
       )
 
       when {
-        testConnector$View.httpGet.GET[HttpResponse](any())(any(), any())
+        testConnector.httpGet.GET[HttpResponse](any())(any(), any())
       } thenReturn Future.successful(response)
 
-      whenReady(testConnector$View.getNotification(amlsRegistrationNumber, contactNumber).failed) {
+      whenReady(testConnector.getNotification(amlsRegistrationNumber, contactNumber).failed) {
         case HttpStatusException(status, body) =>
           status mustEqual OK
           body mustEqual Some("message")
@@ -134,10 +135,10 @@ class NotificationDESConnectorSpec
     "return a failed future containing an exception message" in new Fixture {
 
       when {
-        testConnector$View.httpGet.GET[HttpResponse](eqTo(url))(any(), any())
+        testConnector.httpGet.GET[HttpResponse](eqTo(url))(any(), any())
       } thenReturn Future.failed(new Exception("message"))
 
-      whenReady(testConnector$View.getNotification(amlsRegistrationNumber, contactNumber).failed) {
+      whenReady(testConnector.getNotification(amlsRegistrationNumber, contactNumber).failed) {
         case HttpStatusException(status, body) =>
           status mustEqual INTERNAL_SERVER_ERROR
           body mustEqual Some("message")

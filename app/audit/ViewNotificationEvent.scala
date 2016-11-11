@@ -16,20 +16,19 @@
 
 package audit
 
-import models.des.{NotificationResponse, ReadStatusResponse, SubscriptionRequest, SubscriptionResponse}
+import models.des.{NotificationResponse}
 import play.api.libs.json.{Json, Writes}
 import uk.gov.hmrc.play.audit.AuditExtensions._
 import uk.gov.hmrc.play.audit.model.DataEvent
 import uk.gov.hmrc.play.config.AppName
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-object GetNotificationEvent {
+object ViewNotificationEvent {
   def apply
   (amlsRegistrationNumber: String, contactNumber: String, response: NotificationResponse)
   (implicit
    hc: HeaderCarrier,
-   reqW: Writes[SubscriptionRequest],
-   resW: Writes[SubscriptionResponse]
+   resW: Writes[NotificationResponse]
   ): DataEvent =
     DataEvent(
       auditSource = AppName.appName,

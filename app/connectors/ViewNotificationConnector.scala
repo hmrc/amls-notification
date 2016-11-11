@@ -42,7 +42,7 @@ trait ViewNotificationConnector extends DESConnector {
     Logger.debug(s"$prefix - reg no: $amlsRegistrationNumber - contactNumber: $contactNumber")
 
 
-    httpGet.GET[HttpResponse](s"$baseUrl/anti-money-laundering/secure-comms/reg-number/$amlsRegistrationNumber/contact-number/$contactNumber") map {
+    httpGet.GET[HttpResponse](s"$fullUrl/$amlsRegistrationNumber/contact-number/$contactNumber") map {
       response =>
 //        timer.stop()
         Logger.debug(s"$prefix - Base Response: ${response.status}")
