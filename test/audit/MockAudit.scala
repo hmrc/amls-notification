@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package metrics
+package audit
 
-sealed trait APITypes {
-  def key: String
-}
+import uk.gov.hmrc.play.audit.model.{Audit, DataEvent}
 
-case object API11 extends APITypes {
-  override val key: String = "etmp-amls-view-notification"
-}
-
-case object API12 extends APITypes {
-  override val key: String = "etmp-amls-registration-view"
+// This only exists because of the difficulty in mocking
+// the `sendDataEvent` method of the `Audit` class
+// scalastyle:off null
+object MockAudit extends Audit("mockApp", null) {
+  override def sendDataEvent: (DataEvent) => Unit =
+    _ => {}
 }
