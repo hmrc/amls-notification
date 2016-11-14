@@ -16,8 +16,8 @@
 
 package controllers
 
-trait NotificationController {
+trait ViewNotificationController {
 
 }
 
-object NotificationController extends NotificationController
+object ViewNotificationController extends ViewNotificationController
