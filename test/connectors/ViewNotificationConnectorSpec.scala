@@ -35,7 +35,7 @@ import uk.gov.hmrc.play.http.{HttpResponse, HttpGet, HttpPost}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class NotificationDESConnectorSpec
+class ViewNotificationConnectorSpec
   extends PlaySpec
     with MockitoSugar
     with ScalaFutures
