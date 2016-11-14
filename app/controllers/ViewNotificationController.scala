@@ -28,7 +28,8 @@ import scala.concurrent.Future
 
 trait ViewNotificationController extends BaseController {
 
-  private[controllers] def connector: ViewNotificationConnector
+  private[controllers] def connector: ViewNotificationConnector  // $COVERAGE-OFF$
+
 
   val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
   val prefix = "[ViewNotificationController][get]"
@@ -63,5 +64,6 @@ trait ViewNotificationController extends BaseController {
 }
 
 object ViewNotificationController extends ViewNotificationController{
+  // $COVERAGE-OFF$
   override private[controllers] val connector = DESConnector
 }
