@@ -18,14 +18,13 @@ package controllers
 
 import connectors.ViewNotificationConnector
 import exceptions.HttpStatusException
-import models.{Status, RevokedReason, StatusReason, NotificationPushRequest}
 import org.joda.time.LocalDateTime
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import models.des
+import models._
 import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
@@ -59,7 +58,7 @@ class ViewNotificationControllerSpec extends PlaySpec
 
       "return a valid response when the amls registration number is valid" in {
 
-        val response = des.NotificationResponse(LocalDateTime.now(), "secure-comms text")
+        val response = NotificationResponse(LocalDateTime.now(), "secure-comms text")
 
         when {
           TestController.connector.getNotification(eqTo(amlsRegistrationNumber), eqTo(contactNumber))(any(), any())

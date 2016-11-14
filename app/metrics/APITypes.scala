@@ -23,7 +23,3 @@ sealed trait APITypes {
 case object API11 extends APITypes {
   override val key: String = "etmp-amls-view-notification"
 }
-
-case object API12 extends APITypes {
-  override val key: String = "etmp-amls-registration-view"
-}
