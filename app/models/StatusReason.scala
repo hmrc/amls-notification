@@ -44,11 +44,11 @@ object StatusReason {
     import play.api.libs.json._
     Writes[StatusReason] {
       case a: RejectedReason => println("i am here==================================")
-           __.write[RejectedReason].writes(a)
+        RejectedReason.jsonWrites.writes(a)
       case a: RevokedReason =>
-        __.write[RevokedReason].writes(a)
+        RevokedReason.jsonWrites.writes(a)
       case a: DeregisteredReason =>
-        __.write[DeregisteredReason].writes(a)
+        DeregisteredReason.jsonWrites.writes(a)
     }
   }
 }

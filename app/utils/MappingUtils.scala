@@ -17,6 +17,7 @@
 package utils
 
 import play.api.data.validation.ValidationError
+import play.api.libs.json._
 
 trait MappingUtils {
 
@@ -28,6 +29,24 @@ trait MappingUtils {
 
     implicit def toReadsFailure[A](f: ValidationError): Reads[A] =
       Reads { _ => JsError(f) }
+
+    implicit class PathAdditions(path: JsPath) {
+
+      def readNullable1[T](implicit r: Reads[T]): Reads[Option[T]] = readNullable1(path)(r)
+
+      private def readNullable1[A](path: JsPath)(implicit reads: Reads[A]) = Reads[Option[A]] { json =>
+        path.applyTillLast(json).fold(
+          jsError => JsSuccess(None),
+          jsResult => jsResult.fold(
+            _ => JsSuccess(None),
+            a => a match {
+              case JsNull => JsSuccess(None)
+              case js => reads.reads(js).repath(path).map(Some(_))
+            }
+          )
+        )
+      }
+    }
   }
 }
 

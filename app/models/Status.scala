@@ -55,4 +55,5 @@ object Status {
     case DeRegistered => Json.obj("status" -> "10")
     case Expired => Json.obj("status" -> "11")
   }
+
 }
