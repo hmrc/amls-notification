@@ -1,4 +1,5 @@
 /*
+/*
  * Copyright 2016 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +25,6 @@ import models.des
 import org.joda.time.{DateTimeUtils, LocalDateTime}
 import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
-import org.scalatest._
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.mock.MockitoSugar
@@ -149,3 +149,4 @@ class NotificationDESConnectorSpec
   }
 
 }
+*/
