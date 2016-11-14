@@ -16,23 +16,28 @@
 
 package audit
 
+import models.des.{NotificationResponse}
+import play.api.libs.json.{Json, Writes}
 import uk.gov.hmrc.play.audit.AuditExtensions._
 import uk.gov.hmrc.play.audit.model.DataEvent
 import uk.gov.hmrc.play.config.AppName
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-object NotificationEvent {
+object ViewNotificationEvent {
   def apply
-  (amlsRegistrationNumber: String)
+  (amlsRegistrationNumber: String, contactNumber: String, response: NotificationResponse)
   (implicit
-   hc: HeaderCarrier
+   hc: HeaderCarrier,
+   resW: Writes[NotificationResponse]
   ): DataEvent =
     DataEvent(
       auditSource = AppName.appName,
       auditType = "OutboundCall",
-      tags = hc.toAuditTags("Notification", "N/A"),
+      tags = hc.toAuditTags("Get Notification", "N/A"),
       detail = hc.toAuditDetails() ++ Map(
-        "amlsRegNo" -> amlsRegistrationNumber
+        "amlsRegNo" -> amlsRegistrationNumber,
+        "contactNumber" -> contactNumber,
+        "response" -> Json.toJson(response).toString
       )
     )
 }

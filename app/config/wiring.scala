@@ -16,10 +16,8 @@
 
 package config
 
-import akka.stream.Materializer
 import com.typesafe.config.Config
 import play.api.Play
-import play.api.Play.current
 import uk.gov.hmrc.play.audit.filters.AuditFilter
 import uk.gov.hmrc.play.audit.http.config.LoadAuditingConfig
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector

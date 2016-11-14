@@ -30,14 +30,17 @@ object Metrics extends Metrics with MicroserviceMetrics {
   val registry: MetricRegistry = metrics.defaultRegistry
   // $COVERAGE-OFF$
   val timers = Map[APITypes, Timer](
+    API11 -> registry.timer(s"${API11.key}-timer"),
     API12 -> registry.timer(s"${API12.key}-timer")
   )
 
   val successCounters = Map[APITypes, Counter](
+    API11 -> registry.counter(s"${API11.key}-success"),
     API12 -> registry.counter(s"${API12.key}-success")
   )
 
   val failedCounters = Map[APITypes, Counter](
+    API11 -> registry.counter(s"${API11.key}-failure"),
     API12 -> registry.counter(s"${API12.key}-failure")
   )
 

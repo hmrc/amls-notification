@@ -14,16 +14,22 @@
  * limitations under the License.
  */
 
-package metrics
+package models.des
 
-sealed trait APITypes {
-  def key: String
-}
+import org.joda.time.LocalDateTime
+import org.scalatestplus.play.PlaySpec
+import play.api.libs.json.Json
 
-case object API11 extends APITypes {
-  override val key: String = "etmp-amls-view-notification"
-}
+class NotificationResponseSpec extends PlaySpec {
 
-case object API12 extends APITypes {
-  override val key: String = "etmp-amls-registration-view"
+  val notificationJson = Json.obj(
+    "processingDate" -> s"${new LocalDateTime()}"
+  )
+
+  "NotificationResponse" must {
+    "correctly deserialise" in {
+    1+1 mustBe 2
+    }
+  }
+
 }

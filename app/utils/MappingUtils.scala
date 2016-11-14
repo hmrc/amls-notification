@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-package metrics
+package utils
 
-sealed trait APITypes {
-  def key: String
+import play.api.data.validation.ValidationError
+
+trait MappingUtils {
+
+  object Implicits {
+    import play.api.libs.json.{Reads, JsSuccess, JsError}
+
+    implicit def toReadsSuccess[A, B <: A](b: B): Reads[A] =
+      Reads { _ => JsSuccess(b) }
+
+    implicit def toReadsFailure[A](f: ValidationError): Reads[A] =
+      Reads { _ => JsError(f) }
+  }
 }
 
-case object API11 extends APITypes {
-  override val key: String = "etmp-amls-view-notification"
-}
-
-case object API12 extends APITypes {
-  override val key: String = "etmp-amls-registration-view"
-}
+object MappingUtils extends MappingUtils

@@ -14,16 +14,24 @@
  * limitations under the License.
  */
 
-package metrics
+package models
 
-sealed trait APITypes {
-  def key: String
-}
+import org.scalatestplus.play.PlaySpec
+import play.api.libs.json.{Json, JsSuccess}
 
-case object API11 extends APITypes {
-  override val key: String = "etmp-amls-view-notification"
-}
+class StatusReasonSpec extends PlaySpec {
 
-case object API12 extends APITypes {
-  override val key: String = "etmp-amls-registration-view"
+  "StatusReason model" must {
+    "must serialise and de serialise data successfully" in {
+
+    //  val jssVal = StatusReason.jsonWrites.writes(RejectedReason.FailedToPayCharges)
+      val json = Json.obj("status" -> "04",
+      "status_reason" -> "03")
+      StatusReason.jsonReads.reads(json) must be(JsSuccess(RejectedReason.FailedToPayCharges))
+
+    }
+  }
+
+
+
 }

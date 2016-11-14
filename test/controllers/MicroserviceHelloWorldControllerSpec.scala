@@ -14,16 +14,23 @@
  * limitations under the License.
  */
 
-package metrics
+package uk.gov.hmrc.amlsnotification.controllers
 
-sealed trait APITypes {
-  def key: String
-}
+import play.api.http.Status
+import play.api.test.FakeRequest
+import play.api.http.Status
+import play.api.test.FakeRequest
+import uk.gov.hmrc.play.test.UnitSpec
+import uk.gov.hmrc.play.test.WithFakeApplication
+import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
 
-case object API11 extends APITypes {
-  override val key: String = "etmp-amls-view-notification"
-}
 
-case object API12 extends APITypes {
-  override val key: String = "etmp-amls-registration-view"
+class MicroserviceHelloWorldControllerSpec extends UnitSpec with WithFakeApplication{
+
+  val fakeRequest = FakeRequest("GET", "/")
+
+
+
+
+
 }

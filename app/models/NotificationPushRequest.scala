@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-package metrics
+package models
 
-sealed trait APITypes {
-  def key: String
-}
+import play.api.libs.json.Json
 
-case object API11 extends APITypes {
-  override val key: String = "etmp-amls-view-notification"
-}
+case class NotificationPushRequest (name: String,
+                                   email: String,
+                                   status: Option[Status],
+                                   statusReason: Option[StatusReason],
+                                   contactType: Option[String],
+                                   contactNumber: Option[String],
+                                   variation:Boolean
+                                  )
 
-case object API12 extends APITypes {
-  override val key: String = "etmp-amls-registration-view"
+object NotificationPushRequest {
+
+  implicit val format = Json.format[NotificationPushRequest]
+
 }
