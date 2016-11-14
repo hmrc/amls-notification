@@ -53,7 +53,7 @@ private object AppDependencies {
         "org.scalatest" %% "scalatest" % scalaTestVersion % scope,
         "org.pegdown" % "pegdown" % pegdownVersion % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
-        "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % "test"
+        "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % "test"
       )
     }.test
   }
