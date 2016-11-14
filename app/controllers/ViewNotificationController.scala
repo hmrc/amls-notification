@@ -16,8 +16,52 @@
 
 package controllers
 
-trait ViewNotificationController {
+import connectors.{DESConnector, ViewNotificationConnector}
+import exceptions.HttpStatusException
+import play.api.Logger
+import play.api.libs.json.{JsObject, Json}
+import play.api.mvc.Action
+import uk.gov.hmrc.play.microservice.controller.BaseController
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+
+trait ViewNotificationController extends BaseController {
+
+  private[controllers] def connector: ViewNotificationConnector
+
+  val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
+  val prefix = "[ViewNotificationController][get]"
+
+  private def toError(message: String): JsObject =
+    Json.obj(
+      "errors" -> Seq(message)
+    )
+
+  def viewNotification(amlsRegistrationNumber: String, contactNumber: String) =
+
+    Action.async {
+      implicit request =>
+        Logger.debug(s"$prefix - amlsRegNo: $amlsRegistrationNumber")
+        amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
+          case Some(_) =>
+            connector.getNotification(amlsRegistrationNumber, contactNumber) map {
+              response =>
+                Ok(Json.toJson(response))
+            } recoverWith {
+              case e@HttpStatusException(status, Some(body)) =>
+                Logger.warn(s"$prefix - Status: ${status}, Message: $body")
+                Future.failed(e)
+            }
+
+          case _ =>
+            Future.successful {
+              BadRequest(toError("Invalid AMLS Registration Number"))
+            }
+        }
+    }
 }
 
-object ViewNotificationController extends ViewNotificationController
+object ViewNotificationController extends ViewNotificationController{
+  override private[controllers] val connector = DESConnector
+}
