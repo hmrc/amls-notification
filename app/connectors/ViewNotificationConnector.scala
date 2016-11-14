@@ -19,6 +19,7 @@ package connectors
 
 import audit.ViewNotificationEvent
 import exceptions.HttpStatusException
+import metrics.API11
 import models.des
 import models.des.NotificationResponse
 import play.api.Logger
@@ -38,25 +39,24 @@ trait ViewNotificationConnector extends DESConnector {
 
     val prefix = "[DESConnector][getNotification]"
     val bodyParser = JsonParsed[NotificationResponse]
-//    val timer = metrics.timer(API11)
+    val timer = metrics.timer(API11)
     Logger.debug(s"$prefix - reg no: $amlsRegistrationNumber - contactNumber: $contactNumber")
 
-
-    httpGet.GET[HttpResponse](s"$fullUrl/$amlsRegistrationNumber/contact-number/$contactNumber") map {
+    httpGet.GET[HttpResponse](s"$fullUrl/reg-number/$amlsRegistrationNumber/contact-number/$contactNumber") map {
       response =>
-//        timer.stop()
+        timer.stop()
         Logger.debug(s"$prefix - Base Response: ${response.status}")
         Logger.debug(s"$prefix - Response Body: ${response.body}")
         response
-    }flatMap {
-      case r @ status(OK) & bodyParser(JsSuccess(body: des.NotificationResponse, _)) =>
-//        metrics.success(API11)
+    } flatMap {
+      case r@status(OK) & bodyParser(JsSuccess(body: des.NotificationResponse, _)) =>
+        metrics.success(API11)
         audit.sendDataEvent(ViewNotificationEvent(amlsRegistrationNumber, contactNumber, body))
         Logger.debug(s"$prefix - Success response")
         Logger.debug(s"$prefix - Response body: ${Json.toJson(body)}")
         Future.successful(body)
-      case r @ status(s) =>
-//        metrics.failed(API11)
+      case r@status(s) =>
+        metrics.failed(API11)
         Logger.warn(s"$prefix - Failure response: $s")
         Future.failed(HttpStatusException(s, Option(r.body)))
     } recoverWith {
@@ -64,8 +64,8 @@ trait ViewNotificationConnector extends DESConnector {
         Logger.warn(s"$prefix - Failure: Exception", e)
         Future.failed(e)
       case e =>
-//        timer.stop()
-//        metrics.failed(API11)
+        timer.stop()
+        metrics.failed(API11)
         Logger.warn(s"$prefix - Failure: Exception", e)
         Future.failed(HttpStatusException(INTERNAL_SERVER_ERROR, Some(e.getMessage)))
     }

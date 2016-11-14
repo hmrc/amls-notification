@@ -60,7 +60,7 @@ class NotificationDESConnectorSpec
       override private[connectors] val httpPost: HttpPost = mock[HttpPost]
       override private[connectors] val metrics: Metrics = mock[Metrics]
       override private[connectors] val audit = MockAudit
-      override private[connectors] val fullUrl: String = s"$baseUrl/$requestUrl/"
+      override private[connectors] val fullUrl: String = s"$baseUrl/$requestUrl"
     }
 
     val successModel = des.NotificationResponse(LocalDateTime.now(), "Approved")
@@ -72,12 +72,12 @@ class NotificationDESConnectorSpec
 
     val url = s"${testConnector.baseUrl}/anti-money-laundering/secure-comms/reg-number/$amlsRegistrationNumber/contact-number/$contactNumber"
 
-//    when {
-//      testConnector$View.metrics.timer(eqTo(API11))
-//    } thenReturn mockTimer
+    when {
+      testConnector.metrics.timer(eqTo(API11))
+    } thenReturn mockTimer
   }
 
-  "DESConnector" must {
+  "ViewNotificationConnector" must {
 
     "return a succesful future containing the Notification response" in new Fixture {
 
@@ -87,6 +87,8 @@ class NotificationDESConnectorSpec
         responseJson = Some(Json.toJson(successModel))
       )
 
+      println(s"****** HELLLLLOOOOOOOO")
+      println(s"****** $url")
       when {
         testConnector.httpGet.GET[HttpResponse](eqTo(url))(any(), any())
       } thenReturn Future.successful(response)
