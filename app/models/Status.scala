@@ -23,6 +23,8 @@ case class Status(status: Option[StatusType], statusReason: Option[StatusReason]
 
 object Status {
 
+  import utils.MappingUtils.Implicits._
+
   implicit val jsonReads: Reads[Status] = {
 
     import play.api.libs.functional.syntax._
@@ -30,7 +32,7 @@ object Status {
     import play.api.libs.json._
 
     ((__ \ "status_type").readNullable[StatusType] and
-      (__ \ "status_reason").readNullable[String]).tupled map {
+      (__ \ "status_reason").readNullable[String]).tupled flatMap {
       case (Some(status), Some(reason)) => status match {
         case Rejected => Status(Some(status), Some(RejectedReason.reason(reason)))
         case Revoked => Status(Some(status), Some(RevokedReason.reason(reason)))
@@ -38,9 +40,10 @@ object Status {
         case _ => Status(Some(status), None)
       }
       case (Some(status), None) => Status(Some(status), None)
-      case _ => Status(None, None)
+      case _ => Status(None, None) //TODO need to check whether to throw error or none
     }
   }
+
 
   implicit val jsonWrites: Writes[Status] = {
     import play.api.libs.functional.syntax._

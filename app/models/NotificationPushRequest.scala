@@ -21,7 +21,7 @@ import play.api.libs.json.{Writes, Reads}
 case class NotificationPushRequest (name: String,
                                    email: String,
                                    status: Option[Status],
-                                   contactType: Option[String],
+                                   contactType: Option[ContactType],
                                    contactNumber: Option[String],
                                    variation:Boolean
                                   )
@@ -37,7 +37,7 @@ object NotificationPushRequest {
       ((__ \ "name").read[String] and
         (__ \ "email").read[String] and
         (__ \ "status").readNullable[Status] and
-        (__ \ "contact_type").readNullable[String] and
+        (__ \ "contact_type").readNullable[ContactType] and
         (__ \ "contact_number").readNullable[String] and
         (__ \ "variation").read[Boolean]
         )(NotificationPushRequest.apply _)
@@ -53,7 +53,7 @@ object NotificationPushRequest {
         (__ \ "name").write[String] and
           (__ \ "email").write[String] and
           (__ \ "status").writeNullable[Status] and
-          (__ \ "contact_type").writeNullable[String] and
+          (__ \ "contact_type").writeNullable[ContactType] and
           (__ \ "contact_number").writeNullable[String] and
           (__ \ "variation").write[Boolean]
         ) (unlift(NotificationPushRequest.unapply))
