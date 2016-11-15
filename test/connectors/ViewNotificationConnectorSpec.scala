@@ -20,7 +20,6 @@ import audit.MockAudit
 import com.codahale.metrics.Timer
 import exceptions.HttpStatusException
 import metrics.{API11, Metrics}
-import models.des
 import org.joda.time.{DateTimeUtils, LocalDateTime}
 import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
@@ -31,11 +30,12 @@ import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.play.http.{HttpResponse, HttpGet, HttpPost}
+import models._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class NotificationDESConnectorSpec
+class ViewNotificationConnectorSpec
   extends PlaySpec
     with MockitoSugar
     with ScalaFutures
@@ -62,7 +62,7 @@ class NotificationDESConnectorSpec
       override private[connectors] val fullUrl: String = s"$baseUrl/$requestUrl"
     }
 
-    val successModel = des.NotificationResponse(LocalDateTime.now(), "Approved")
+    val successModel = NotificationResponse(LocalDateTime.now(), "Approved")
 
     val mockTimer = mock[Timer.Context]
 

@@ -20,8 +20,7 @@ package connectors
 import audit.ViewNotificationEvent
 import exceptions.HttpStatusException
 import metrics.API11
-import models.des
-import models.des.NotificationResponse
+import models.NotificationResponse
 import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.{JsSuccess, Json, Writes}
@@ -49,7 +48,7 @@ trait ViewNotificationConnector extends DESConnector {
         Logger.debug(s"$prefix - Response Body: ${response.body}")
         response
     } flatMap {
-      case r@status(OK) & bodyParser(JsSuccess(body: des.NotificationResponse, _)) =>
+      case r@status(OK) & bodyParser(JsSuccess(body: NotificationResponse, _)) =>
         metrics.success(API11)
         audit.sendDataEvent(ViewNotificationEvent(amlsRegistrationNumber, contactNumber, body))
         Logger.debug(s"$prefix - Success response")
