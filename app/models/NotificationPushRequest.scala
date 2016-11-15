@@ -16,7 +16,7 @@
 
 package models
 
-import play.api.libs.json.{Writes, Reads}
+import play.api.libs.json.{Format, Writes, Reads}
 
 case class NotificationPushRequest (name: String,
                                    email: String,
@@ -29,7 +29,6 @@ case class NotificationPushRequest (name: String,
 object NotificationPushRequest {
 
   implicit val jsonReads: Reads[NotificationPushRequest] = {
-
     import play.api.libs.functional.syntax._
     import play.api.libs.json.Reads._
     import play.api.libs.json._
@@ -44,7 +43,6 @@ object NotificationPushRequest {
   }
 
   implicit val jsonWrites: Writes[NotificationPushRequest] = {
-
     import play.api.libs.functional.syntax._
     import play.api.libs.json.Writes._
     import play.api.libs.json._
@@ -58,4 +56,7 @@ object NotificationPushRequest {
           (__ \ "variation").write[Boolean]
         ) (unlift(NotificationPushRequest.unapply))
     }
+
+  implicit val formats: Format[NotificationPushRequest] =
+    Format(jsonReads, jsonWrites)
 }

@@ -16,8 +16,55 @@
 
 package controllers
 
-trait NotificationController {
+import exceptions.HttpStatusException
+import models.NotificationPushRequest
+import play.api.Logger
+import play.api.data.validation.ValidationError
+import play.api.libs.json._
+import play.api.mvc.Action
+import uk.gov.hmrc.play.microservice.controller.BaseController
 
+import scala.concurrent.Future
+
+trait NotificationController extends BaseController {
+
+  val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
+  val prefix = "[NotificationController][post]"
+
+  private def toError(errors: Seq[(JsPath, Seq[ValidationError])]): JsObject =
+    Json.obj(
+      "errors" -> (errors map {
+        case (path, error) =>
+          Json.obj(
+            "path" -> path.toJsonString,
+            "error" -> error.head.message
+          )
+      })
+    )
+
+  private def toError(message: String): JsObject =
+    Json.obj(
+      "errors" -> Seq(message)
+    )
+
+  def saveNotification(amlsRegistrationNumber: String) =
+    Action.async(parse.json) {
+      implicit request =>
+        Logger.debug(s"$prefix - amlsRegNo: $amlsRegistrationNumber")
+        amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
+          case Some(_) =>
+            Json.fromJson[NotificationPushRequest](request.body) match {
+              case JsSuccess(body, _) =>
+               Future.successful(Ok)
+              case JsError(errors) =>
+                Future.successful(BadRequest(toError(errors)))
+            }
+          case _ =>
+            Future.successful {
+              BadRequest(toError("Invalid AMLS Registration Number"))
+            }
+        }
+    }
 }
 
 object NotificationController extends NotificationController {
