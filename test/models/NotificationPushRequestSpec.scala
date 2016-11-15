@@ -17,6 +17,7 @@
 package models
 
 import org.scalatestplus.play.PlaySpec
+import play.api.data.validation.ValidationError
 import play.api.libs.json._
 
 class NotificationPushRequestSpec extends PlaySpec {
@@ -93,32 +94,33 @@ class NotificationPushRequestSpec extends PlaySpec {
         NotificationPushRequest.jsonReads.reads(json) must be(JsSuccess(NotificationPushRequest("test","test@gg.com",
           Some(Status(Some(StatusType.Approved), None)), Some(ContactType.RejectionReasons),Some("112345678251212"),false)))
       }
-
     }
 
     "serialise successfully" when {
       "path 'status' is missing in json" in {
-           val json =  Json.obj("name" -> "test",
-            "email" -> "test@gg.com",
-            "status_reason" -> "03",
-            "contact_type" -> "REJR",
-            "contact_number" -> "112345678251212",
-            "variation" -> false)
-
-          NotificationPushRequest.jsonReads.reads(json) must be(JsSuccess(NotificationPushRequest("test","test@gg.com",
-            None,Some(ContactType.RejectionReasons),Some("112345678251212"),false)))
-      }
-
-      "status value passed incorrectly" in {
-        val json =  Json.obj("name" -> "test",
+        val json = Json.obj("name" -> "test",
           "email" -> "test@gg.com",
-          "status_type" -> "100",
+          "status_reason" -> "03",
           "contact_type" -> "REJR",
           "contact_number" -> "112345678251212",
           "variation" -> false)
 
-        NotificationPushRequest.jsonReads.reads(json) must be(JsSuccess(NotificationPushRequest("test","test@gg.com",
-          None,Some(ContactType.RejectionReasons),Some("112345678251212"),false)))
+        NotificationPushRequest.jsonReads.reads(json) must be(JsSuccess(NotificationPushRequest("test", "test@gg.com",
+          None, Some(ContactType.RejectionReasons), Some("112345678251212"), false)))
+      }
+    }
+
+    "fail serialization" when{
+      "status value passed incorrectly" in {
+        val json =  Json.obj("name" -> "test",
+          "email" -> "test@gg.com",
+          "status" -> Json.obj("status_type" -> "7774",
+            "status_reason" -> "03"),
+          "contact_type" -> "REJR",
+          "contact_number" -> "112345678251212",
+          "variation" -> false)
+
+        NotificationPushRequest.jsonReads.reads(json) must be(JsError(List((JsPath \"status" \"status_type",List(ValidationError(List("error.invalid")))))))
       }
     }
 

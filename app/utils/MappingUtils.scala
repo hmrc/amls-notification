@@ -26,8 +26,8 @@ trait MappingUtils {
     implicit def toReadsSuccess[A, B <: A](b: B): Reads[A] =
       Reads { _ => JsSuccess(b) }
 
-    implicit def toReadsFailure[A](f: ValidationError): Reads[A] =
-      Reads { _ => JsError(f) }
+  /*  implicit def toReadsFailure[A](f: ValidationError): Reads[A] =
+      Reads { _ => JsError(f) }*/
 
   }
 }

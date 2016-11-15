@@ -40,7 +40,7 @@ object StatusType {
       case JsString("08") => JsSuccess(Revoked)
       case JsString("10") => JsSuccess(DeRegistered)
       case JsString("11") => JsSuccess(Expired)
-      case _ => JsError((JsPath \ "status_type") -> ValidationError("error.invalid"))
+      case _ => JsError(JsPath -> ValidationError("error.invalid"))
     }
 
   implicit val jsonWrites =
