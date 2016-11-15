@@ -24,7 +24,7 @@ import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
 object AmlsGlobal extends DefaultMicroserviceGlobal with RunMode {
   override lazy  val auditConnector = MicroserviceAuditConnector
 
-  override def microserviceMetricsConfig(implicit app: Application): Option[Configuration] = app.configuration.getConfig(s"$env.microservice.metrics")
+  override def microserviceMetricsConfig(implicit app: Application): Option[Configuration] = app.configuration.getConfig("microservice.metrics")
 
   override lazy  val loggingFilter = MicroserviceLoggingFilter
 
