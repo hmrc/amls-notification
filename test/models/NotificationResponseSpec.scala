@@ -17,19 +17,28 @@
 package models
 
 import org.joda.time.LocalDateTime
+import org.joda.time.format.ISODateTimeFormat
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
 
 class NotificationResponseSpec extends PlaySpec {
+  val dateTimeFormat = ISODateTimeFormat.dateTimeNoMillis().withZoneUTC
+
+  private val testProcessingDate = new LocalDateTime(2001, 12, 17, 9, 30, 47)
 
   val notificationJson = Json.obj(
-    "processingDate" -> s"${new LocalDateTime()}"
+    "processingDate" -> "2001-12-17T09:30:47Z",
+    "secureCommText" -> "Some text"
   )
+
+  val notificationModel = NotificationResponse(testProcessingDate, "Some text")
 
   "NotificationResponse" must {
     "correctly deserialise" in {
-    1+1 mustBe 2
+      notificationJson.as[NotificationResponse] must be(notificationModel)
+    }
+    "correctly serialise" in {
+      Json.toJson(notificationModel) must be(notificationJson)
     }
   }
-
 }
