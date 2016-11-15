@@ -16,44 +16,37 @@
 
 package models
 
-import play.api.data.validation.ValidationError
+import models.StatusType.{DeRegistered, Revoked, Rejected}
 import play.api.libs.json._
 
-sealed trait Status
+case class Status(status: StatusType, statusReason: Option[StatusReason])
 
 object Status {
 
-  case object Approved extends Status
-
-  case object Rejected extends Status
-
-  case object Revoked extends Status
-
-  case object DeRegistered extends Status
-
-  case object Expired extends Status
-
-  import utils.MappingUtils.Implicits._
-
   implicit val jsonReads: Reads[Status] = {
+
+    import play.api.libs.functional.syntax._
+    import play.api.libs.json.Reads._
     import play.api.libs.json._
 
-    (__ \ "status").read[String].flatMap[Status] {
-      case "04" => Approved
-      case "06" => Rejected
-      case "08" => Revoked
-      case "10" => DeRegistered
-      case "11" => Expired
-      case _ => ValidationError("error.invalid")
+    ((__ \ "status_type").readNullable[StatusType] and
+      (__ \ "status_reason").readNullable[String]).tupled map {
+      case (Some(status), Some(reason)) => status match {
+        case Rejected => Status(status, Some(RejectedReason.reason(reason)))
+        case Revoked => Status(status, Some(RevokedReason.reason(reason)))
+        case DeRegistered => Status(status, Some(DeregisteredReason.reason(reason)))
+        case _ => Status(status, None)
+      }
     }
   }
 
-  implicit val jsonWrites = Writes[Status] {
-    case Approved => Json.obj("status" -> "04")
-    case Rejected => Json.obj("status" -> "06")
-    case Revoked => Json.obj("status" -> "08")
-    case DeRegistered => Json.obj("status" -> "10")
-    case Expired => Json.obj("status" -> "11")
+  implicit val jsonWrites: Writes[Status] = {
+    import play.api.libs.functional.syntax._
+    import play.api.libs.json._
+    (
+      (__ \ "status_type").write[StatusType] and
+        (__ \ "status_reason").writeNullable[StatusReason]
+      ) (unlift(Status.unapply))
   }
-
 }
+

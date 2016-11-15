@@ -16,7 +16,6 @@
 
 package models
 
-import play.api.data.validation.ValidationError
 import play.api.libs.json._
 
 sealed trait RejectedReason extends StatusReason
@@ -35,28 +34,23 @@ object RejectedReason {
 
   case object OtherRefused extends RejectedReason
 
-  import utils.MappingUtils.Implicits._
-
-  implicit val jsonReads: Reads[RejectedReason] = {
-    import play.api.libs.json._
-
-    (__ \ "status_reason").read[String].flatMap[RejectedReason] {
+  implicit def reason(reason:String) : RejectedReason = {
+    reason match {
       case "01" => NonCompliant
       case "02" => FailedToRespond
       case "03" => FailedToPayCharges
       case "04" => FitAndProperFailure
       case "98" => OtherFailed
       case "99" => OtherRefused
-      case _ => ValidationError("error.invalid")
     }
   }
 
   implicit val jsonWrites = Writes[RejectedReason] {
-    case NonCompliant => Json.obj("status_reason" -> "01")
-    case FailedToRespond => Json.obj("status_reason" -> "02")
-    case FailedToPayCharges => Json.obj("status_reason" -> "03")
-    case FitAndProperFailure => Json.obj("status_reason" -> "04")
-    case OtherFailed => Json.obj("status_reason" -> "98")
-    case OtherRefused => Json.obj("status_reason" -> "99")
+    case NonCompliant => JsString("01")
+    case FailedToRespond => JsString("02")
+    case FailedToPayCharges => JsString("03")
+    case FitAndProperFailure => JsString("04")
+    case OtherFailed => JsString("98")
+    case OtherRefused => JsString("99")
   }
 }

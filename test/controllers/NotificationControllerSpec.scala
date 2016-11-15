@@ -16,10 +16,8 @@
 
 package controllers
 
-import models.{Status, RevokedReason, StatusReason, NotificationPushRequest}
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
@@ -40,16 +38,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar {
 
     "return BadRequest, if input request fails validation" in {
 
-      val body = NotificationPushRequest (
-        "name",
-        "test@gmail.com",
-        Some(Status.Approved),
-        Some(RevokedReason.RevokedCeasedTrading),
-        Some("REJR"),
-        Some("123456789012"),
-        false
-      )
-      /*val result = NotificationController.save("test", "test", "test")(request)(body)
+           /*val result = NotificationController.save("test", "test", "test")(request)(body)
       val failure = Json.obj("errors" -> Seq("Invalid SafeId"))
 
       status(result) must be(BAD_REQUEST)

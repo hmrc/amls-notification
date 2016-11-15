@@ -9,7 +9,7 @@ class StatusSpec extends PlaySpec {
     "must serialise and de serialise data successfully" in {
 
       val json = Json.obj("status" -> "04")
-      Status.jsonReads.reads(json) must be(JsSuccess(Status.Approved))
+      Status.jsonReads.reads(json) must be(JsSuccess(StatusType.Approved))
 
     }
   }

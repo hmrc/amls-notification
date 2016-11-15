@@ -37,12 +37,8 @@ object RevokedReason {
 
   case object RevokedOther extends RevokedReason
 
-  import utils.MappingUtils.Implicits._
-
-  implicit val jsonReads: Reads[RevokedReason] = {
-    import play.api.libs.json._
-
-    (__ \ "status_reason").read[String].flatMap[RevokedReason] {
+  implicit def reason(reason:String) : RevokedReason = {
+    reason match {
       case "01" => RevokedMissingTrader
       case "02" => RevokedCeasedTrading
       case "03" => RevokedNonCompliant
@@ -50,17 +46,16 @@ object RevokedReason {
       case "05" => RevokedFailedToPayCharges
       case "06" => RevokedFailedToRespond
       case "99" => RevokedOther
-      case _ => ValidationError("error.invalid")
     }
   }
 
   implicit val jsonWrites = Writes[RevokedReason] {
-    case RevokedMissingTrader => Json.obj("status_reason" -> "01")
-    case RevokedCeasedTrading => Json.obj("status_reason" -> "02")
-    case RevokedNonCompliant => Json.obj("status_reason" -> "03")
-    case RevokedFitAndProperFailure => Json.obj("status_reason" -> "04")
-    case RevokedFailedToPayCharges => Json.obj("status_reason" -> "05")
-    case RevokedFailedToRespond => Json.obj("status_reason" -> "06")
-    case RevokedOther => Json.obj("status_reason" -> "99")
+    case RevokedMissingTrader =>  JsString("01")
+    case RevokedCeasedTrading =>  JsString("02")
+    case RevokedNonCompliant =>  JsString("03")
+    case RevokedFitAndProperFailure =>  JsString("04")
+    case RevokedFailedToPayCharges =>  JsString("05")
+    case RevokedFailedToRespond =>  JsString("06")
+    case RevokedOther =>  JsString("99")
   }
 }
