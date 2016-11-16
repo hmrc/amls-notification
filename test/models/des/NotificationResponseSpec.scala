@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package models
+package models.des
 
 import org.joda.time.LocalDateTime
 import org.joda.time.format.ISODateTimeFormat

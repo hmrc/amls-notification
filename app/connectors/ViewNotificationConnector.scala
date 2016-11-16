@@ -20,7 +20,7 @@ package connectors
 import audit.ViewNotificationEvent
 import exceptions.HttpStatusException
 import metrics.API11
-import models.NotificationResponse
+import models.des.NotificationResponse
 import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.{JsSuccess, Json, Writes}
