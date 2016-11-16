@@ -18,6 +18,7 @@ package controllers
 
 import exceptions.HttpStatusException
 import models.{NotificationPushRequest, NotificationRecord}
+import org.joda.time.{DateTimeZone, DateTime}
 import play.api.Logger
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
@@ -65,7 +66,8 @@ trait NotificationController extends BaseController {
                   body.status,
                   body.contactType,
                   body.contactNumber,
-                  body.variation
+                  body.variation,
+                  DateTime.now(DateTimeZone.UTC)
                 )
                 notificationRepository.insertRecord(record) map {
                   response =>
@@ -90,5 +92,6 @@ trait NotificationController extends BaseController {
 }
 
 object NotificationController extends NotificationController {
+  // $COVERAGE-OFF$
   override private[controllers] val notificationRepository = NotificationRepository()
 }
