@@ -201,7 +201,6 @@ class NotificationPushRequestSpec extends PlaySpec {
 
         NotificationPushRequest.jsonWrites.writes(model) must be(json)
       }
-
     }
 
     "validate NotificationPushRequest format method" in {
@@ -210,14 +209,5 @@ class NotificationPushRequestSpec extends PlaySpec {
         Some(ContactType.RejectionReasons),Some("112345678251212"),false)
       NotificationPushRequest.formats.reads(NotificationPushRequest.formats.writes(model)) must be(JsSuccess(model))
     }
-
-    "test to json" in {
-      val model = NotificationPushRequest("test","test@gg.com",Some(Status(Some(StatusType.Expired), None)),
-        Some(ContactType.RejectionReasons),Some("112345678251212"),false)
-      val data = Json.toJson[NotificationPushRequest](model)
-      Json.fromJson[NotificationPushRequest](data) must be()
-
-    }
-
   }
 }

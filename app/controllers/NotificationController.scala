@@ -17,11 +17,12 @@
 package controllers
 
 import exceptions.HttpStatusException
-import models.NotificationPushRequest
+import models.{NotificationPushRequest, NotificationRecord}
 import play.api.Logger
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
-import play.api.mvc.Action
+import play.api.mvc.{Action, Result}
+import repositories.NotificationRepository
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.Future
@@ -30,6 +31,8 @@ trait NotificationController extends BaseController {
 
   val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
   val prefix = "[NotificationController][post]"
+
+  private[controllers] def notificationRepository: NotificationRepository
 
   private def toError(errors: Seq[(JsPath, Seq[ValidationError])]): JsObject =
     Json.obj(
@@ -54,8 +57,24 @@ trait NotificationController extends BaseController {
         amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
           case Some(_) =>
             Json.fromJson[NotificationPushRequest](request.body) match {
-              case JsSuccess(body, _) =>
-               Future.successful(Ok)
+              case JsSuccess(body, _) => {
+                val record = NotificationRecord(amlsRegistrationNumber,
+                  body.name,
+                  body.email,
+                  body.status,
+                  body.contactType,
+                  body.contactNumber,
+                  body.variation
+                )
+                notificationRepository.insertRecord(record) map {
+                  response =>
+                  Ok(response)
+                } recoverWith {
+                  case e @ HttpStatusException(status, Some(body)) =>
+                    Logger.warn(s"$prefix - Status: ${status}, Message: $body")
+                    Future.failed(e)
+                }
+              }
               case JsError(errors) =>
                 Future.successful(BadRequest(toError(errors)))
             }
@@ -65,8 +84,10 @@ trait NotificationController extends BaseController {
             }
         }
     }
+
+
 }
 
 object NotificationController extends NotificationController {
-
+  override private[controllers] val notificationRepository = NotificationRepository()
 }

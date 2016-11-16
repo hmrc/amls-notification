@@ -16,21 +16,32 @@
 
 package controllers
 
+import connectors.ViewNotificationConnector
+import models.{ContactType, NotificationPushRequest}
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
+import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import repositories.NotificationRepository
 
-class NotificationControllerSpec extends PlaySpec with MockitoSugar {
+class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFutures {
 
-  object NotificationController extends NotificationController {
+  object TestNotificationController extends NotificationController {
+    override private[controllers] val notificationRepository = mock[NotificationRepository]
 
   }
 
   val request = FakeRequest()
     .withHeaders(CONTENT_TYPE -> "application/json")
 
+
   "NotificationController" must {
+
+    val amlsRegistrationNumber = "XAML00000567890"
+    val body = NotificationPushRequest ("name", "hh@test.com", None, Some(ContactType.ApplicationApproval), None, false)
+
 
     "save the api12 input push request into mongo repo successfully" in {
 
@@ -38,11 +49,11 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar {
 
     "return BadRequest, if input request fails validation" in {
 
-           /*val result = NotificationController.save("test", "test", "test")(request)(body)
+      val result = TestNotificationController.saveNotification("")(request)
       val failure = Json.obj("errors" -> Seq("Invalid SafeId"))
 
       status(result) must be(BAD_REQUEST)
-      contentAsJson(result) must be(failure)*/
+      contentAsJson(result) must be(failure)
 
     }
   }
