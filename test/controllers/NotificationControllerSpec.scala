@@ -16,46 +16,54 @@
 
 package controllers
 
-import akka.stream.Materializer
-import connectors.ViewNotificationConnector
-import models.{ContactType, NotificationPushRequest}
+import models.{NotificationRecord, ContactType, NotificationPushRequest}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.Json
+import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
+import play.api.libs.json.{JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repositories.NotificationRepository
 
-class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFutures {
+import scala.concurrent.Future
+
+class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFutures  with OneServerPerSuite{
 
   object TestNotificationController extends NotificationController {
-    override private[controllers] val notificationRepository = mock[NotificationRepository]
+    override private[controllers] val notificationRepository = NotificationRepository()
 
   }
-
-  val request = FakeRequest()
+  val body = NotificationPushRequest ("name", "hh@test.com", None, Some(ContactType.ApplicationApproval), None, false)
+  val request = FakeRequest("POST", "/")
     .withHeaders(CONTENT_TYPE -> "application/json")
+      .withBody[JsValue](Json.toJson(body))
 
 
   "NotificationController" must {
 
     val amlsRegistrationNumber = "XAML00000567890"
-    val body = NotificationPushRequest ("name", "hh@test.com", None, Some(ContactType.ApplicationApproval), None, false)
-
 
     "save the api12 input push request into mongo repo successfully" in {
+     // when(TestNotificationController.notificationRepository.insertRecord(any())).thenReturn(Future.successful(true))
 
+      TestNotificationController.notificationRepository.insertRecord(NotificationRecord(amlsRegistrationNumber,
+        "name",
+        "gg@gmail.com",
+        None, Some(ContactType.ApplicationApproval), None, false))
+
+      whenReady(TestNotificationController.saveNotification(amlsRegistrationNumber)(request)) {
+        result =>
+          result mustEqual true
+      }
     }
 
     "return BadRequest, if input request fails validation" in {
-      val mtrlzr = mock[Materializer]
-      val result = TestNotificationController.saveNotification("")(request)
+      val result = TestNotificationController.saveNotification("hhhh")(request)
       val failure = Json.obj("errors" -> Seq("Invalid SafeId"))
-      val gg = result.run()(mtrlzr)
+      val gg = result
 
       status(gg) must be(BAD_REQUEST)
+      println(contentAsString(gg))
       contentAsJson(gg) must be(failure)
 
     }

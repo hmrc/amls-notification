@@ -69,7 +69,7 @@ trait NotificationController extends BaseController {
                 )
                 notificationRepository.insertRecord(record) map {
                   response =>
-                  Ok
+                  Ok(Json.toJson(response))
                 } recoverWith {
                   case e @ HttpStatusException(status, Some(body)) =>
                     Logger.warn(s"$prefix - Status: ${status}, Message: $body")
