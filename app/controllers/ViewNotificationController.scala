@@ -40,7 +40,6 @@ trait ViewNotificationController extends BaseController {
     )
 
   def viewNotification(amlsRegistrationNumber: String, contactNumber: String) =
-
     Action.async {
       implicit request =>
         Logger.debug(s"$prefix - amlsRegNo: $amlsRegistrationNumber")
