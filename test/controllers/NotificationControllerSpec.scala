@@ -88,7 +88,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
       val request = FakeRequest()
         .withHeaders(CONTENT_TYPE -> "application/json")
         .withBody[JsValue](JsNull)
-      
+
       val response = Json.obj(
         "errors" -> Seq(
           Json.obj(
