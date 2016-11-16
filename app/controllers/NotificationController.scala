@@ -25,6 +25,7 @@ import play.api.mvc.{Action, Result}
 import repositories.NotificationRepository
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait NotificationController extends BaseController {
@@ -68,7 +69,7 @@ trait NotificationController extends BaseController {
                 )
                 notificationRepository.insertRecord(record) map {
                   response =>
-                  Ok(response)
+                  Ok
                 } recoverWith {
                   case e @ HttpStatusException(status, Some(body)) =>
                     Logger.warn(s"$prefix - Status: ${status}, Message: $body")

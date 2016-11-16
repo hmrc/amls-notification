@@ -16,11 +16,13 @@
 
 package controllers
 
+import akka.stream.Materializer
 import connectors.ViewNotificationConnector
 import models.{ContactType, NotificationPushRequest}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -48,12 +50,13 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
     }
 
     "return BadRequest, if input request fails validation" in {
-
+      val mtrlzr = mock[Materializer]
       val result = TestNotificationController.saveNotification("")(request)
       val failure = Json.obj("errors" -> Seq("Invalid SafeId"))
+      val gg = result.run()(mtrlzr)
 
-      status(result) must be(BAD_REQUEST)
-      contentAsJson(result) must be(failure)
+      status(gg) must be(BAD_REQUEST)
+      contentAsJson(gg) must be(failure)
 
     }
   }
