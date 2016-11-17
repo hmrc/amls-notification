@@ -32,7 +32,6 @@ case class NotificationRecord (amlsRegistrationNumber: String,
 
 object NotificationRecord {
 
-
   implicit val dateFormat = ReactiveMongoFormats.dateTimeFormats
 
   implicit val format = Json.format[NotificationRecord]

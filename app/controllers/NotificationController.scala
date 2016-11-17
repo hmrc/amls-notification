@@ -88,7 +88,26 @@ trait NotificationController extends BaseController {
         }
     }
 
-
+  def fetchNotifications(amlsRegistrationNumber: String) =
+    Action.async {
+      implicit request =>
+        Logger.debug(s"$prefix - amlsRegNo: $amlsRegistrationNumber")
+        amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
+          case Some(_) =>
+                notificationRepository.findByAmlsReference(amlsRegistrationNumber) map {
+                  response =>
+                    Ok(Json.toJson(response))
+                } recoverWith {
+                  case e @ HttpStatusException(status, Some(body)) =>
+                    Logger.warn(s"$prefix - Status: ${status}, Message: $body")
+                    Future.failed(e)
+                }
+          case _ =>
+            Future.successful {
+              BadRequest(toError("Invalid AMLS Registration Number"))
+            }
+        }
+    }
 }
 
 object NotificationController extends NotificationController {

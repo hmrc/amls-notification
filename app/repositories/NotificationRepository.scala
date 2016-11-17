@@ -18,6 +18,7 @@ package repositories
 
 import models.NotificationRecord
 import play.api.Logger
+import play.api.libs.json.Json
 import play.modules.reactivemongo.MongoDbConnection
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.api.DefaultDB
@@ -31,13 +32,14 @@ trait NotificationRepository extends Repository[NotificationRecord, BSONObjectID
 
   def insertRecord(notificationRequest: NotificationRecord):Future[Boolean]
 
+  def findByAmlsReference(amlsReferenceNumber: String):Future[Seq[NotificationRecord]]
 }
 
 class NotificationMongoRepository()(implicit mongo: () => DefaultDB)
   extends ReactiveRepository[NotificationRecord, BSONObjectID]("notification", mongo, NotificationRecord.format)
   with NotificationRepository{
 
-  collection.indexesManager.ensure(Index(Seq("amlsRegistrationNumber" -> IndexType.Ascending), name = Some("amlsRegistrationNumber"), unique = true))
+  collection.indexesManager.ensure(Index(Seq("amlsRegistrationNumber" -> IndexType.Ascending), name = Some("amlsRegistrationNumber"), unique = false))
 
   override def insertRecord(notificationRequest: NotificationRecord):Future[Boolean] = {
     collection.insert(notificationRequest) map { lastError =>
@@ -45,6 +47,11 @@ class NotificationMongoRepository()(implicit mongo: () => DefaultDB)
         s" , result: ${lastError.ok}, errors: ${lastError.errmsg} }")
       lastError.ok
     }
+  }
+
+  override def findByAmlsReference(amlsReferenceNumber: String) = {
+    collection.find(Json.obj("amlsRegistrationNumber" -> amlsReferenceNumber)).
+      sort(Json.obj("receivedAt" -> -1)).cursor[NotificationRecord]().collect[List]()
   }
 }
 

@@ -21,19 +21,21 @@ import models.{NotificationRecord, ContactType, NotificationPushRequest}
 import org.joda.time.{DateTimeZone, DateTime}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
+import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.libs.json.{JsNull, JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import org.mockito.Mockito._
 import org.mockito.Matchers.{eq => eqTo, _}
 import repositories.NotificationRepository
-import scala.concurrent.Future
 
-class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFutures {
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+
+class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFutures with OneServerPerSuite {
 
   object TestNotificationController extends NotificationController {
-    override private[controllers] val notificationRepository = mock[NotificationRepository]
+    override private[controllers] val notificationRepository = NotificationRepository()
 
   }
 
@@ -49,11 +51,11 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
 
     "save the input notificationPushRequest into mongo repo successfully" in {
 
-      when(TestNotificationController.notificationRepository.insertRecord(any())).thenReturn(Future.successful(true))
+      //when(TestNotificationController.notificationRepository.insertRecord(any())).thenReturn(Future.successful(true))
 
       TestNotificationController.notificationRepository.insertRecord(NotificationRecord(amlsRegistrationNumber,
-        "name",
-        "gg@gmail.com",
+        "name1",
+        "gg1@gmail.com",
         None, Some(ContactType.ApplicationApproval), None, false, DateTime.now(DateTimeZone.UTC)))
 
       val result = TestNotificationController.saveNotification(amlsRegistrationNumber)(request)
@@ -110,6 +112,22 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
       status(result) mustEqual BAD_REQUEST
       contentAsJson(result) mustEqual response
     }
-  }
 
+    "return all the matching notifications form repository" when {
+      "valid amlsRegistration number is passed" in {
+        val request = FakeRequest()
+          .withHeaders(CONTENT_TYPE -> "application/json")
+
+        TestNotificationController.notificationRepository.findByAmlsReference(amlsRegistrationNumber) map {
+          result =>
+            println("pppppppppppppppppppppp====="+result.size)
+            result.size must be(8)
+        }
+
+        val result = TestNotificationController.fetchNotifications(amlsRegistrationNumber)(request)
+        status(result) must be(OK)
+        contentAsJson(result) must be(Json.toJson(true))
+      }
+    }
+  }
 }
