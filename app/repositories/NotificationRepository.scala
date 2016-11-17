@@ -26,24 +26,30 @@ import uk.gov.hmrc.mongo.{ReactiveRepository, Repository}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.Try
 
 trait NotificationRepository extends Repository[NotificationRecord, BSONObjectID] {
 
   def insertRecord(notificationRequest: NotificationRecord):Future[Boolean]
-
+  def findById(idString : String ) : Future[Option[NotificationRecord]]
 }
 
 class NotificationMongoRepository()(implicit mongo: () => DefaultDB)
   extends ReactiveRepository[NotificationRecord, BSONObjectID]("notification", mongo, NotificationRecord.format)
   with NotificationRepository{
 
-  collection.indexesManager.ensure(Index(Seq("amlsRegistrationNumber" -> IndexType.Ascending), name = Some("amlsRegistrationNumber"), unique = true))
-
   override def insertRecord(notificationRequest: NotificationRecord):Future[Boolean] = {
     collection.insert(notificationRequest) map { lastError =>
       Logger.debug(s"[NotificationMongoRepository][insert] : { NotificationRequest : $notificationRequest , result: ${lastError.ok}, errors: ${lastError.errmsg} }")
       lastError.ok
     }
+  }
+
+  def findById(idString : String) : Future[Option[NotificationRecord]] = {
+    Try {BSONObjectID(idString)}
+      .map { id:BSONObjectID => findById(id) }
+      .recover {case _:IllegalArgumentException => Future.successful(None)}
+      .get
   }
 }
 

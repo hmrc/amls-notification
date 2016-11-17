@@ -17,47 +17,45 @@
 package controllers
 
 import connectors.{DESConnector, ViewNotificationConnector}
-import exceptions.HttpStatusException
+import models.fe.NotificationDetails
 import play.api.Logger
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Action
+import repositories.NotificationRepository
 import uk.gov.hmrc.play.microservice.controller.BaseController
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait ViewNotificationController extends BaseController {
 
   private[controllers] def connector: ViewNotificationConnector  // $COVERAGE-OFF$
+  private[controllers] def repo: NotificationRepository
 
 
   val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
-  val prefix = "[ViewNotificationController][get]"
+  val prefix = "[ViewNotificationController]"
 
   private def toError(message: String): JsObject =
     Json.obj(
       "errors" -> Seq(message)
     )
 
-  def viewNotification(amlsRegistrationNumber: String, contactNumber: String) =
+  def viewNotification(amlsRegistrationNumber: String, notificationId: String) =
     Action.async {
       implicit request =>
-        Logger.debug(s"$prefix - amlsRegNo: $amlsRegistrationNumber")
-        amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
-          case Some(_) =>
-            connector.getNotification(amlsRegistrationNumber, contactNumber) map {
-              response =>
-                Ok(Json.toJson(response))
-            } recoverWith {
-              case e@HttpStatusException(status, Some(body)) =>
-                Logger.warn(s"$prefix - Status: ${status}, Message: $body")
-                Future.failed(e)
-            }
+        Logger.debug(s"$prefix[viewNotification] - amlsRegNo: $amlsRegistrationNumber - notificationId: $notificationId")
 
-          case _ =>
-            Future.successful {
-              BadRequest(toError("Invalid AMLS Registration Number"))
+        repo.findById(notificationId) flatMap {
+          case Some(record) => record.contactNumber.fold (???) {contactNumber =>
+            connector.getNotification(amlsRegistrationNumber, contactNumber) map { detail =>
+              Ok(Json.toJson(NotificationDetails(
+                                record.contactType,
+                                record.status flatMap {_.status},
+                                record.status flatMap {_.statusReason},
+                                detail.secureCommText)))
             }
+          }
+          case None => Future.successful(NotFound)
         }
     }
 }
@@ -65,4 +63,5 @@ trait ViewNotificationController extends BaseController {
 object ViewNotificationController extends ViewNotificationController{
   // $COVERAGE-OFF$
   override private[controllers] val connector = DESConnector
+  override private[controllers] val repo = NotificationRepository()
 }

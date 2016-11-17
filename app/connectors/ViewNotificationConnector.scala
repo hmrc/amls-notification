@@ -68,7 +68,5 @@ trait ViewNotificationConnector extends DESConnector {
         Logger.warn(s"$prefix - Failure: Exception", e)
         Future.failed(HttpStatusException(INTERNAL_SERVER_ERROR, Some(e.getMessage)))
     }
-
   }
-
 }

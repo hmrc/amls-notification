@@ -16,10 +16,10 @@
 
 package models.fe
 
-import models.ContactType
+import models.{StatusType, StatusReason, ContactType}
 import play.api.libs.json.Json
 
-case class NotificationDetails(contactType : ContactType, messageText : String )
+case class NotificationDetails(contactType : Option[ContactType], status : Option[StatusType], statusReason : Option[StatusReason], messageText : String )
 
 object NotificationDetails {
   implicit val writes = Json.writes[NotificationDetails]

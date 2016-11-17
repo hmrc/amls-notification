@@ -86,8 +86,6 @@ class ViewNotificationConnectorSpec
         responseJson = Some(Json.toJson(successModel))
       )
 
-      println(s"****** HELLLLLOOOOOOOO")
-      println(s"****** $url")
       when {
         testConnector.httpGet.GET[HttpResponse](eqTo(url))(any(), any())
       } thenReturn Future.successful(response)
