@@ -14,28 +14,26 @@
  * limitations under the License.
  */
 
-package models
+package repositories
 
+import models.{ContactType, Status}
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 import reactivemongo.bson.BSONObjectID
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
-case class NotificationRecord (amlsRegistrationNumber: String,
-                               name: String,
-                               email: String,
-                               status: Option[Status],
-                               contactType: Option[ContactType],
-                               contactNumber: Option[String],
-                               variation: Boolean,
-                               receivedAt: DateTime,
-                               id: BSONObjectID = BSONObjectID.generate
-                              )
+case class NotificationRow (
+                             status: Option[Status],
+                             contactType: Option[ContactType],
+                             contactNumber: Option[String],
+                             variation: Boolean,
+                             receivedAt: DateTime,
+                             id: BSONObjectID
+                           )
 
-object NotificationRecord {
+object NotificationRow {
 
   implicit val dateFormat = ReactiveMongoFormats.dateTimeFormats
   implicit val bsonFormat = ReactiveMongoFormats.objectIdFormats
-
-  implicit val format = Json.format[NotificationRecord]
+  implicit val format = Json.format[NotificationRow]
 }

@@ -17,7 +17,7 @@
 package controllers
 
 import exceptions.HttpStatusException
-import models.{NotificationRecord, ContactType, NotificationPushRequest}
+import models._
 import org.joda.time.{DateTimeZone, DateTime}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
@@ -27,22 +27,24 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import org.mockito.Mockito._
 import org.mockito.Matchers.{eq => eqTo, _}
-import repositories.NotificationRepository
+import reactivemongo.bson.BSONObjectID
+import repositories.{NotificationRow, NotificationRepository}
 
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFutures with OneServerPerSuite {
 
   object TestNotificationController extends NotificationController {
-    override private[controllers] val notificationRepository = NotificationRepository()
-
+    override private[controllers] val notificationRepository = mock[NotificationRepository]
   }
 
   val body = NotificationPushRequest("name", "hh@test.com", None, Some(ContactType.ApplicationApproval), None, false)
-  val request = FakeRequest("POST", "/")
+  val postRequest = FakeRequest("POST", "/")
     .withHeaders(CONTENT_TYPE -> "application/json")
     .withBody[JsValue](Json.toJson(body))
+
+  val getRequest = FakeRequest()
+    .withHeaders(CONTENT_TYPE -> "application/json")
 
 
   "NotificationController" must {
@@ -51,21 +53,15 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
 
     "save the input notificationPushRequest into mongo repo successfully" in {
 
-      //when(TestNotificationController.notificationRepository.insertRecord(any())).thenReturn(Future.successful(true))
+      when(TestNotificationController.notificationRepository.insertRecord(any())).thenReturn(Future.successful(true))
 
-      TestNotificationController.notificationRepository.insertRecord(NotificationRecord(amlsRegistrationNumber,
-        "name1",
-        "gg1@gmail.com",
-        None, Some(ContactType.ApplicationApproval), None, false, DateTime.now(DateTimeZone.UTC)))
-
-      val result = TestNotificationController.saveNotification(amlsRegistrationNumber)(request)
+      val result = TestNotificationController.saveNotification(amlsRegistrationNumber)(postRequest)
       status(result) must be(OK)
       contentAsJson(result) must be(Json.toJson(true))
     }
 
-
     "return BadRequest, if input request fails validation" in {
-      val result = TestNotificationController.saveNotification("hhhh")(request)
+      val result = TestNotificationController.saveNotification("hhhh")(postRequest)
       val failure = Json.obj("errors" -> Seq("Invalid AMLS Registration Number"))
 
       status(result) must be(BAD_REQUEST)
@@ -79,7 +75,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
         TestNotificationController.notificationRepository.insertRecord(any())
       } thenReturn Future.failed(new HttpStatusException(INTERNAL_SERVER_ERROR, Some("message")))
 
-      whenReady(TestNotificationController.saveNotification(amlsRegistrationNumber)(request).failed) {
+      whenReady(TestNotificationController.saveNotification(amlsRegistrationNumber)(postRequest).failed) {
         case HttpStatusException(status, body) =>
           status mustEqual INTERNAL_SERVER_ERROR
           body mustEqual Some("message")
@@ -113,20 +109,42 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
       contentAsJson(result) mustEqual response
     }
 
+    "return BadRequest, if input request fails validation of mongo fetch" in {
+      val result = TestNotificationController.fetchNotifications("hhhh")(getRequest)
+      val failure = Json.obj("errors" -> Seq("Invalid AMLS Registration Number"))
+
+      status(result) must be(BAD_REQUEST)
+      contentAsJson(result) must be(failure)
+
+    }
+
+
+    "return an invalid response when fetch query fails" in {
+
+      when {
+        TestNotificationController.notificationRepository.findByAmlsReference(any())
+      } thenReturn Future.failed(new HttpStatusException(INTERNAL_SERVER_ERROR, Some("message")))
+
+      whenReady(TestNotificationController.fetchNotifications(amlsRegistrationNumber)(getRequest).failed) {
+        case HttpStatusException(status, body) =>
+          status mustEqual INTERNAL_SERVER_ERROR
+          body mustEqual Some("message")
+      }
+    }
+
     "return all the matching notifications form repository" when {
       "valid amlsRegistration number is passed" in {
-        val request = FakeRequest()
-          .withHeaders(CONTENT_TYPE -> "application/json")
 
-        TestNotificationController.notificationRepository.findByAmlsReference(amlsRegistrationNumber) map {
-          result =>
-            println("pppppppppppppppppppppp====="+result.size)
-            result.size must be(8)
-        }
+        val notificationRecord = NotificationRow (
+          Some(Status(Some(StatusType.Revoked),
+            Some(RevokedReason.RevokedCeasedTrading))),
+          Some(ContactType.MindedToRevoke), None, false, DateTime.now(DateTimeZone.UTC), BSONObjectID.generate)
 
-        val result = TestNotificationController.fetchNotifications(amlsRegistrationNumber)(request)
+        when(TestNotificationController.notificationRepository.findByAmlsReference(any())).thenReturn(Future.successful(Seq(notificationRecord)))
+
+        val result = TestNotificationController.fetchNotifications(amlsRegistrationNumber)(getRequest)
         status(result) must be(OK)
-        contentAsJson(result) must be(Json.toJson(true))
+        contentAsJson(result) must be(Json.toJson(Seq(notificationRecord)))
       }
     }
   }

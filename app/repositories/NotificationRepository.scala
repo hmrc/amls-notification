@@ -32,7 +32,7 @@ trait NotificationRepository extends Repository[NotificationRecord, BSONObjectID
 
   def insertRecord(notificationRequest: NotificationRecord):Future[Boolean]
 
-  def findByAmlsReference(amlsReferenceNumber: String):Future[Seq[NotificationRecord]]
+  def findByAmlsReference(amlsReferenceNumber: String):Future[Seq[NotificationRow]]
 }
 
 class NotificationMongoRepository()(implicit mongo: () => DefaultDB)
@@ -51,7 +51,7 @@ class NotificationMongoRepository()(implicit mongo: () => DefaultDB)
 
   override def findByAmlsReference(amlsReferenceNumber: String) = {
     collection.find(Json.obj("amlsRegistrationNumber" -> amlsReferenceNumber)).
-      sort(Json.obj("receivedAt" -> -1)).cursor[NotificationRecord]().collect[List]()
+      sort(Json.obj("receivedAt" -> -1)).cursor[NotificationRow]().collect[Seq]()
   }
 }
 
