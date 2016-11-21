@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package repositories
+package models
 
-import models.{ContactType, Status}
 import org.joda.time.DateTime
 import play.api.libs.json._
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -40,14 +39,14 @@ case class IDType(id: String)
 
 object IDType {
   implicit val bsonRead: Reads[IDType] =
-    (__ \ "$oid").read[String].map { dateTime =>
-      new IDType(dateTime)
+    (__ \ "$oid").read[String].map { bsonId =>
+      new IDType(bsonId)
     }
 
 
   implicit val bsonReadWrite: Writes[IDType] = new Writes[IDType] {
-    def writes(dateTime: IDType): JsValue = Json.obj(
-      "$oid" -> dateTime.id
+    def writes(bsonId: IDType): JsValue = Json.obj(
+      "$oid" -> bsonId.id
     )
   }
 }

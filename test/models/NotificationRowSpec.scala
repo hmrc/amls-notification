@@ -20,7 +20,6 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.{Json, JsSuccess}
 import reactivemongo.bson.BSONObjectID
-import repositories.{IDType, NotificationRow}
 
 class NotificationRowSpec extends PlaySpec {
 
