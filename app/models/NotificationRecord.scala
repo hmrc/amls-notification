@@ -29,7 +29,7 @@ case class NotificationRecord (amlsRegistrationNumber: String,
                                contactNumber: Option[String],
                                variation: Boolean,
                                receivedAt: DateTime,
-                               id: BSONObjectID = BSONObjectID.generate
+                               _id: BSONObjectID = BSONObjectID.generate
                               )
 
 object NotificationRecord {
