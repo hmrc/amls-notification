@@ -18,23 +18,27 @@ package models
 
 import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatestplus.play.PlaySpec
-import play.api.libs.json.JsSuccess
+import play.api.libs.json.{Json, JsSuccess}
 import reactivemongo.bson.BSONObjectID
-import repositories.NotificationRow
+import repositories.{IDType, NotificationRow}
 
 class NotificationRowSpec extends PlaySpec {
 
   "NotificationRow" must {
     "read and write json successfully"  in {
-
+        val id = BSONObjectID.generate
       val model = NotificationRow(
         Some(Status(Some(StatusType.Revoked),
           Some(RevokedReason.RevokedCeasedTrading))),
-        Some(ContactType.MindedToRevoke), None, false, DateTime.now(DateTimeZone.UTC), BSONObjectID.generate)
+        Some(ContactType.MindedToRevoke), None, false, new DateTime(1479730062573L, DateTimeZone.UTC), new IDType("5832e38e01000001005ca3ff"))
 
-      NotificationRow.format.reads(NotificationRow.format.writes(model)) must be(JsSuccess(model))
+      val json = Json.parse(
+        """
+          |{"status":{"status_type":"08","status_reason":"02"},"contactType":"MTRV","variation":false,"receivedAt":{"$date":1479730062573},"_id":{"$oid":"5832e38e01000001005ca3ff"}}
+          |
+        """.stripMargin)
+
+      NotificationRow.format.reads(json) must be(JsSuccess(model))
     }
-
   }
-
 }

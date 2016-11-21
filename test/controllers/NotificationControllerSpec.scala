@@ -28,7 +28,7 @@ import play.api.test.Helpers._
 import org.mockito.Mockito._
 import org.mockito.Matchers.{eq => eqTo, _}
 import reactivemongo.bson.BSONObjectID
-import repositories.{NotificationRow, NotificationRepository}
+import repositories.{IDType, NotificationRow, NotificationRepository}
 
 import scala.concurrent.Future
 
@@ -135,10 +135,11 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
     "return all the matching notifications form repository" when {
       "valid amlsRegistration number is passed" in {
 
+        val id = BSONObjectID.generate
         val notificationRecord = NotificationRow (
           Some(Status(Some(StatusType.Revoked),
             Some(RevokedReason.RevokedCeasedTrading))),
-          Some(ContactType.MindedToRevoke), None, false, DateTime.now(DateTimeZone.UTC), BSONObjectID.generate)
+          Some(ContactType.MindedToRevoke), None, false, DateTime.now(DateTimeZone.UTC), new IDType("5832e38e01000001005ca3ff"))
 
         when(TestNotificationController.notificationRepository.findByAmlsReference(any())).thenReturn(Future.successful(Seq(notificationRecord)))
 

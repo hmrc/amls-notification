@@ -18,8 +18,7 @@ package repositories
 
 import models.{ContactType, Status}
 import org.joda.time.DateTime
-import play.api.libs.json.Json
-import reactivemongo.bson.BSONObjectID
+import play.api.libs.json._
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 case class NotificationRow (
@@ -28,12 +27,27 @@ case class NotificationRow (
                              contactNumber: Option[String],
                              variation: Boolean,
                              receivedAt: DateTime,
-                             id: BSONObjectID
+                             _id: IDType
                            )
 
 object NotificationRow {
 
   implicit val dateFormat = ReactiveMongoFormats.dateTimeFormats
-  implicit val bsonFormat = ReactiveMongoFormats.objectIdFormats
   implicit val format = Json.format[NotificationRow]
+}
+
+case class IDType(id: String)
+
+object IDType {
+  implicit val bsonRead: Reads[IDType] =
+    (__ \ "$oid").read[String].map { dateTime =>
+      new IDType(dateTime)
+    }
+
+
+  implicit val bsonReadWrite: Writes[IDType] = new Writes[IDType] {
+    def writes(dateTime: IDType): JsValue = Json.obj(
+      "$oid" -> dateTime.id
+    )
+  }
 }
