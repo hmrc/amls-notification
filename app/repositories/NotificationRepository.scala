@@ -49,20 +49,6 @@ class NotificationMongoRepository()(implicit mongo: () => DefaultDB)
     }
   }
 
-  def convertToRow(record: NotificationRecord): NotificationRow = {
-    NotificationRow(record.status,
-      record.contactType,
-      record.contactNumber,
-      record.variation,
-      record.receivedAt,
-      new IDType(record._id.toString()))
-
-  }
-
-  def covertToRows(records: Seq[NotificationRecord]): Seq[NotificationRow] = {
-    records.map(convertToRow)
-  }
-
   override def findByAmlsReference(amlsReferenceNumber: String) = {
     collection.find(Json.obj("amlsRegistrationNumber" -> amlsReferenceNumber)).
       sort(Json.obj("receivedAt" -> -1)).cursor[NotificationRow]().collect[Seq]()
