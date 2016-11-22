@@ -34,11 +34,11 @@ import scala.concurrent.Future
 class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFutures with OneServerPerSuite {
 
   object TestNotificationController extends NotificationController {
-    override private[controllers] val notificationRepository = mock[NotificationRepository]
+    override private[controllers] val notificationRepository = NotificationRepository()
   }
 
   val body = NotificationPushRequest("name", "hh@test.com",
-    Some(Status(Some(StatusType.DeRegistered), Some(DeregisteredReason.CeasedTrading))), Some(ContactType.ApplicationApproval), None, false)
+    Some(Status(Some(StatusType.DeRegistered), Some(DeregisteredReason.CeasedTrading))), Some(ContactType.ReminderToPayForApplication), None, false)
 
   val postRequest = FakeRequest("POST", "/")
     .withHeaders(CONTENT_TYPE -> "application/json")
@@ -54,7 +54,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
 
     "save the input notificationPushRequest into mongo repo successfully" in {
 
-      when(TestNotificationController.notificationRepository.insertRecord(any())).thenReturn(Future.successful(true))
+      //when(TestNotificationController.notificationRepository.insertRecord(any())).thenReturn(Future.successful(true))
 
       val result = TestNotificationController.saveNotification(amlsRegistrationNumber)(postRequest)
       status(result) must be(OK)
