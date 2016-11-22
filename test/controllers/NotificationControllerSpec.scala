@@ -38,7 +38,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
   }
 
   val body = NotificationPushRequest("name", "hh@test.com",
-    Some(Status(Some(StatusType.DeRegistered), Some(DeregisteredReason.CeasedTrading))), Some(ContactType.ApplicationApproval), None, false)
+    Some(Status(Some(StatusType.DeRegistered), Some(DeregisteredReason.CeasedTrading))), Some(ContactType.ReminderToPayForApplication), None, false)
 
   val postRequest = FakeRequest("POST", "/")
     .withHeaders(CONTENT_TYPE -> "application/json")
