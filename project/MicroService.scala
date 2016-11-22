@@ -1,4 +1,4 @@
-import scoverage.ScoverageSbtPlugin._
+
 import sbt.Keys._
 import sbt.Tests.{SubProcess, Group}
 import sbt._
@@ -25,6 +25,7 @@ trait MicroService {
   lazy val playSettings : Seq[Setting[_]] = Seq.empty
 
   lazy val scoverageSettings = {
+    import scoverage.ScoverageKeys
     Seq(
       ScoverageKeys.coverageExcludedPackages := "<empty>;Reverse.*;.*AuthService.*;models/.data/..*;view.*;config.*;app;prod;testOnlyDoNotUseInAppConf;uk.gov.hmrc.BuildInfo;repositories.*",
       ScoverageKeys.coverageMinimum := 100,

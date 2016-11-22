@@ -27,7 +27,6 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import org.mockito.Mockito._
 import org.mockito.Matchers.{eq => eqTo, _}
-import reactivemongo.bson.BSONObjectID
 import repositories.NotificationRepository
 
 import scala.concurrent.Future
@@ -39,7 +38,8 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
   }
 
   val body = NotificationPushRequest("name", "hh@test.com",
-    Some(Status(Some(StatusType.Rejected), Some(RejectedReason.FailedToPayCharges))), Some(ContactType.ApplicationApproval), None, false)
+    Some(Status(Some(StatusType.DeRegistered), Some(DeregisteredReason.CeasedTrading))), Some(ContactType.ApplicationApproval), None, false)
+
   val postRequest = FakeRequest("POST", "/")
     .withHeaders(CONTENT_TYPE -> "application/json")
     .withBody[JsValue](Json.toJson(body))
@@ -50,7 +50,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
 
   "NotificationController" must {
 
-    val amlsRegistrationNumber = "XBML00000567890"
+    val amlsRegistrationNumber = "XAML00000567890"
 
     "save the input notificationPushRequest into mongo repo successfully" in {
 
@@ -136,7 +136,6 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
     "return all the matching notifications form repository" when {
       "valid amlsRegistration number is passed" in {
 
-        val id = BSONObjectID.generate
         val notificationRecord = NotificationRow (
           Some(Status(Some(StatusType.Revoked),
             Some(RevokedReason.RevokedCeasedTrading))),

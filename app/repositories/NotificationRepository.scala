@@ -16,13 +16,13 @@
 
 package repositories
 
-import models.{IDType, NotificationRecord, NotificationRow}
+import models.{NotificationRow, NotificationRecord}
 import play.api.Logger
 import play.api.libs.json.Json
 import play.modules.reactivemongo.MongoDbConnection
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.api.DefaultDB
-import reactivemongo.bson.BSONObjectID
+import reactivemongo.bson.{BSONDocument, BSONObjectID}
 import uk.gov.hmrc.mongo.{ReactiveRepository, Repository}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -39,7 +39,13 @@ class NotificationMongoRepository()(implicit mongo: () => DefaultDB)
   extends ReactiveRepository[NotificationRecord, BSONObjectID]("notification", mongo, NotificationRecord.format)
   with NotificationRepository{
 
-  collection.indexesManager.ensure(Index(Seq("amlsRegistrationNumber" -> IndexType.Ascending), name = Some("amlsRegistrationNumber"), unique = false))
+  override def indexes: Seq[Index] = {
+    import reactivemongo.bson.DefaultBSONHandlers._
+
+    Seq(Index(Seq("receivedAt" -> IndexType.Ascending)))
+
+
+  }
 
   override def insertRecord(notificationRequest: NotificationRecord):Future[Boolean] = {
     collection.insert(notificationRequest) map { lastError =>
@@ -48,20 +54,6 @@ class NotificationMongoRepository()(implicit mongo: () => DefaultDB)
       lastError.ok
     }
   }
-
-//  def convertToRow(record: NotificationRecord): NotificationRow = {
-//    NotificationRow(record.status,
-//      record.contactType,
-//      record.contactNumber,
-//      record.variation,
-//      record.receivedAt
-////      new IDType(record._id.toString()))
-//
-//  }
-
-//  def covertToRows(records: Seq[NotificationRecord]): Seq[NotificationRow] = {
-//    records.map(convertToRow)
-//  }
 
   override def findByAmlsReference(amlsReferenceNumber: String) = {
     collection.find(Json.obj("amlsRegistrationNumber" -> amlsReferenceNumber)).
