@@ -40,7 +40,8 @@ class NotificationMongoRepository()(implicit mongo: () => DefaultDB)
 
   override def insertRecord(notificationRequest: NotificationRecord):Future[Boolean] = {
     collection.insert(notificationRequest) map { lastError =>
-      Logger.debug(s"[NotificationMongoRepository][insert] : { NotificationRequest : $notificationRequest , result: ${lastError.ok}, errors: ${lastError.errmsg} }")
+      Logger.debug(s"[NotificationMongoRepository][insert] : { NotificationRequest : $notificationRequest" +
+        s" , result: ${lastError.ok}, errors: ${lastError.errmsg} }")
       lastError.ok
     }
   }
@@ -59,3 +60,4 @@ object NotificationRepository extends MongoDbConnection {
 
   def apply(): NotificationMongoRepository = notificationRepository
 }
+
