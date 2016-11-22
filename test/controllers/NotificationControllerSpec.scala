@@ -28,7 +28,7 @@ import play.api.test.Helpers._
 import org.mockito.Mockito._
 import org.mockito.Matchers.{eq => eqTo, _}
 import reactivemongo.bson.BSONObjectID
-import repositories.{IDType, NotificationRow, NotificationRepository}
+import repositories.NotificationRepository
 
 import scala.concurrent.Future
 
@@ -38,7 +38,8 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
     override private[controllers] val notificationRepository = mock[NotificationRepository]
   }
 
-  val body = NotificationPushRequest("name", "hh@test.com", None, Some(ContactType.ApplicationApproval), None, false)
+  val body = NotificationPushRequest("name", "hh@test.com",
+    Some(Status(Some(StatusType.Rejected), Some(RejectedReason.FailedToPayCharges))), Some(ContactType.ApplicationApproval), None, false)
   val postRequest = FakeRequest("POST", "/")
     .withHeaders(CONTENT_TYPE -> "application/json")
     .withBody[JsValue](Json.toJson(body))
@@ -49,7 +50,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
 
   "NotificationController" must {
 
-    val amlsRegistrationNumber = "XAML00000567890"
+    val amlsRegistrationNumber = "XBML00000567890"
 
     "save the input notificationPushRequest into mongo repo successfully" in {
 

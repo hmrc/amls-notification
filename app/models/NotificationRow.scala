@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package repositories
+package models
 
-import models.{ContactType, Status}
 import org.joda.time.DateTime
 import play.api.libs.json._
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats

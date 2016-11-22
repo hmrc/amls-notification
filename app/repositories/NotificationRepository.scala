@@ -16,7 +16,7 @@
 
 package repositories
 
-import models.NotificationRecord
+import models.{IDType, NotificationRecord, NotificationRow}
 import play.api.Logger
 import play.api.libs.json.Json
 import play.modules.reactivemongo.MongoDbConnection
@@ -49,19 +49,19 @@ class NotificationMongoRepository()(implicit mongo: () => DefaultDB)
     }
   }
 
-  def convertToRow(record: NotificationRecord): NotificationRow = {
-    NotificationRow(record.status,
-      record.contactType,
-      record.contactNumber,
-      record.variation,
-      record.receivedAt,
-      new IDType(record._id.toString()))
+//  def convertToRow(record: NotificationRecord): NotificationRow = {
+//    NotificationRow(record.status,
+//      record.contactType,
+//      record.contactNumber,
+//      record.variation,
+//      record.receivedAt
+////      new IDType(record._id.toString()))
+//
+//  }
 
-  }
-
-  def covertToRows(records: Seq[NotificationRecord]): Seq[NotificationRow] = {
-    records.map(convertToRow)
-  }
+//  def covertToRows(records: Seq[NotificationRecord]): Seq[NotificationRow] = {
+//    records.map(convertToRow)
+//  }
 
   override def findByAmlsReference(amlsReferenceNumber: String) = {
     collection.find(Json.obj("amlsRegistrationNumber" -> amlsReferenceNumber)).

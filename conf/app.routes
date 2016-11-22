@@ -1,3 +1,5 @@
 # microservice specific routes
 
-GET       /secure-comms/reg-number/:amlsRegistrationNumber/contact-number/:contactNumber      controllers.ViewNotificationController.viewNotification(amlsRegistrationNumber:String, contactNumber:String)
+GET       /reg-number/:amlsRegistrationNumber/contact-number/:contactNumber      controllers.ViewNotificationController.viewNotification(amlsRegistrationNumber:String, contactNumber:String)
+
+GET       /reg-number/:amlsRegistrationNumber                                    controllers.NotificationController.fetchNotifications(amlsRegistrationNumber:String)

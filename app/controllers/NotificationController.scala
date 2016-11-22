@@ -71,9 +71,9 @@ trait NotificationController extends BaseController {
                 )
                 notificationRepository.insertRecord(record) map {
                   response =>
-                  Ok(Json.toJson(response))
+                    Ok(Json.toJson(response))
                 } recoverWith {
-                  case e @ HttpStatusException(status, Some(body)) =>
+                  case e@HttpStatusException(status, Some(body)) =>
                     Logger.warn(s"$prefix - Status: ${status}, Message: $body")
                     Future.failed(e)
                 }
@@ -94,14 +94,15 @@ trait NotificationController extends BaseController {
         Logger.debug(s"$prefix - amlsRegNo: $amlsRegistrationNumber")
         amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
           case Some(_) =>
-                notificationRepository.findByAmlsReference(amlsRegistrationNumber) map {
-                  response =>
-                    Ok(Json.toJson(response))
-                } recoverWith {
-                  case e @ HttpStatusException(status, Some(body)) =>
-                    Logger.warn(s"$prefix - Status: ${status}, Message: $body")
-                    Future.failed(e)
-                }
+            notificationRepository.findByAmlsReference(amlsRegistrationNumber) map {
+              response =>
+                Logger.debug(s"$prefix - Response: ${Json.toJson(response)}")
+                Ok(Json.toJson(response))
+            } recoverWith {
+              case e@HttpStatusException(status, Some(body)) =>
+                Logger.warn(s"$prefix - Status: ${status}, Message: $body")
+                Future.failed(e)
+            }
           case _ =>
             Future.successful {
               BadRequest(toError("Invalid AMLS Registration Number"))
