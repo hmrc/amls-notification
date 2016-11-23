@@ -88,7 +88,7 @@ trait NotificationController extends BaseController {
         }
     }
 
-  def fetchNotifications(amlsRegistrationNumber: String) =
+  def fetchNotifications(accountType:String, ref:String, amlsRegistrationNumber: String) =
     Action.async {
       implicit request =>
         Logger.debug(s"$prefix - amlsRegNo: $amlsRegistrationNumber")
