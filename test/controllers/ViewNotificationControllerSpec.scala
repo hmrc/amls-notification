@@ -21,6 +21,7 @@ import exceptions.HttpStatusException
 import models._
 import org.joda.time.LocalDateTime
 import org.scalatest.mock.MockitoSugar
+import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
@@ -33,8 +34,10 @@ import repositories.NotificationRepository
 import scala.concurrent.Future
 import org.joda.time.DateTime
 import scala.concurrent.ExecutionContext.Implicits.global
+import org.scalacheck.Gen
 
-class ViewNotificationControllerSpec extends PlaySpec
+
+class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenPropertyChecks
   with ScalaFutures
   with MockitoSugar {
 
@@ -48,12 +51,65 @@ class ViewNotificationControllerSpec extends PlaySpec
   val request = FakeRequest()
     .withHeaders(CONTENT_TYPE -> "application/json")
 
+  object DataGen {
+    val statusGen = for {
+      statusType <- Gen.option(Gen.oneOf(StatusType.Approved,
+        StatusType.Rejected,
+        StatusType.Revoked,
+        StatusType.DeRegistered,
+        StatusType.Expired))
+      statusReason <- Gen.option(Gen.oneOf(RejectedReason.NonCompliant, RejectedReason.FailedToRespond, RejectedReason.FailedToPayCharges,
+        RejectedReason.FitAndProperFailure, RejectedReason.OtherFailed, RejectedReason.OtherRefused,
+        RevokedReason.RevokedMissingTrader, RevokedReason.RevokedCeasedTrading, RevokedReason.RevokedNonCompliant,
+        RevokedReason.RevokedFitAndProperFailure, RevokedReason.RevokedFailedToPayCharges,
+        RevokedReason.RevokedFailedToRespond, RevokedReason.RevokedOther,
+        DeregisteredReason.CeasedTrading, DeregisteredReason.HVDNoCashPayment, DeregisteredReason.OutOfScope,
+        DeregisteredReason.NotTrading, DeregisteredReason.UnderAnotherSupervisor, DeregisteredReason.ChangeOfLegalEntity,
+        DeregisteredReason.Other
+      ))
+    } yield Status(statusType, statusReason)
+
+    val contactTypeGen = Gen.oneOf(ContactType.RejectionReasons,
+      ContactType.RevocationReasons,
+      ContactType.MindedToReject,
+      ContactType.NoLongerMindedToReject,
+      ContactType.MindedToRevoke,
+      ContactType.NoLongerMindedToRevoke,
+      ContactType.Others,
+      ContactType.ApplicationApproval,
+      ContactType.RenewalApproval,
+      ContactType.AutoExpiryOfRegistration,
+      ContactType.RenewalReminder,
+      ContactType.ReminderToPayForApplication,
+      ContactType.ReminderToPayForRenewal,
+      ContactType.ReminderToPayForVariation,
+      ContactType.ReminderToPayForManualCharges)
+
+    val dateTimeGen = for {
+      day <- Gen.choose(1, 28)
+      month <- Gen.choose(1, 12)
+      year <- Gen.choose(1967, 2020)
+    } yield new DateTime(year, month, day, 0, 0)
+
+    val notificationRecordGen = for {
+      a <- Gen.alphaStr
+      b <- Gen.alphaStr
+      c <- Gen.alphaStr
+      d <- Gen.option(statusGen)
+      e <- Gen.option(contactTypeGen)
+      f <- Gen.option(Gen.alphaStr)
+      g <- Gen.oneOf(true, false)
+      h <- dateTimeGen
+    } yield NotificationRecord(a, b, c, d, e, f, g, h)
+  }
   "ViewNotificationController" must {
 
       val amlsRegistrationNumber = "XAML00000567890"
       val contactNumber = "11111"
 
       "return a `BadRequest` response when the amls registration number is invalid" in new Fixture {
+        when (TestController.repo.findById("test"))
+          .thenReturn(Future.successful(Some(notificationRecordGen.sample.get)))
 
         val result = TestController.viewNotification("test", "test")(request)
         val failure = Json.obj("errors" -> Seq("Invalid AMLS Registration Number"))
