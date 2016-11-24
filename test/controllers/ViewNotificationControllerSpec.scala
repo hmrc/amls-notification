@@ -59,7 +59,7 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
     .withHeaders(CONTENT_TYPE -> "application/json")
 
   "ViewNotificationController" must {
-      val amlsRegistrationNumber = "XAML00000567890"
+      val amlsRegistrationNumber = amlsRegNumberGen.sample.get
       val contactNumber = "11111"
 
       "return a `BadRequest` response when the amls registration number is invalid" in new Fixture {
