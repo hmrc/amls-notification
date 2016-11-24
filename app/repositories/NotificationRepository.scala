@@ -22,7 +22,7 @@ import play.api.libs.json.Json
 import play.modules.reactivemongo.MongoDbConnection
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.api.DefaultDB
-import reactivemongo.bson.{BSONDocument, BSONObjectID}
+import reactivemongo.bson.{BSONObjectID}
 import uk.gov.hmrc.mongo.{ReactiveRepository, Repository}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -31,6 +31,7 @@ import scala.concurrent.Future
 trait NotificationRepository extends Repository[NotificationRecord, BSONObjectID] {
 
   def insertRecord(notificationRequest: NotificationRecord):Future[Boolean]
+  def markAsRead(id: BSONObjectID):Future[Boolean]
 
   def findByAmlsReference(amlsReferenceNumber: String):Future[Seq[NotificationRow]]
 }
@@ -53,6 +54,19 @@ class NotificationMongoRepository()(implicit mongo: () => DefaultDB)
         s" , result: ${lastError.ok}, errors: ${lastError.errmsg} }")
       lastError.ok
     }
+  }
+
+  override def markAsRead(id: BSONObjectID):Future[Boolean] = {
+
+    val modifier = Json.obj("$set" -> Json.obj("isRead" -> true))
+
+    collection.update(Json.obj("_id" -> Json.toJsFieldJsValueWrapper(id)(idFormatImplicit)), modifier).
+      map { lastError =>
+        Logger.debug(s"[NotificationMongoRepository][update] : { ID : $id" +
+          s" , result: ${lastError.ok}, errors: ${lastError.errmsg} }")
+        lastError.ok
+      }
+
   }
 
   override def findByAmlsReference(amlsReferenceNumber: String) = {

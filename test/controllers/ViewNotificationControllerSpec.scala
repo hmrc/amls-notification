@@ -28,6 +28,8 @@ import models._
 import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
+import reactivemongo.bson.BSONObjectID
+import repositories.NotificationRepository
 
 import scala.concurrent.Future
 
@@ -37,6 +39,7 @@ class ViewNotificationControllerSpec extends PlaySpec
 
   object TestController extends ViewNotificationController {
     override val connector = mock[ViewNotificationConnector]
+    override private[controllers] val notificationRepository = mock[NotificationRepository]
   }
 
   val request = FakeRequest()
@@ -69,6 +72,17 @@ class ViewNotificationControllerSpec extends PlaySpec
         status(result) must be(OK)
         contentAsJson(result) must be(Json.toJson(response))
       }
+
+    "update the isRead flag successfully" in {
+
+      val mockBSONObjectID = mock[BSONObjectID]
+      when(TestController.notificationRepository.markAsRead(any())).thenReturn(Future.successful(true))
+
+      val result = TestController.markNotificationAsRead(mockBSONObjectID)(request)
+      status(result) must be(OK)
+      contentAsJson(result) must be(Json.toJson(true))
+
+    }
 
       "return an invalid response when the service fails" in {
 

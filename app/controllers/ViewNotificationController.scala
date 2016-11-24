@@ -21,6 +21,8 @@ import exceptions.HttpStatusException
 import play.api.Logger
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Action
+import reactivemongo.bson.BSONObjectID
+import repositories.NotificationRepository
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -29,6 +31,8 @@ import scala.concurrent.Future
 trait ViewNotificationController extends BaseController {
 
   private[controllers] def connector: ViewNotificationConnector  // $COVERAGE-OFF$
+
+  private[controllers] def notificationRepository: NotificationRepository
 
 
   val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
@@ -60,9 +64,25 @@ trait ViewNotificationController extends BaseController {
             }
         }
     }
+
+  def markNotificationAsRead(id: BSONObjectID) = {
+    Action.async {
+      implicit request =>
+        notificationRepository.markAsRead(id) map {
+          response =>
+            Ok(Json.toJson(response))
+        } recoverWith {
+          case e@HttpStatusException(status, Some(body)) =>
+            Logger.warn(s"$prefix - Status: ${status}, Message: $body")
+            Future.failed(e)
+
+        }
+    }
+  }
 }
 
 object ViewNotificationController extends ViewNotificationController{
   // $COVERAGE-OFF$
   override private[controllers] val connector = DESConnector
+  override private[controllers] val notificationRepository = NotificationRepository()
 }
