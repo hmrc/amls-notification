@@ -18,6 +18,7 @@ package models
 
 import org.joda.time.DateTime
 import play.api.libs.json.Json
+import reactivemongo.bson.BSONObjectID
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 case class NotificationRecord (amlsRegistrationNumber: String,
@@ -27,13 +28,14 @@ case class NotificationRecord (amlsRegistrationNumber: String,
                                contactType: Option[ContactType],
                                contactNumber: Option[String],
                                variation: Boolean,
-                               receivedAt: DateTime
+                               receivedAt: DateTime,
+                               _id: BSONObjectID = BSONObjectID.generate
                               )
 
 object NotificationRecord {
 
-
   implicit val dateFormat = ReactiveMongoFormats.dateTimeFormats
+  implicit val bsonFormat = ReactiveMongoFormats.objectIdFormats
 
   implicit val format = Json.format[NotificationRecord]
 }

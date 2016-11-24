@@ -16,12 +16,13 @@
 
 package repositories
 
-import models.NotificationRecord
+import models.{NotificationRow, NotificationRecord}
 import play.api.Logger
+import play.api.libs.json.Json
 import play.modules.reactivemongo.MongoDbConnection
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.api.DefaultDB
-import reactivemongo.bson.BSONObjectID
+import reactivemongo.bson.{BSONDocument, BSONObjectID}
 import uk.gov.hmrc.mongo.{ReactiveRepository, Repository}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -32,11 +33,18 @@ trait NotificationRepository extends Repository[NotificationRecord, BSONObjectID
 
   def insertRecord(notificationRequest: NotificationRecord):Future[Boolean]
   def findById(idString : String ) : Future[Option[NotificationRecord]]
+  def findByAmlsReference(amlsReferenceNumber: String):Future[Seq[NotificationRow]]
 }
 
 class NotificationMongoRepository()(implicit mongo: () => DefaultDB)
   extends ReactiveRepository[NotificationRecord, BSONObjectID]("notification", mongo, NotificationRecord.format)
   with NotificationRepository{
+
+  override def indexes: Seq[Index] = {
+    import reactivemongo.bson.DefaultBSONHandlers._
+
+    Seq(Index(Seq("receivedAt" -> IndexType.Ascending)))
+  }
 
   override def insertRecord(notificationRequest: NotificationRecord):Future[Boolean] = {
     collection.insert(notificationRequest) map { lastError =>
@@ -47,10 +55,16 @@ class NotificationMongoRepository()(implicit mongo: () => DefaultDB)
   }
 
   def findById(idString : String) : Future[Option[NotificationRecord]] = {
-    Try {BSONObjectID(idString)}
-      .map { id:BSONObjectID => findById(id) }
-      .recover {case _:IllegalArgumentException => Future.successful(None)}
+    Try {
+      BSONObjectID(idString)
+    } .map { id: BSONObjectID => findById(id) }
+      .recover { case _: IllegalArgumentException => Future.successful(None) }
       .get
+  }
+
+  override def findByAmlsReference(amlsReferenceNumber: String) = {
+    collection.find(Json.obj("amlsRegistrationNumber" -> amlsReferenceNumber)).
+      sort(Json.obj("receivedAt" -> -1)).cursor[NotificationRow]().collect[Seq]()
   }
 }
 
