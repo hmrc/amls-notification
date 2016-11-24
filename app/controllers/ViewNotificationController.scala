@@ -48,7 +48,7 @@ trait ViewNotificationController extends BaseController {
 
         amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
           case Some(_) => repo.findById(notificationId) flatMap {
-            case Some(record@NotificationRecord(`amlsRegistrationNumber`, _,_,_,_,_,_,_)) => {
+            case Some(record@NotificationRecord(`amlsRegistrationNumber`, _,_,_,_,_,_,_,_)) => {
                 record.contactNumber.fold (
                   Future.successful(Ok(Json.toJson(NotificationDetails(
                     record.contactType,
