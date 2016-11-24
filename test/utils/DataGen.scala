@@ -16,9 +16,87 @@
 
 package utils
 
-/**
-  * Created by Joe on 23/11/2016.
-  */
-class DataGen {
+import models._
+import org.joda.time.{LocalDateTime, DateTime}
+import org.scalacheck.Gen
 
+object DataGen {
+  val amlsRegNumberGen = for {
+    a <- Gen.alphaUpperChar
+    b <- Gen.listOfN(6, Gen.numChar).map(_.mkString)
+  } yield s"X${a}ML00000${b}"
+
+  val statusTypeGen = Gen.oneOf(StatusType.Approved,
+                                StatusType.Rejected,
+                                StatusType.Revoked,
+                                StatusType.DeRegistered,
+                                StatusType.Expired)
+
+  val statusReasonGen = Gen.oneOf(RejectedReason.NonCompliant, RejectedReason.FailedToRespond, RejectedReason.FailedToPayCharges,
+    RejectedReason.FitAndProperFailure, RejectedReason.OtherFailed, RejectedReason.OtherRefused,
+    RevokedReason.RevokedMissingTrader, RevokedReason.RevokedCeasedTrading, RevokedReason.RevokedNonCompliant,
+    RevokedReason.RevokedFitAndProperFailure, RevokedReason.RevokedFailedToPayCharges,
+    RevokedReason.RevokedFailedToRespond, RevokedReason.RevokedOther,
+    DeregisteredReason.CeasedTrading, DeregisteredReason.HVDNoCashPayment, DeregisteredReason.OutOfScope,
+    DeregisteredReason.NotTrading, DeregisteredReason.UnderAnotherSupervisor, DeregisteredReason.ChangeOfLegalEntity,
+    DeregisteredReason.Other)
+
+  val statusGen = for {
+    statusType <- Gen.option(statusTypeGen)
+    statusReason <- Gen.option(statusReasonGen)
+  } yield Status(statusType, statusReason)
+
+  val contactTypeGen = Gen.oneOf(ContactType.RejectionReasons,
+    ContactType.RevocationReasons,
+    ContactType.MindedToReject,
+    ContactType.NoLongerMindedToReject,
+    ContactType.MindedToRevoke,
+    ContactType.NoLongerMindedToRevoke,
+    ContactType.Others,
+    ContactType.ApplicationApproval,
+    ContactType.RenewalApproval,
+    ContactType.AutoExpiryOfRegistration,
+    ContactType.RenewalReminder,
+    ContactType.ReminderToPayForApplication,
+    ContactType.ReminderToPayForRenewal,
+    ContactType.ReminderToPayForVariation,
+    ContactType.ReminderToPayForManualCharges)
+
+  val daysInMonth: Int => Int = {
+    case 2 => 28
+    case x if Seq(9, 4, 6, 11).contains(x) => 30
+    case _ => 31
+  }
+
+  val dateTimeGen = for {
+    month <- Gen.choose(1, 12)
+    day <- Gen.choose(1, daysInMonth(month))
+    year <- Gen.choose(1967, 2020)
+  } yield new DateTime(year, month, day, 0, 0)
+
+  val localDateTimeGen = for {
+    month <- Gen.choose(1, 12)
+    day <- Gen.choose(1, daysInMonth(month))
+    year <- Gen.choose(1967, 2020)
+  } yield new LocalDateTime(year, month, day, 0, 0)
+
+  val notificationRecordGen = for {
+    a <- amlsRegNumberGen
+    b <- Gen.alphaStr
+    c <- Gen.alphaStr
+    d <- Gen.option(statusGen)
+    e <- Gen.option(contactTypeGen)
+    f <- Gen.option(Gen.alphaStr)
+    g <- Gen.oneOf(true, false)
+    h <- dateTimeGen
+  } yield NotificationRecord(a, b, c, d, e, f, g, h)
+
+  object Des {
+    import models.des._
+
+    val notificationResponseGen = for {
+      a <- localDateTimeGen
+      b <- Gen.alphaStr
+    } yield NotificationResponse(a, b)
+  }
 }
