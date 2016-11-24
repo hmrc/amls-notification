@@ -27,11 +27,12 @@ import uk.gov.hmrc.mongo.{ReactiveRepository, Repository}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.Try
 
 trait NotificationRepository extends Repository[NotificationRecord, BSONObjectID] {
 
   def insertRecord(notificationRequest: NotificationRecord):Future[Boolean]
-
+  def findById(idString : String ) : Future[Option[NotificationRecord]]
   def findByAmlsReference(amlsReferenceNumber: String):Future[Seq[NotificationRow]]
 }
 
@@ -43,8 +44,6 @@ class NotificationMongoRepository()(implicit mongo: () => DefaultDB)
     import reactivemongo.bson.DefaultBSONHandlers._
 
     Seq(Index(Seq("receivedAt" -> IndexType.Ascending)))
-
-
   }
 
   override def insertRecord(notificationRequest: NotificationRecord):Future[Boolean] = {
@@ -53,6 +52,14 @@ class NotificationMongoRepository()(implicit mongo: () => DefaultDB)
         s" , result: ${lastError.ok}, errors: ${lastError.errmsg} }")
       lastError.ok
     }
+  }
+
+  def findById(idString : String) : Future[Option[NotificationRecord]] = {
+    Try {
+      BSONObjectID(idString)
+    } .map { id: BSONObjectID => findById(id) }
+      .recover { case _: IllegalArgumentException => Future.successful(None) }
+      .get
   }
 
   override def findByAmlsReference(amlsReferenceNumber: String) = {
