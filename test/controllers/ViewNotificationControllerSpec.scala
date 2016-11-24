@@ -49,7 +49,7 @@ class ViewNotificationControllerSpec extends PlaySpec
 
       "return a `BadRequest` response when the amls registration number is invalid" in {
 
-        val result = TestController.viewNotification("test", "test")(request)
+        val result = TestController.viewNotification("", "", "test", "test")(request)
         val failure = Json.obj("errors" -> Seq("Invalid AMLS Registration Number"))
 
         status(result) must be(BAD_REQUEST)
@@ -64,7 +64,7 @@ class ViewNotificationControllerSpec extends PlaySpec
           TestController.connector.getNotification(eqTo(amlsRegistrationNumber), eqTo(contactNumber))(any(), any())
         } thenReturn Future.successful(response)
 
-        val result = TestController.viewNotification(amlsRegistrationNumber, contactNumber)(request)
+        val result = TestController.viewNotification("", "", amlsRegistrationNumber, contactNumber)(request)
 
         status(result) must be(OK)
         contentAsJson(result) must be(Json.toJson(response))
@@ -76,7 +76,7 @@ class ViewNotificationControllerSpec extends PlaySpec
           TestController.connector.getNotification(eqTo(amlsRegistrationNumber), eqTo(contactNumber))(any(), any())
         } thenReturn Future.failed(new HttpStatusException(INTERNAL_SERVER_ERROR, Some("message")))
 
-        whenReady (TestController.viewNotification(amlsRegistrationNumber, contactNumber)(request).failed) {
+        whenReady (TestController.viewNotification("", "", amlsRegistrationNumber, contactNumber)(request).failed) {
           case HttpStatusException(status, body) =>
             status mustEqual INTERNAL_SERVER_ERROR
             body mustEqual Some("message")

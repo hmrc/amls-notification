@@ -32,7 +32,7 @@ import scala.concurrent.Future
 trait NotificationController extends BaseController {
 
   val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
-  val prefix = "[NotificationController][post]"
+  val prefix = "[NotificationController]"
 
   private[controllers] def notificationRepository: NotificationRepository
 
@@ -55,7 +55,7 @@ trait NotificationController extends BaseController {
   def saveNotification(amlsRegistrationNumber: String) =
     Action.async(parse.json) {
       implicit request =>
-        Logger.debug(s"$prefix - amlsRegNo: $amlsRegistrationNumber")
+        Logger.debug(s"$prefix [post] - amlsRegNo: $amlsRegistrationNumber")
         amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
           case Some(_) =>
             Json.fromJson[NotificationPushRequest](request.body) match {
@@ -74,7 +74,7 @@ trait NotificationController extends BaseController {
                     Ok(Json.toJson(response))
                 } recoverWith {
                   case e@HttpStatusException(status, Some(body)) =>
-                    Logger.warn(s"$prefix - Status: ${status}, Message: $body")
+                    Logger.warn(s"$prefix [post]- Status: ${status}, Message: $body")
                     Future.failed(e)
                 }
               }
@@ -96,11 +96,11 @@ trait NotificationController extends BaseController {
           case Some(_) =>
             notificationRepository.findByAmlsReference(amlsRegistrationNumber) map {
               response =>
-                Logger.debug(s"$prefix - Response: ${Json.toJson(response)}")
+                Logger.debug(s"$prefix [get]- Response: ${Json.toJson(response)}")
                 Ok(Json.toJson(response))
             } recoverWith {
               case e@HttpStatusException(status, Some(body)) =>
-                Logger.warn(s"$prefix - Status: ${status}, Message: $body")
+                Logger.warn(s"$prefix [get]- Status: ${status}, Message: $body")
                 Future.failed(e)
             }
           case _ =>
