@@ -22,10 +22,7 @@ import models.NotificationRecord
 import models.fe.NotificationDetails
 import play.api.Logger
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.Action
-import reactivemongo.bson.BSONObjectID
-import repositories.NotificationRepository
-import play.api.mvc.{Action, Result}
+import play.api.mvc.{Action}
 import repositories.NotificationRepository
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
