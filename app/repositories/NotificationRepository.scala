@@ -22,17 +22,19 @@ import play.api.libs.json.Json
 import play.modules.reactivemongo.MongoDbConnection
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.api.DefaultDB
-import reactivemongo.bson.{BSONObjectID}
+import reactivemongo.bson.{BSONDocument, BSONObjectID}
 import uk.gov.hmrc.mongo.{ReactiveRepository, Repository}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.Try
 
 trait NotificationRepository extends Repository[NotificationRecord, BSONObjectID] {
 
   def insertRecord(notificationRequest: NotificationRecord):Future[Boolean]
   def markAsRead(id: BSONObjectID):Future[Boolean]
 
+  def findById(idString : String ) : Future[Option[NotificationRecord]]
   def findByAmlsReference(amlsReferenceNumber: String):Future[Seq[NotificationRow]]
 }
 
@@ -44,8 +46,6 @@ class NotificationMongoRepository()(implicit mongo: () => DefaultDB)
     import reactivemongo.bson.DefaultBSONHandlers._
 
     Seq(Index(Seq("receivedAt" -> IndexType.Ascending)))
-
-
   }
 
   override def insertRecord(notificationRequest: NotificationRecord):Future[Boolean] = {
@@ -67,6 +67,14 @@ class NotificationMongoRepository()(implicit mongo: () => DefaultDB)
         lastError.ok
       }
 
+  }
+
+  def findById(idString : String) : Future[Option[NotificationRecord]] = {
+    Try {
+      BSONObjectID(idString)
+    } .map { id: BSONObjectID => findById(id) }
+      .recover { case _: IllegalArgumentException => Future.successful(None) }
+      .get
   }
 
   override def findByAmlsReference(amlsReferenceNumber: String) = {

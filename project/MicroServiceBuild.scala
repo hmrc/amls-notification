@@ -51,7 +51,8 @@ private object AppDependencies {
         "org.scalatestplus.play" %% "scalatestplus-play" % scalatestPlusPlayVersion,
         "org.pegdown" % "pegdown" % pegdownVersion % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
-        "org.mockito" % "mockito-core" % "1.9.5" % scope
+        "org.mockito" % "mockito-core" % "1.9.5" % scope,
+        "org.scalacheck" %% "scalacheck" % "1.12.5" % scope
       )
     }.test
   }

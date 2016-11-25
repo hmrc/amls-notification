@@ -115,7 +115,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
     }
 
     "return BadRequest, if input request fails validation of mongo fetch" in {
-      val result = TestNotificationController.fetchNotifications("hhhh")(getRequest)
+      val result = TestNotificationController.fetchNotifications("accountType", "ref", "hhhh")(getRequest)
       val failure = Json.obj("errors" -> Seq("Invalid AMLS Registration Number"))
 
       status(result) must be(BAD_REQUEST)
@@ -130,7 +130,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
         TestNotificationController.notificationRepository.findByAmlsReference(any())
       } thenReturn Future.failed(new HttpStatusException(INTERNAL_SERVER_ERROR, Some("message")))
 
-      whenReady(TestNotificationController.fetchNotifications(amlsRegistrationNumber)(getRequest).failed) {
+      whenReady(TestNotificationController.fetchNotifications("accountType", "ref", amlsRegistrationNumber)(getRequest).failed) {
         case HttpStatusException(status, body) =>
           status mustEqual INTERNAL_SERVER_ERROR
           body mustEqual Some("message")
@@ -147,7 +147,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
 
         when(TestNotificationController.notificationRepository.findByAmlsReference(any())).thenReturn(Future.successful(Seq(notificationRecord)))
 
-        val result = TestNotificationController.fetchNotifications(amlsRegistrationNumber)(getRequest)
+        val result = TestNotificationController.fetchNotifications("accountType", "ref", amlsRegistrationNumber)(getRequest)
         status(result) must be(OK)
         contentAsJson(result) must be(Json.toJson(Seq(notificationRecord)))
       }

@@ -30,7 +30,7 @@ import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.play.http.{HttpResponse, HttpGet, HttpPost}
-import models._
+import models.des.NotificationResponse
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -86,8 +86,6 @@ class ViewNotificationConnectorSpec
         responseJson = Some(Json.toJson(successModel))
       )
 
-      println(s"****** HELLLLLOOOOOOOO")
-      println(s"****** $url")
       when {
         testConnector.httpGet.GET[HttpResponse](eqTo(url))(any(), any())
       } thenReturn Future.successful(response)

@@ -16,7 +16,7 @@
 
 package audit
 
-import models.{NotificationResponse}
+import models.des.{NotificationResponse}
 import play.api.libs.json.{Json, Writes}
 import uk.gov.hmrc.play.audit.AuditExtensions._
 import uk.gov.hmrc.play.audit.model.DataEvent

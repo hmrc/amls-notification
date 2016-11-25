@@ -18,10 +18,14 @@ package controllers
 
 import connectors.{DESConnector, ViewNotificationConnector}
 import exceptions.HttpStatusException
+import models.NotificationRecord
+import models.fe.NotificationDetails
 import play.api.Logger
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Action
 import reactivemongo.bson.BSONObjectID
+import repositories.NotificationRepository
+import play.api.mvc.{Action, Result}
 import repositories.NotificationRepository
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -36,32 +40,41 @@ trait ViewNotificationController extends BaseController {
 
 
   val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
-  val prefix = "[ViewNotificationController][get]"
+  val prefix = "[ViewNotificationController]"
 
   private def toError(message: String): JsObject =
     Json.obj(
       "errors" -> Seq(message)
     )
 
-  def viewNotification(accountType:String, ref:String, amlsRegistrationNumber: String, contactNumber: String) =
+
+  def viewNotification(accountType:String, ref:String, amlsRegistrationNumber: String, notificationId: String) =
     Action.async {
       implicit request =>
-        Logger.debug(s"$prefix - amlsRegNo: $amlsRegistrationNumber")
-        amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
-          case Some(_) =>
-            connector.getNotification(amlsRegistrationNumber, contactNumber) map {
-              response =>
-                Ok(Json.toJson(response))
-            } recoverWith {
-              case e@HttpStatusException(status, Some(body)) =>
-                Logger.warn(s"$prefix - Status: ${status}, Message: $body")
-                Future.failed(e)
-            }
+        Logger.debug(s"$prefix[viewNotification] - amlsRegNo: $amlsRegistrationNumber - notificationId: $notificationId")
 
-          case _ =>
-            Future.successful {
-              BadRequest(toError("Invalid AMLS Registration Number"))
-            }
+        amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
+          case Some(_) => notificationRepository.findById(notificationId) flatMap {
+            case Some(record@NotificationRecord(`amlsRegistrationNumber`, _,_,_,_,_,_,_,_,_)) => {
+                record.contactNumber.fold (
+                  Future.successful(Ok(Json.toJson(NotificationDetails(
+                    record.contactType,
+                    record.status flatMap {_.status},
+                    record.status flatMap {_.statusReason},
+                    None))))
+                ) {contactNumber =>
+                  connector.getNotification(amlsRegistrationNumber, contactNumber) map { detail =>
+                    Ok(Json.toJson(NotificationDetails(
+                      record.contactType,
+                      record.status flatMap {_.status},
+                      record.status flatMap {_.statusReason},
+                      Some(detail.secureCommText))))
+                  }
+                }
+              }
+            case _ => Future.successful(NotFound)
+          }
+          case None => Future.successful(BadRequest(toError("Invalid AMLS Registration Number")))
         }
     }
 
