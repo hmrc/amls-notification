@@ -32,7 +32,7 @@ import scala.util.Try
 trait NotificationRepository extends Repository[NotificationRecord, BSONObjectID] {
 
   def insertRecord(notificationRequest: NotificationRecord):Future[Boolean]
-  def markAsRead(id: BSONObjectID):Future[Boolean]
+  def markAsRead(id: String):Future[Boolean]
 
   def findById(idString : String ) : Future[Option[NotificationRecord]]
   def findByAmlsReference(amlsReferenceNumber: String):Future[Seq[NotificationRow]]
@@ -56,11 +56,11 @@ class NotificationMongoRepository()(implicit mongo: () => DefaultDB)
     }
   }
 
-  override def markAsRead(id: BSONObjectID):Future[Boolean] = {
+  override def markAsRead(id: String):Future[Boolean] = {
 
     val modifier = Json.obj("$set" -> Json.obj("isRead" -> true))
 
-    collection.update(Json.obj("_id" -> Json.toJsFieldJsValueWrapper(id)(idFormatImplicit)), modifier).
+    collection.update(Json.obj("_id" -> Json.toJsFieldJsValueWrapper(BSONObjectID(id))(idFormatImplicit)), modifier).
       map { lastError =>
         Logger.debug(s"[NotificationMongoRepository][update] : { ID : $id" +
           s" , result: ${lastError.ok}, errors: ${lastError.errmsg} }")

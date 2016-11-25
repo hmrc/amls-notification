@@ -16,35 +16,24 @@
 
 package controllers
 
-import java.util.NoSuchElementException
 
 import connectors.ViewNotificationConnector
 import exceptions.HttpStatusException
 import models._
 import models.fe.NotificationDetails
-import org.joda.time.LocalDateTime
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import models.des.NotificationResponse
 import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import repositories.NotificationRepository
-import reactivemongo.bson.BSONObjectID
-import repositories.NotificationRepository
-
 import scala.concurrent.Future
-import org.joda.time.DateTime
 import scala.concurrent.ExecutionContext.Implicits.global
 import utils.DataGen._
-import java.util.NoSuchElementException
-
-import scala.concurrent.duration.Duration
-import scala.util.Try
 
 
 class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenPropertyChecks
@@ -110,10 +99,9 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
 
     "update the isRead flag successfully" in new Fixture {
 
-      val mockBSONObjectID = mock[BSONObjectID]
-      when(TestController.notificationRepository.markAsRead(any())).thenReturn(Future.successful(true))
+      when(TestController.notificationRepository.markAsRead("NOTIFICATIONID")).thenReturn(Future.successful(true))
 
-      val result = TestController.markNotificationAsRead(mockBSONObjectID)(request)
+      val result = TestController.markNotificationAsRead("NOTIFICATIONID")(request)
       status(result) must be(OK)
       contentAsJson(result) must be(Json.toJson(true))
 

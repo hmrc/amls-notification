@@ -78,7 +78,7 @@ trait ViewNotificationController extends BaseController {
         }
     }
 
-  def markNotificationAsRead(id: BSONObjectID) = {
+  def markNotificationAsRead(id: String) = {
     Action.async {
       implicit request =>
         notificationRepository.markAsRead(id) map {
