@@ -18,7 +18,7 @@ package controllers
 
 import exceptions.HttpStatusException
 import models._
-import org.joda.time.{DateTimeZone, DateTime}
+import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
@@ -27,6 +27,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import org.mockito.Mockito._
 import org.mockito.Matchers.{eq => eqTo, _}
+import reactivemongo.bson.BSONObjectID
 import repositories.NotificationRepository
 
 import scala.concurrent.Future
@@ -35,6 +36,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
 
   object TestNotificationController extends NotificationController {
     override private[controllers] val notificationRepository = mock[NotificationRepository]
+
   }
 
   val body = NotificationPushRequest("name", "hh@test.com",
@@ -60,6 +62,8 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
       status(result) must be(OK)
       contentAsJson(result) must be(Json.toJson(true))
     }
+
+
 
     "return BadRequest, if input request fails validation" in {
       val result = TestNotificationController.saveNotification("hhhh")(postRequest)
@@ -139,7 +143,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
         val notificationRecord = NotificationRow (
           Some(Status(Some(StatusType.Revoked),
             Some(RevokedReason.RevokedCeasedTrading))),
-          Some(ContactType.MindedToRevoke), None, false, DateTime.now(DateTimeZone.UTC), new IDType("5832e38e01000001005ca3ff"))
+          Some(ContactType.MindedToRevoke), None, false, DateTime.now(DateTimeZone.UTC), false, new IDType("5832e38e01000001005ca3ff"))
 
         when(TestNotificationController.notificationRepository.findByAmlsReference(any())).thenReturn(Future.successful(Seq(notificationRecord)))
 
