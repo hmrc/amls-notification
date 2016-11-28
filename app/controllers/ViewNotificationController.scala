@@ -52,16 +52,16 @@ trait ViewNotificationController extends BaseController {
                 record.contactNumber.fold (
                   Future.successful(Ok(Json.toJson(NotificationDetails(
                     record.contactType,
-                    record.status flatMap {_.status},
-                    record.status flatMap {_.statusReason},
-                    None))))
+                    record.status,
+                    None,
+                    record.variation))))
                 ) {contactNumber =>
                   connector.getNotification(amlsRegistrationNumber, contactNumber) map { detail =>
                     Ok(Json.toJson(NotificationDetails(
                       record.contactType,
-                      record.status flatMap {_.status},
-                      record.status flatMap {_.statusReason},
-                      Some(detail.secureCommText))))
+                      record.status,
+                      Some(detail.secureCommText),
+                      record.variation)))
                   }
                 }
               }
