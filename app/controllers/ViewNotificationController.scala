@@ -68,25 +68,21 @@ trait ViewNotificationController extends BaseController {
                       record.variation)))
                   }
                 }
-              }
+              }.andThen { case _ => markNotificationAsRead(notificationId)}
             case _ => Future.successful(NotFound)
           }
           case None => Future.successful(BadRequest(toError("Invalid AMLS Registration Number")))
         }
     }
 
-  def markNotificationAsRead(id: String) = {
-    Action.async {
-      implicit request =>
-        notificationRepository.markAsRead(id) map {
-          response =>
-            Ok(Json.toJson(response))
-        } recoverWith {
-          case e@HttpStatusException(status, Some(body)) =>
-            Logger.warn(s"$prefix - Status: ${status}, Message: $body")
-            Future.failed(e)
-
-        }
+  private def markNotificationAsRead(id: String) = {
+    notificationRepository.markAsRead(id) map {
+      response =>
+        Ok(Json.toJson(response))
+    } recoverWith {
+      case e@HttpStatusException(status, Some(body)) =>
+        Logger.warn(s"$prefix - Status: ${status}, Message: $body")
+        Future.failed(e)
     }
   }
 }
