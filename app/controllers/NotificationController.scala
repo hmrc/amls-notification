@@ -67,7 +67,8 @@ trait NotificationController extends BaseController {
                   body.contactType,
                   body.contactNumber,
                   body.variation,
-                  DateTime.now(DateTimeZone.UTC)
+                  DateTime.now(DateTimeZone.UTC),
+                  false
                 )
                 notificationRepository.insertRecord(record) map {
                   response =>

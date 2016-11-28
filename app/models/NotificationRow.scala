@@ -26,6 +26,7 @@ case class NotificationRow (
                              contactNumber: Option[String],
                              variation: Boolean,
                              receivedAt: DateTime,
+                             isRead: Boolean,
                              _id: IDType
                            )
 
