@@ -43,8 +43,6 @@ class NotificationMongoRepository()(implicit mongo: () => DefaultDB)
   with NotificationRepository{
 
   override def indexes: Seq[Index] = {
-    import reactivemongo.bson.DefaultBSONHandlers._
-
     Seq(Index(Seq("receivedAt" -> IndexType.Ascending)))
   }
 
