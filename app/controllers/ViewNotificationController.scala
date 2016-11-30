@@ -28,6 +28,7 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.Failure
 
 trait ViewNotificationController extends BaseController {
 
@@ -80,8 +81,8 @@ trait ViewNotificationController extends BaseController {
       response =>
         Ok(Json.toJson(response))
     } recoverWith {
-      case e@HttpStatusException(status, Some(body)) =>
-        Logger.warn(s"$prefix - Status: ${status}, Message: $body")
+      case e@HttpStatusException(status, _) =>
+        Logger.warn(s"$prefix - Failed to mark notification as read. Status: ${status}")
         Future.failed(e)
     }
   }

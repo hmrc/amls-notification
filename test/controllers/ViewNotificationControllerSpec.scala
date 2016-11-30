@@ -68,20 +68,11 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
         amlsRegistrationNumber = amlsRegistrationNumber))
 
       val expectedDetails = NotificationDetails(
-        record flatMap {
-          _.contactType
-        },
-        record flatMap {
-          _.status flatMap {
-            _.status
-          }
-        },
-        record flatMap {
-          _.status flatMap {
-            _.statusReason
-          }
-        },
-        Some("secure-comms text"))
+        record flatMap {_.contactType},
+        record flatMap {_.status},
+        Some("secure-comms text"),
+        record.fold(false) {_.variation}
+      )
 
       when {
         TestController.notificationRepository.findById("NOTIFICATIONID")
@@ -97,14 +88,41 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
       contentAsJson(result) must be(Json.toJson(expectedDetails))
     }
 
-    "update the isRead flag successfully" in new Fixture {
+    "update the isRead flag" in new Fixture {
+      when(TestController.notificationRepository.findById(any()))
+        .thenReturn(Future.successful(notificationRecordGen.sample.map {
+          _.copy(amlsRegistrationNumber = amlsRegistrationNumber)
+        }))
 
-      when(TestController.notificationRepository.markAsRead("NOTIFICATIONID")).thenReturn(Future.successful(true))
+      when(TestController.connector.getNotification(any(), any())(any(), any()))
+        .thenReturn(Future.successful(Des.notificationResponseGen.sample.get))
 
-      val result = TestController.markNotificationAsRead("NOTIFICATIONID")(request)
+      when(TestController.notificationRepository.markAsRead("NOTIFICATIONID"))
+        .thenReturn(Future.successful(true))
+
+
+      val result = TestController.viewNotification("accountType", "ref", amlsRegistrationNumber, "NOTIFICATIONID")(request)
+
       status(result) must be(OK)
-      contentAsJson(result) must be(Json.toJson(true))
+      verify(TestController.notificationRepository)
+        .markAsRead("NOTIFICATIONID")
+    }
 
+    "still succeed when the notification cannot be marked as read" in new Fixture {
+      when(TestController.notificationRepository.findById(any()))
+        .thenReturn(Future.successful(notificationRecordGen.sample.map {
+          _.copy(amlsRegistrationNumber = amlsRegistrationNumber)
+        }))
+
+      when(TestController.connector.getNotification(any(), any())(any(), any()))
+        .thenReturn(Future.successful(Des.notificationResponseGen.sample.get))
+
+      when(TestController.notificationRepository.markAsRead(any()))
+        .thenReturn(Future.failed(new HttpStatusException(500, None)))
+
+      val result = TestController.viewNotification("accountType", "ref", amlsRegistrationNumber, "NOTIFICATIONID")(request)
+
+      status(result) must be(OK)
     }
 
     "return an invalid response when the service fails" in new Fixture {
@@ -144,21 +162,23 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
                 amlsRegistrationNumber = regNo,
                 contactNumber = Some("CONTACTNUMBER1"),
                 contactType = Some(ContactType.ReminderToPayForManualCharges),
-                status = Some(Status(Some(StatusType.Approved), Some(RejectedReason.FailedToRespond)))
+                status = Some(Status(Some(StatusType.Approved), Some(RejectedReason.FailedToRespond))),
+                variation = true
               ))))
 
               when {
                 TestController.connector.getNotification(regNo, "CONTACTNUMBER1")
-              }.thenReturn(Future.successful(Des.notificationResponseGen.sample.map(_.copy(secureCommText = "THIS IS THE MESSAGE TEXT 00001")).get))
+              }.thenReturn(Future.successful(Des.notificationResponseGen.sample.map(_.copy(
+                secureCommText = "THIS IS THE MESSAGE TEXT 00001")).get))
 
               val result = TestController.viewNotification("accountType", "ref", regNo, "NOTIFICATIONID1")(request)
 
               status(result) must be(OK)
               contentAsJson(result) must be(Json.obj(
                 "contactType" -> "RPM1",
-                "status" -> "04",
-                "statusReason" -> "02",
-                "messageText" -> "THIS IS THE MESSAGE TEXT 00001"
+                "status" -> Json.obj("status_type"->"04", "status_reason" -> "02"),
+                "messageText" -> "THIS IS THE MESSAGE TEXT 00001",
+                "variation" -> true
               ))
             }
           }
@@ -172,7 +192,8 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
                 amlsRegistrationNumber = regNo,
                 contactNumber = None,
                 contactType = Some(ContactType.ReminderToPayForManualCharges),
-                status = Some(Status(Some(StatusType.Approved), Some(RejectedReason.FailedToRespond)))
+                status = Some(Status(Some(StatusType.Approved), Some(RejectedReason.FailedToRespond))),
+                variation = true
               ))))
 
               val result = TestController.viewNotification("accountType", "ref", regNo, "NOTIFICATIONID2")(request)
@@ -180,8 +201,8 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
               status(result) must be(OK)
               contentAsJson(result) must be(Json.obj(
                 "contactType" -> "RPM1",
-                "status" -> "04",
-                "statusReason" -> "02"
+                "status" -> Json.obj("status_type" -> "04", "status_reason" -> "02"),
+                "variation" -> true
               ))
             }
           }
