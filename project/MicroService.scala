@@ -29,7 +29,7 @@ trait MicroService {
     Seq(
       ScoverageKeys.coverageExcludedPackages := "<empty>;Reverse.*;.*AuthService.*;models/.data/..*;view.*;config.*;app;prod;testOnlyDoNotUseInAppConf;uk.gov.hmrc.BuildInfo;repositories.*",
       ScoverageKeys.coverageMinimum := 100,
-      ScoverageKeys.coverageFailOnMinimum := false,
+      ScoverageKeys.coverageFailOnMinimum := true,
       ScoverageKeys.coverageHighlighting := true,
       parallelExecution in Test := false
     )
