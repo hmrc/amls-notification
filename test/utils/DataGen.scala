@@ -90,7 +90,7 @@ object DataGen {
     g <- Gen.oneOf(true, false)
     h <- dateTimeGen
     i <- Gen.oneOf(true,false)
-  } yield NotificationRecord(a, b, c, d, e, f, g, h,i)
+  } yield NotificationRecord(a, b, c, d, e, f, g, h, i)
 
   object Des {
     import models.des._

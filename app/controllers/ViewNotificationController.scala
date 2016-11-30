@@ -28,6 +28,7 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.Failure
 
 trait ViewNotificationController extends BaseController {
 
@@ -56,37 +57,33 @@ trait ViewNotificationController extends BaseController {
                 record.contactNumber.fold (
                   Future.successful(Ok(Json.toJson(NotificationDetails(
                     record.contactType,
-                    record.status flatMap {_.status},
-                    record.status flatMap {_.statusReason},
-                    None))))
+                    record.status,
+                    None,
+                    record.variation))))
                 ) {contactNumber =>
                   connector.getNotification(amlsRegistrationNumber, contactNumber) map { detail =>
                     Ok(Json.toJson(NotificationDetails(
                       record.contactType,
-                      record.status flatMap {_.status},
-                      record.status flatMap {_.statusReason},
-                      Some(detail.secureCommText))))
+                      record.status,
+                      Some(detail.secureCommText),
+                      record.variation)))
                   }
                 }
-              }
+              }.andThen { case _ => markNotificationAsRead(notificationId)}
             case _ => Future.successful(NotFound)
           }
           case None => Future.successful(BadRequest(toError("Invalid AMLS Registration Number")))
         }
     }
 
-  def markNotificationAsRead(id: String) = {
-    Action.async {
-      implicit request =>
-        notificationRepository.markAsRead(id) map {
-          response =>
-            Ok(Json.toJson(response))
-        } recoverWith {
-          case e@HttpStatusException(status, Some(body)) =>
-            Logger.warn(s"$prefix - Status: ${status}, Message: $body")
-            Future.failed(e)
-
-        }
+  private def markNotificationAsRead(id: String) = {
+    notificationRepository.markAsRead(id) map {
+      response =>
+        Ok(Json.toJson(response))
+    } recoverWith {
+      case e@HttpStatusException(status, _) =>
+        Logger.warn(s"$prefix - Failed to mark notification as read. Status: ${status}")
+        Future.failed(e)
     }
   }
 }
