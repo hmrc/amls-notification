@@ -26,22 +26,27 @@ class NotificationDetailsSpec extends WordSpec with MustMatchers {
   "NotificationDetails serialisation" must {
     "Serialise the object correctly" in {
       val result = NotificationDetails.writes.writes(
-        NotificationDetails(Some(ContactType.NoLongerMindedToRevoke), Some(StatusType.Approved), Some(RejectedReason.FailedToRespond),  Some("THIS IS THE TEST TEXT"))
+        NotificationDetails(
+          Some(ContactType.NoLongerMindedToRevoke),
+          Some(Status(StatusType.Approved, Some(RejectedReason.FailedToRespond))),
+          Some("THIS IS THE TEST TEXT"),
+          false)
       )
       result must be (Json.obj(
         "contactType" -> "NMRV",
-        "status" -> "04",
-        "statusReason" -> "02",
-        "messageText" -> "THIS IS THE TEST TEXT"
+        "status" -> Json.obj("status_type" -> "04", "status_reason" -> "02"),
+        "messageText" -> "THIS IS THE TEST TEXT",
+        "variation" -> false
       ))
     }
 
     "serialise the object correctly when data is missing" in {
       val result = NotificationDetails.writes.writes(
-        NotificationDetails(None, None, None,  Some("THIS IS THE TEST TEXT"))
+        NotificationDetails(None, None,  Some("THIS IS THE TEST TEXT"), false)
       )
       result must be (Json.obj(
-        "messageText" -> "THIS IS THE TEST TEXT"
+        "messageText" -> "THIS IS THE TEST TEXT",
+        "variation" -> false
       ))
     }
   }
