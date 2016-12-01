@@ -18,19 +18,25 @@ package models
 
 import models.RevokedReason._
 import org.scalatestplus.play.PlaySpec
-import play.api.libs.json.JsString
+import play.api.data.validation.ValidationError
+import play.api.libs.json._
 
 class RevokedReasonSpec extends PlaySpec {
 
   "RevokedReason model" must {
     "return reason for the string" in {
-      RevokedReason.reason("01") must be(RevokedMissingTrader)
-      RevokedReason.reason("02") must be(RevokedCeasedTrading)
-      RevokedReason.reason("03") must be(RevokedNonCompliant)
-      RevokedReason.reason("04") must be(RevokedFitAndProperFailure)
-      RevokedReason.reason("05") must be(RevokedFailedToPayCharges)
-      RevokedReason.reason("06") must be(RevokedFailedToRespond)
-      RevokedReason.reason("99") must be(RevokedOther)
+      RevokedReason.jsonReads.reads(Json.obj("status_reason" ->"01")) must be(JsSuccess(RevokedMissingTrader))
+      RevokedReason.jsonReads.reads(Json.obj("status_reason" ->"02")) must be(JsSuccess(RevokedCeasedTrading))
+      RevokedReason.jsonReads.reads(Json.obj("status_reason" ->"03")) must be(JsSuccess(RevokedNonCompliant))
+      RevokedReason.jsonReads.reads(Json.obj("status_reason" ->"04")) must be(JsSuccess(RevokedFitAndProperFailure))
+      RevokedReason.jsonReads.reads(Json.obj("status_reason" ->"05")) must be(JsSuccess(RevokedFailedToPayCharges))
+      RevokedReason.jsonReads.reads(Json.obj("status_reason" ->"06")) must be(JsSuccess(RevokedFailedToRespond))
+      RevokedReason.jsonReads.reads(Json.obj("status_reason" ->"99")) must be(JsSuccess(RevokedOther))
+    }
+
+    "fail validation on invalid data" in {
+      RevokedReason.jsonReads.reads(Json.obj("status_reason" ->"100")) must be(JsError(List((JsPath \ "status_reason",
+        List(ValidationError(List("error.invalid")))))))
     }
 
     "write data successfully" in {

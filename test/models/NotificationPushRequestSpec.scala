@@ -52,7 +52,7 @@ class NotificationPushRequestSpec extends PlaySpec {
         NotificationPushRequest.jsonReads.reads(json) must be(JsError(List(( JsPath \ "name", List(ValidationError(List("error.pattern")))))))
       }
 
-      "fail when length of email exceed maxLength" in {
+      "fail when length of email exceed maxLength and status type is invalid" in {
         val maxEmail = 100
 
         val json =  Json.obj("name" -> "test"*140,
@@ -66,6 +66,48 @@ class NotificationPushRequestSpec extends PlaySpec {
         NotificationPushRequest.jsonReads.reads(json) must be(JsError(List(( JsPath \ "email", List(ValidationError(List("error.maxLength"), maxEmail))),
           (JsPath \ "status" \ "status_type", List(ValidationError(List("error.invalid")))),
           ( JsPath \ "name", List(ValidationError(List("error.pattern")))))))
+      }
+
+      "fail when status type is valid Rejected type and status reason is invalid rejected reason" in {
+
+        val json =  Json.obj("name" -> "test",
+          "email" -> "test@gg.com",
+          "status" -> Json.obj("status_type" -> "06",
+            "status_reason" -> "100"),
+          "contact_type" -> "REJR",
+          "contact_number" -> "112345678251212",
+          "variation" -> false)
+
+        NotificationPushRequest.jsonReads.reads(json) must be(JsError(List(
+          (JsPath \ "status" \ "status_reason", List(ValidationError(List("error.invalid")))))))
+      }
+
+      "fail when status type is valid Deregistered type and status reason is invalid Deregistered reason" in {
+
+        val json =  Json.obj("name" -> "test",
+          "email" -> "test@gg.com",
+          "status" -> Json.obj("status_type" -> "08",
+            "status_reason" -> "100"),
+          "contact_type" -> "REJR",
+          "contact_number" -> "112345678251212",
+          "variation" -> false)
+
+        NotificationPushRequest.jsonReads.reads(json) must be(JsError(List(
+          (JsPath \ "status" \ "status_reason", List(ValidationError(List("error.invalid")))))))
+      }
+
+      "fail when status type is valid Revoked type and status reason is invalid Revoked reason" in {
+
+        val json =  Json.obj("name" -> "test",
+          "email" -> "test@gg.com",
+          "status" -> Json.obj("status_type" -> "10",
+            "status_reason" -> "100"),
+          "contact_type" -> "REJR",
+          "contact_number" -> "112345678251212",
+          "variation" -> false)
+
+        NotificationPushRequest.jsonReads.reads(json) must be(JsError(List(
+          (JsPath \ "status" \ "status_reason", List(ValidationError(List("error.invalid")))))))
       }
 
       "status and status reason is Revoked" in {

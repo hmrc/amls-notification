@@ -37,18 +37,6 @@ object RevokedReason {
 
   case object RevokedOther extends RevokedReason
 
-  implicit def reason(reason:String) : RevokedReason = {
-    reason match {
-      case "01" => RevokedMissingTrader
-      case "02" => RevokedCeasedTrading
-      case "03" => RevokedNonCompliant
-      case "04" => RevokedFitAndProperFailure
-      case "05" => RevokedFailedToPayCharges
-      case "06" => RevokedFailedToRespond
-      case "99" => RevokedOther
-    }
-  }
-
   implicit val jsonReads: Reads[RevokedReason] = {
     import play.api.libs.json._
 

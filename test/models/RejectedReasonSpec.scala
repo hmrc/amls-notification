@@ -18,18 +18,24 @@ package models
 
 import models.RejectedReason._
 import org.scalatestplus.play.PlaySpec
-import play.api.libs.json.JsString
+import play.api.data.validation.ValidationError
+import play.api.libs.json._
 
 class RejectedReasonSpec extends PlaySpec {
 
   "RejectedReason model" must {
     "return reason for the string" in {
-      RejectedReason.reason("01") must be(NonCompliant)
-      RejectedReason.reason("02") must be(FailedToRespond)
-      RejectedReason.reason("03") must be(FailedToPayCharges)
-      RejectedReason.reason("04") must be(FitAndProperFailure)
-      RejectedReason.reason("98") must be(OtherFailed)
-      RejectedReason.reason("99") must be(OtherRefused)
+      RejectedReason.jsonReads.reads(Json.obj("status_reason" ->"01")) must be(JsSuccess(NonCompliant))
+      RejectedReason.jsonReads.reads(Json.obj("status_reason" ->"02")) must be(JsSuccess(FailedToRespond))
+      RejectedReason.jsonReads.reads(Json.obj("status_reason" ->"03")) must be(JsSuccess(FailedToPayCharges))
+      RejectedReason.jsonReads.reads(Json.obj("status_reason" ->"04")) must be(JsSuccess(FitAndProperFailure))
+      RejectedReason.jsonReads.reads(Json.obj("status_reason" ->"98")) must be(JsSuccess(OtherFailed))
+      RejectedReason.jsonReads.reads(Json.obj("status_reason" ->"99")) must be(JsSuccess(OtherRefused))
+    }
+
+    "fail validation on invalid data" in {
+      RejectedReason.jsonReads.reads(Json.obj("status_reason" ->"100")) must be(JsError(List((JsPath \ "status_reason",
+        List(ValidationError(List("error.invalid")))))))
     }
 
     "write data successfully" in {

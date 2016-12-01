@@ -16,12 +16,9 @@
 
 package models
 
-import play.api.data.validation.ValidationError
 import play.api.libs.json._
 
 trait StatusReason
-
-case object IgnoreThis extends StatusReason
 
 object StatusReason {
 
@@ -30,9 +27,9 @@ object StatusReason {
 
     (__ \ "status_type").read[String].flatMap[Option[StatusReason]] {
       case "04" => Reads(_ => JsSuccess(None))
-      case "06" => __.read(Reads.optionNoError[RejectedReason]).map (identity[Option[StatusReason]])
-      case "08" => __.read(Reads.optionNoError[RevokedReason]).map (identity[Option[StatusReason]])
-      case "10" => __.read(Reads.optionNoError[DeregisteredReason]).map (identity[Option[StatusReason]])
+      case "06" => __.read(Reads.optionWithNull[RejectedReason]).map (identity[Option[StatusReason]])
+      case "08" => __.read(Reads.optionWithNull[RevokedReason]).map (identity[Option[StatusReason]])
+      case "10" => __.read(Reads.optionWithNull[DeregisteredReason]).map (identity[Option[StatusReason]])
       case "11" => Reads(_ => JsSuccess(None))
       case _ => Reads(_ => JsSuccess(None))
     }
