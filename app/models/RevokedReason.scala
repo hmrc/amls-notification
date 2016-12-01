@@ -16,6 +16,7 @@
 
 package models
 
+import play.api.data.validation.ValidationError
 import play.api.libs.json._
 
 sealed trait RevokedReason extends StatusReason
@@ -45,6 +46,21 @@ object RevokedReason {
       case "05" => RevokedFailedToPayCharges
       case "06" => RevokedFailedToRespond
       case "99" => RevokedOther
+    }
+  }
+
+  implicit val jsonReads: Reads[RevokedReason] = {
+    import play.api.libs.json._
+
+    (__ \ "status_reason").read[String].flatMap[RevokedReason] {
+      case "01" => Reads(_ => JsSuccess(RevokedMissingTrader))
+      case "02" => Reads(_ => JsSuccess(RevokedCeasedTrading))
+      case "03" => Reads(_ => JsSuccess(RevokedNonCompliant))
+      case "04" => Reads(_ => JsSuccess(RevokedFitAndProperFailure))
+      case "05" => Reads(_ => JsSuccess(RevokedFailedToPayCharges))
+      case "06" => Reads(_ => JsSuccess(RevokedFailedToRespond))
+      case "99" => Reads(_ => JsSuccess(RevokedOther))
+      case _ => Reads(_ => JsError(JsPath \ "status_reason" -> ValidationError("error.invalid")))
     }
   }
 

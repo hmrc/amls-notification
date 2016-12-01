@@ -40,7 +40,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
   }
 
   val body = NotificationPushRequest("name", "hh@test.com",
-    Some(Status(Some(StatusType.DeRegistered), Some(DeregisteredReason.CeasedTrading))), Some(ContactType.ApplicationApproval), None, false)
+    Some(Status(StatusType.DeRegistered, Some(DeregisteredReason.CeasedTrading))), Some(ContactType.ApplicationApproval), None, false)
 
   val postRequest = FakeRequest("POST", "/")
     .withHeaders(CONTENT_TYPE -> "application/json")
@@ -141,7 +141,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
       "valid amlsRegistration number is passed" in {
 
         val notificationRecord = NotificationRow (
-          Some(Status(Some(StatusType.Revoked),
+          Some(Status(StatusType.Revoked,
             Some(RevokedReason.RevokedCeasedTrading))),
           Some(ContactType.MindedToRevoke), None, false, DateTime.now(DateTimeZone.UTC), false, new IDType("5832e38e01000001005ca3ff"))
 

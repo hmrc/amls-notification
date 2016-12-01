@@ -16,6 +16,7 @@
 
 package models
 
+import play.api.data.validation.ValidationError
 import play.api.libs.json._
 
 sealed trait DeregisteredReason extends StatusReason
@@ -48,6 +49,21 @@ object DeregisteredReason {
         case "99" => Other
       }
    }
+
+  implicit val jsonReads: Reads[DeregisteredReason] = {
+    import play.api.libs.json._
+
+    (__ \ "status_reason").read[String].flatMap[DeregisteredReason] {
+      case "01" => Reads(_ => JsSuccess(CeasedTrading))
+      case "02" => Reads(_ => JsSuccess(HVDNoCashPayment))
+      case "03" => Reads(_ => JsSuccess(OutOfScope))
+      case "04" => Reads(_ => JsSuccess(NotTrading))
+      case "05" => Reads(_ => JsSuccess(UnderAnotherSupervisor))
+      case "06" => Reads(_ => JsSuccess(ChangeOfLegalEntity))
+      case "99" => Reads(_ => JsSuccess(Other))
+      case _ => Reads(_ => JsError(JsPath \ "status_reason" -> ValidationError("error.invalid")))
+    }
+  }
 
   implicit val jsonWrites = Writes[DeregisteredReason] {
     case CeasedTrading => JsString("01")

@@ -16,14 +16,13 @@
 
 package models
 
-import models.StatusType.{DeRegistered, Revoked, Rejected}
 import play.api.libs.json._
 
-case class Status(status: Option[StatusType], statusReason: Option[StatusReason])
+case class Status(status: StatusType, statusReason: Option[StatusReason])
 
 object Status {
 
-  implicit val jsonReads: Reads[Status] = {
+  /*implicit val jsonReads: Reads[Status] = {
 
     import play.api.libs.functional.syntax._
     import play.api.libs.json.Reads._
@@ -40,14 +39,24 @@ object Status {
       case (Some(status), None) => Status(Some(status), None)
       case _ => Status(None, None)
     }
-  }
+  }*/
 
+  implicit val jsonReads: Reads[Status] = {
+
+    import play.api.libs.functional.syntax._
+    import play.api.libs.json.Reads._
+    import play.api.libs.json._
+
+    (
+      (__ \ "status_type").read[StatusType] and
+      __.read[Option[StatusReason]])(Status.apply _)
+  }
 
   implicit val jsonWrites: Writes[Status] = {
     import play.api.libs.functional.syntax._
     import play.api.libs.json._
     (
-      (__ \ "status_type").writeNullable[StatusType] and
+      (__ \ "status_type").write[StatusType] and
         (__ \ "status_reason").writeNullable[StatusReason]
       ) (unlift(Status.unapply))
   }

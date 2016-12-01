@@ -16,6 +16,7 @@
 
 package models
 
+import play.api.data.validation.ValidationError
 import play.api.libs.json._
 
 trait StatusReason
@@ -23,6 +24,19 @@ trait StatusReason
 case object IgnoreThis extends StatusReason
 
 object StatusReason {
+
+  implicit val jsonReads: Reads[Option[StatusReason]] = {
+    import play.api.libs.json._
+
+    (__ \ "status_type").read[String].flatMap[Option[StatusReason]] {
+      case "04" => Reads(_ => JsSuccess(None))
+      case "06" => __.read(Reads.optionNoError[RejectedReason]).map (identity[Option[StatusReason]])
+      case "08" => __.read(Reads.optionNoError[RevokedReason]).map (identity[Option[StatusReason]])
+      case "10" => __.read(Reads.optionNoError[DeregisteredReason]).map (identity[Option[StatusReason]])
+      case "11" => Reads(_ => JsSuccess(None))
+      case _ => Reads(_ => JsSuccess(None))
+    }
+  }
 
   implicit val jsonWrites: Writes[StatusReason] = {
     import play.api.libs.json._

@@ -72,8 +72,8 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
           _.contactType
         },
         record flatMap {
-          _.status flatMap {
-            _.status
+          _.status flatMap {x=>
+            Some(x.status)
           }
         },
         record flatMap {
@@ -144,7 +144,7 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
                 amlsRegistrationNumber = regNo,
                 contactNumber = Some("CONTACTNUMBER1"),
                 contactType = Some(ContactType.ReminderToPayForManualCharges),
-                status = Some(Status(Some(StatusType.Approved), Some(RejectedReason.FailedToRespond)))
+                status = Some(Status(StatusType.Approved, Some(RejectedReason.FailedToRespond)))
               ))))
 
               when {
@@ -172,7 +172,7 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
                 amlsRegistrationNumber = regNo,
                 contactNumber = None,
                 contactType = Some(ContactType.ReminderToPayForManualCharges),
-                status = Some(Status(Some(StatusType.Approved), Some(RejectedReason.FailedToRespond)))
+                status = Some(Status(StatusType.Approved, Some(RejectedReason.FailedToRespond)))
               ))))
 
               val result = TestController.viewNotification("accountType", "ref", regNo, "NOTIFICATIONID2")(request)

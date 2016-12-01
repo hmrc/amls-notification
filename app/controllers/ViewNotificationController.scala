@@ -18,11 +18,11 @@ package controllers
 
 import connectors.{DESConnector, ViewNotificationConnector}
 import exceptions.HttpStatusException
-import models.NotificationRecord
+import models.{NotificationRecord, StatusType}
 import models.fe.NotificationDetails
 import play.api.Logger
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{Action}
+import play.api.mvc.Action
 import repositories.NotificationRepository
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -56,14 +56,14 @@ trait ViewNotificationController extends BaseController {
                 record.contactNumber.fold (
                   Future.successful(Ok(Json.toJson(NotificationDetails(
                     record.contactType,
-                    record.status flatMap {_.status},
+                    record.status.fold[Option[StatusType]](None)(x => Some(x.status)),
                     record.status flatMap {_.statusReason},
                     None))))
                 ) {contactNumber =>
                   connector.getNotification(amlsRegistrationNumber, contactNumber) map { detail =>
                     Ok(Json.toJson(NotificationDetails(
                       record.contactType,
-                      record.status flatMap {_.status},
+                      record.status.fold[Option[StatusType]](None)(x => Some(x.status)),
                       record.status flatMap {_.statusReason},
                       Some(detail.secureCommText))))
                   }

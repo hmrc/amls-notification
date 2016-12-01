@@ -42,7 +42,7 @@ object DataGen {
     DeregisteredReason.Other)
 
   val statusGen = for {
-    statusType <- Gen.option(statusTypeGen)
+    statusType <- statusTypeGen
     statusReason <- Gen.option(statusReasonGen)
   } yield Status(statusType, statusReason)
 

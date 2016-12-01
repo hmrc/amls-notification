@@ -16,6 +16,7 @@
 
 package models
 
+import play.api.data.validation.ValidationError
 import play.api.libs.json._
 
 sealed trait RejectedReason extends StatusReason
@@ -42,6 +43,20 @@ object RejectedReason {
       case "04" => FitAndProperFailure
       case "98" => OtherFailed
       case "99" => OtherRefused
+    }
+  }
+
+  implicit val jsonReads: Reads[RejectedReason] = {
+    import play.api.libs.json._
+
+    (__ \ "status_reason").read[String].flatMap[RejectedReason] {
+      case "01" => Reads(_ => JsSuccess(NonCompliant))
+      case "02" => Reads(_ => JsSuccess(FailedToRespond))
+      case "03" => Reads(_ => JsSuccess(FailedToPayCharges))
+      case "04" => Reads(_ => JsSuccess(FitAndProperFailure))
+      case "98" => Reads(_ => JsSuccess(OtherFailed))
+      case "99" => Reads(_ => JsSuccess(OtherRefused))
+      case _ => Reads(_ => JsError(JsPath \ "status_reason" -> ValidationError("error.invalid")))
     }
   }
 
