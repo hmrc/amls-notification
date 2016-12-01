@@ -110,6 +110,20 @@ class NotificationPushRequestSpec extends PlaySpec {
           (JsPath \ "status" \ "status_reason", List(ValidationError(List("error.invalid")))))))
       }
 
+      "fail when status type is invalid and status reason is invalid" in {
+
+        val json =  Json.obj("name" -> "test",
+          "email" -> "test@gg.com",
+          "status" -> Json.obj("status_type" -> "100",
+            "status_reason" -> "100"),
+          "contact_type" -> "REJR",
+          "contact_number" -> "112345678251212",
+          "variation" -> false)
+
+        NotificationPushRequest.jsonReads.reads(json) must be(JsError(List(
+          (JsPath \ "status" \ "status_type", List(ValidationError(List("error.invalid")))))))
+      }
+
       "status and status reason is Revoked" in {
 
         val json =  Json.obj("name" -> "test",

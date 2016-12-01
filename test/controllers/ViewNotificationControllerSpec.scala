@@ -20,7 +20,9 @@ package controllers
 import connectors.ViewNotificationConnector
 import exceptions.HttpStatusException
 import models._
+import models.des.NotificationResponse
 import models.fe.NotificationDetails
+import org.joda.time.LocalDateTime
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatestplus.play.PlaySpec
@@ -96,6 +98,62 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
       status(result) must be(OK)
       contentAsJson(result) must be(Json.toJson(expectedDetails))
     }
+
+    "return a valid response when the amls registration number is valid and status , status reason is none" in new Fixture {
+      val record = notificationRecordGen.sample.map(_.copy(
+        contactType = None,
+        status = None,
+        contactNumber = Some(contactNumber),
+        amlsRegistrationNumber = amlsRegistrationNumber))
+
+      val expectedDetails = NotificationDetails(
+        None,
+        None,
+        None,
+        Some("secure-comms text"))
+
+      when {
+        TestController.notificationRepository.findById("NOTIFICATIONID")
+      } thenReturn Future.successful(record)
+
+      when {
+        TestController.connector.getNotification(eqTo(amlsRegistrationNumber), eqTo(contactNumber))(any(), any())
+      } thenReturn Future.successful(Des.notificationResponseGen.sample.map(_.copy(secureCommText = "secure-comms text")).get)
+
+      val result = TestController.viewNotification("accountType", "ref", amlsRegistrationNumber, "NOTIFICATIONID")(request)
+
+      status(result) must be(OK)
+      contentAsJson(result) must be(Json.toJson(expectedDetails))
+    }
+
+
+    "return a valid response when the amls registration number is valid and contact tyep, status , status reason is none" in new Fixture {
+      val record = notificationRecordGen.sample.map(_.copy(
+        contactType = None,
+        status = None,
+        contactNumber = None,
+        amlsRegistrationNumber = amlsRegistrationNumber))
+
+      val expectedDetails = NotificationDetails(
+        None,
+        None,
+        None,
+        None)
+
+      when {
+        TestController.notificationRepository.findById("NOTIFICATIONID")
+      } thenReturn Future.successful(record)
+
+      when {
+        TestController.connector.getNotification(eqTo(amlsRegistrationNumber), eqTo(contactNumber))(any(), any())
+      } thenReturn Future.successful(Des.notificationResponseGen.sample.map(_.copy(secureCommText = "secure-comms text")).get)
+
+      val result = TestController.viewNotification("accountType", "ref", amlsRegistrationNumber, "NOTIFICATIONID")(request)
+
+      status(result) must be(OK)
+      contentAsJson(result) must be(Json.toJson(expectedDetails))
+    }
+
 
     "update the isRead flag successfully" in new Fixture {
 
