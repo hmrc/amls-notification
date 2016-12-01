@@ -32,9 +32,11 @@ object NotificationPushRequest {
     import play.api.libs.functional.syntax._
     import play.api.libs.json.Reads._
     import play.api.libs.json._
+    val namePattern = "^[A-Za-z0-9 ]{1,140}$".r
+    val maxEmailLength = 100
 
-      ((__ \ "name").read[String] and
-        (__ \ "email").read[String] and
+      ((__ \ "name").read[String] (pattern(namePattern)) and
+        (__ \ "email").read[String] (minLength[String](1)keepAnd maxLength[String](maxEmailLength)) and
         (__ \ "status").readNullable[Status] and
         (__ \ "contact_type").readNullable[ContactType] and
         (__ \ "contact_number").readNullable[String] and

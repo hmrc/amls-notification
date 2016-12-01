@@ -27,7 +27,7 @@ class NotificationRowSpec extends PlaySpec {
     "read and write json successfully"  in {
         val id = BSONObjectID.generate
       val model = NotificationRow(
-        Some(Status(Some(StatusType.Revoked),
+        Some(Status(StatusType.Revoked,
           Some(RevokedReason.RevokedCeasedTrading))),
         Some(ContactType.MindedToRevoke), None, false, new DateTime(1479730062573L, DateTimeZone.UTC), false, new IDType("5832e38e01000001005ca3ff"))
 

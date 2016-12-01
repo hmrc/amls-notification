@@ -36,7 +36,92 @@ class NotificationPushRequestSpec extends PlaySpec {
           "variation" -> false)
 
         NotificationPushRequest.jsonReads.reads(json) must be(JsSuccess(NotificationPushRequest("test","test@gg.com",
-          Some(Status(Some(StatusType.Rejected), Some(RejectedReason.FailedToPayCharges))), Some(ContactType.RejectionReasons),Some("112345678251212"),false)))
+          Some(Status(StatusType.Rejected, Some(RejectedReason.FailedToPayCharges))), Some(ContactType.RejectionReasons),Some("112345678251212"),false)))
+      }
+
+      "fail when length of name exceed maxLength" in {
+
+        val json =  Json.obj("name" -> "test"*140,
+          "email" -> "test@gg.com",
+          "status" -> Json.obj("status_type" -> "06",
+            "status_reason" -> "03"),
+          "contact_type" -> "REJR",
+          "contact_number" -> "112345678251212",
+          "variation" -> false)
+
+        NotificationPushRequest.jsonReads.reads(json) must be(JsError(List(( JsPath \ "name", List(ValidationError(List("error.pattern")))))))
+      }
+
+      "fail when length of email exceed maxLength and status type is invalid" in {
+        val maxEmail = 100
+
+        val json =  Json.obj("name" -> "test"*140,
+          "email" -> "test@gg.com"*100,
+          "status" -> Json.obj("status_type" -> "03",
+            "status_reason" -> "03"),
+          "contact_type" -> "REJR",
+          "contact_number" -> "112345678251212",
+          "variation" -> false)
+
+        NotificationPushRequest.jsonReads.reads(json) must be(JsError(List(( JsPath \ "email", List(ValidationError(List("error.maxLength"), maxEmail))),
+          (JsPath \ "status" \ "status_type", List(ValidationError(List("error.invalid")))),
+          ( JsPath \ "name", List(ValidationError(List("error.pattern")))))))
+      }
+
+      "fail when status type is valid Rejected type and status reason is invalid rejected reason" in {
+
+        val json =  Json.obj("name" -> "test",
+          "email" -> "test@gg.com",
+          "status" -> Json.obj("status_type" -> "06",
+            "status_reason" -> "100"),
+          "contact_type" -> "REJR",
+          "contact_number" -> "112345678251212",
+          "variation" -> false)
+
+        NotificationPushRequest.jsonReads.reads(json) must be(JsError(List(
+          (JsPath \ "status" \ "status_reason", List(ValidationError(List("error.invalid")))))))
+      }
+
+      "fail when status type is valid Deregistered type and status reason is invalid Deregistered reason" in {
+
+        val json =  Json.obj("name" -> "test",
+          "email" -> "test@gg.com",
+          "status" -> Json.obj("status_type" -> "08",
+            "status_reason" -> "100"),
+          "contact_type" -> "REJR",
+          "contact_number" -> "112345678251212",
+          "variation" -> false)
+
+        NotificationPushRequest.jsonReads.reads(json) must be(JsError(List(
+          (JsPath \ "status" \ "status_reason", List(ValidationError(List("error.invalid")))))))
+      }
+
+      "fail when status type is valid Revoked type and status reason is invalid Revoked reason" in {
+
+        val json =  Json.obj("name" -> "test",
+          "email" -> "test@gg.com",
+          "status" -> Json.obj("status_type" -> "10",
+            "status_reason" -> "100"),
+          "contact_type" -> "REJR",
+          "contact_number" -> "112345678251212",
+          "variation" -> false)
+
+        NotificationPushRequest.jsonReads.reads(json) must be(JsError(List(
+          (JsPath \ "status" \ "status_reason", List(ValidationError(List("error.invalid")))))))
+      }
+
+      "fail when status type is invalid and status reason is invalid" in {
+
+        val json =  Json.obj("name" -> "test",
+          "email" -> "test@gg.com",
+          "status" -> Json.obj("status_type" -> "100",
+            "status_reason" -> "100"),
+          "contact_type" -> "REJR",
+          "contact_number" -> "112345678251212",
+          "variation" -> false)
+
+        NotificationPushRequest.jsonReads.reads(json) must be(JsError(List(
+          (JsPath \ "status" \ "status_type", List(ValidationError(List("error.invalid")))))))
       }
 
       "status and status reason is Revoked" in {
@@ -50,7 +135,7 @@ class NotificationPushRequestSpec extends PlaySpec {
           "variation" -> false)
 
         NotificationPushRequest.jsonReads.reads(json) must be(JsSuccess(NotificationPushRequest("test","test@gg.com",
-          Some(Status(Some(StatusType.Revoked), Some(RevokedReason.RevokedCeasedTrading))), Some(ContactType.RejectionReasons),Some("112345678251212"),false)))
+          Some(Status(StatusType.Revoked, Some(RevokedReason.RevokedCeasedTrading))), Some(ContactType.RejectionReasons),Some("112345678251212"),false)))
       }
 
       "status and status reason is DeRegistered" in {
@@ -64,7 +149,8 @@ class NotificationPushRequestSpec extends PlaySpec {
           "variation" -> false)
 
         NotificationPushRequest.jsonReads.reads(json) must be(JsSuccess(NotificationPushRequest("test","test@gg.com",
-          Some(Status(Some(StatusType.DeRegistered), Some(DeregisteredReason.CeasedTrading))),Some(ContactType.RejectionReasons),Some("112345678251212"),false)))
+          Some(Status(StatusType.DeRegistered,
+            Some(DeregisteredReason.CeasedTrading))),Some(ContactType.RejectionReasons),Some("112345678251212"),false)))
       }
 
       "status and status reason is Expired" in {
@@ -78,7 +164,7 @@ class NotificationPushRequestSpec extends PlaySpec {
           "variation" -> false)
 
         NotificationPushRequest.jsonReads.reads(json) must be(JsSuccess(NotificationPushRequest("test","test@gg.com",
-          Some(Status(Some(StatusType.Expired), None)),Some(ContactType.RejectionReasons),Some("112345678251212"),false)))
+          Some(Status(StatusType.Expired, None)),Some(ContactType.RejectionReasons),Some("112345678251212"),false)))
       }
 
       "status and status reason is Approved" in {
@@ -92,7 +178,7 @@ class NotificationPushRequestSpec extends PlaySpec {
           "variation" -> false)
 
         NotificationPushRequest.jsonReads.reads(json) must be(JsSuccess(NotificationPushRequest("test","test@gg.com",
-          Some(Status(Some(StatusType.Approved), None)), Some(ContactType.RejectionReasons),Some("112345678251212"),false)))
+          Some(Status(StatusType.Approved, None)), Some(ContactType.RejectionReasons),Some("112345678251212"),false)))
       }
     }
 
@@ -127,7 +213,7 @@ class NotificationPushRequestSpec extends PlaySpec {
     "write json successfully" when {
       "status and status reason is Rejected" in {
 
-        val model = NotificationPushRequest("test","test@gg.com", Some(Status(Some(StatusType.Rejected),
+        val model = NotificationPushRequest("test","test@gg.com", Some(Status(StatusType.Rejected,
           Some(RejectedReason.FailedToPayCharges))), Some(ContactType.RejectionReasons), Some("112345678251212"), false)
 
         val json = Json.obj("name" -> "test",
@@ -144,7 +230,7 @@ class NotificationPushRequestSpec extends PlaySpec {
 
       "status and status reason is Revoked" in {
 
-        val model = NotificationPushRequest("test","test@gg.com",Some(Status(Some(StatusType.Revoked),
+        val model = NotificationPushRequest("test","test@gg.com",Some(Status(StatusType.Revoked,
           Some(RevokedReason.RevokedCeasedTrading))),Some(ContactType.RejectionReasons),Some("112345678251212"),false)
 
         val json =  Json.obj("name" -> "test",
@@ -160,7 +246,7 @@ class NotificationPushRequestSpec extends PlaySpec {
 
       "status and status reason is DeRegistered" in {
 
-        val model = NotificationPushRequest("test","test@gg.com",Some(Status(Some(StatusType.DeRegistered),
+        val model = NotificationPushRequest("test","test@gg.com",Some(Status(StatusType.DeRegistered,
           Some(DeregisteredReason.CeasedTrading))),Some(ContactType.RejectionReasons),Some("112345678251212"),false)
 
         val json =  Json.obj("name" -> "test",
@@ -175,7 +261,7 @@ class NotificationPushRequestSpec extends PlaySpec {
       }
 
       "status and status reason is Expired" in {
-        val model = NotificationPushRequest("test","test@gg.com",Some(Status(Some(StatusType.Expired), None)),
+        val model = NotificationPushRequest("test","test@gg.com",Some(Status(StatusType.Expired, None)),
           Some(ContactType.RejectionReasons),Some("112345678251212"),false)
 
         val json =  Json.obj("name" -> "test",
@@ -190,7 +276,7 @@ class NotificationPushRequestSpec extends PlaySpec {
 
       "status and status reason is Approved" in {
 
-        val model = NotificationPushRequest("test","test@gg.com",Some(Status(Some(StatusType.Approved), None)),
+        val model = NotificationPushRequest("test","test@gg.com",Some(Status(StatusType.Approved, None)),
           Some(ContactType.RejectionReasons),Some("112345678251212"),false)
         val json =  Json.obj("name" -> "test",
           "email" -> "test@gg.com",
@@ -205,8 +291,9 @@ class NotificationPushRequestSpec extends PlaySpec {
 
     "validate NotificationPushRequest format method" in {
 
-      val model = NotificationPushRequest("test","test@gg.com",Some(Status(Some(StatusType.Expired), None)),
+      val model = NotificationPushRequest("test","test@gg.com",Some(Status(StatusType.Expired, None)),
         Some(ContactType.RejectionReasons),Some("112345678251212"),false)
+
       NotificationPushRequest.formats.reads(NotificationPushRequest.formats.writes(model)) must be(JsSuccess(model))
     }
   }

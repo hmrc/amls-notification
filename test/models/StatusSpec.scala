@@ -25,33 +25,28 @@ class StatusSpec extends PlaySpec {
 
   "Status model" must {
     "must serialise and de serialise data successfully" in {
-      val data = Status(Some(Approved),None)
+      val data = Status(Approved,None)
       Status.jsonReads.reads(Status.jsonWrites.writes(data)) must be(JsSuccess(data))
     }
 
     "must serialise and de serialise data successfully for the status Rejected" in {
-      val data = Status(Some(Rejected),Some(RejectedReason.NonCompliant))
+      val data = Status(Rejected,Some(RejectedReason.NonCompliant))
       Status.jsonReads.reads(Status.jsonWrites.writes(data)) must be(JsSuccess(data))
     }
 
     "must serialise and de serialise data successfully for the status Revoked" in {
-      val data = Status(Some(Revoked), Some(RevokedReason.RevokedFitAndProperFailure))
+      val data = Status(Revoked, Some(RevokedReason.RevokedFitAndProperFailure))
       Status.jsonReads.reads(Status.jsonWrites.writes(data)) must be(JsSuccess(data))
     }
 
     "must serialise and de serialise data successfully for the status DeRegistered" in {
-      val data = Status(Some(DeRegistered), Some(DeregisteredReason.HVDNoCashPayment))
+      val data = Status(DeRegistered, Some(DeregisteredReason.HVDNoCashPayment))
       Status.jsonReads.reads(Status.jsonWrites.writes(data)) must be(JsSuccess(data))
     }
 
 
     "must serialise and de serialise data successfully for the status Expired" in {
-      val data = Status(Some(Expired), None)
-      Status.jsonReads.reads(Status.jsonWrites.writes(data)) must be(JsSuccess(data))
-    }
-
-    "must serialise and de serialise data successfully for the status is None" in {
-      val data = Status(None, None)
+      val data = Status(Expired, None)
       Status.jsonReads.reads(Status.jsonWrites.writes(data)) must be(JsSuccess(data))
     }
 

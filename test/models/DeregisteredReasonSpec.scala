@@ -18,19 +18,25 @@ package models
 
 import models.DeregisteredReason._
 import org.scalatestplus.play.PlaySpec
-import play.api.libs.json.JsString
+import play.api.data.validation.ValidationError
+import play.api.libs.json._
 
 class DeregisteredReasonSpec extends PlaySpec {
 
   "DeregisteredReason model" must {
     "return reason for the string" in {
-      DeregisteredReason.reason("01") must be(CeasedTrading)
-      DeregisteredReason.reason("02") must be(HVDNoCashPayment)
-      DeregisteredReason.reason("03") must be(OutOfScope)
-      DeregisteredReason.reason("04") must be(NotTrading)
-      DeregisteredReason.reason("05") must be(UnderAnotherSupervisor)
-      DeregisteredReason.reason("06") must be(ChangeOfLegalEntity)
-      DeregisteredReason.reason("99") must be(Other)
+      DeregisteredReason.jsonReads.reads(Json.obj("status_reason" ->"01")) must be(JsSuccess(CeasedTrading))
+      DeregisteredReason.jsonReads.reads(Json.obj("status_reason" ->"02")) must be(JsSuccess(HVDNoCashPayment))
+      DeregisteredReason.jsonReads.reads(Json.obj("status_reason" ->"03")) must be(JsSuccess(OutOfScope))
+      DeregisteredReason.jsonReads.reads(Json.obj("status_reason" ->"04")) must be(JsSuccess(NotTrading))
+      DeregisteredReason.jsonReads.reads(Json.obj("status_reason" ->"05")) must be(JsSuccess(UnderAnotherSupervisor))
+      DeregisteredReason.jsonReads.reads(Json.obj("status_reason" ->"06")) must be(JsSuccess(ChangeOfLegalEntity))
+      DeregisteredReason.jsonReads.reads(Json.obj("status_reason" ->"99")) must be(JsSuccess(Other))
+    }
+
+    "fail validation on invalid data" in {
+      DeregisteredReason.jsonReads.reads(Json.obj("status_reason" ->"100")) must be(JsError(List((JsPath \ "status_reason",
+        List(ValidationError(List("error.invalid")))))))
     }
 
     "write data successfully" in {

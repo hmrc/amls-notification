@@ -162,7 +162,7 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
                 amlsRegistrationNumber = regNo,
                 contactNumber = Some("CONTACTNUMBER1"),
                 contactType = Some(ContactType.ReminderToPayForManualCharges),
-                status = Some(Status(Some(StatusType.Approved), Some(RejectedReason.FailedToRespond))),
+                status = Some(Status(StatusType.Approved, Some(RejectedReason.FailedToRespond))),
                 variation = true
               ))))
 
@@ -192,7 +192,7 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
                 amlsRegistrationNumber = regNo,
                 contactNumber = None,
                 contactType = Some(ContactType.ReminderToPayForManualCharges),
-                status = Some(Status(Some(StatusType.Approved), Some(RejectedReason.FailedToRespond))),
+                status = Some(Status(StatusType.Approved, Some(RejectedReason.FailedToRespond))),
                 variation = true
               ))))
 

@@ -28,7 +28,7 @@ class NotificationDetailsSpec extends WordSpec with MustMatchers {
       val result = NotificationDetails.writes.writes(
         NotificationDetails(
           Some(ContactType.NoLongerMindedToRevoke),
-          Some(Status(Some(StatusType.Approved), Some(RejectedReason.FailedToRespond))),
+          Some(Status(StatusType.Approved, Some(RejectedReason.FailedToRespond))),
           Some("THIS IS THE TEST TEXT"),
           false)
       )

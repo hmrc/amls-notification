@@ -26,7 +26,7 @@ class NotificationRecordSpec extends PlaySpec {
     "read and write json successfully"  in {
 
       val model = NotificationRecord("amlsNumber", "name", "hh@test.com",
-        Some(Status(Some(StatusType.Revoked),
+        Some(Status(StatusType.Revoked,
           Some(RevokedReason.RevokedCeasedTrading))),
         Some(ContactType.MindedToRevoke), None, false, DateTime.now(DateTimeZone.UTC), false)
 

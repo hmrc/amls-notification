@@ -18,11 +18,11 @@ package controllers
 
 import connectors.{DESConnector, ViewNotificationConnector}
 import exceptions.HttpStatusException
-import models.NotificationRecord
+import models.{NotificationRecord, StatusType}
 import models.fe.NotificationDetails
 import play.api.Logger
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{Action}
+import play.api.mvc.Action
 import repositories.NotificationRepository
 import uk.gov.hmrc.play.microservice.controller.BaseController
 

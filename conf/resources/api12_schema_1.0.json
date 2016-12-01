@@ -1,0 +1,78 @@
+{
+  "title": "PushNotificationRequest",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Schema for AMLS ETMP push notification request (04AY) - v7.0",
+  "type": "object",
+  "required": [
+    "name",
+    "email",
+    "variation"
+  ],
+  "definitions": {
+    "name": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9 ]{1,140}$",
+      "description": "Name"
+    },
+    "emailaddress": {
+      "type": "string",
+      "description": "Email address",
+      "minLength": 1,
+      "maxLength": 100
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name or Organisation",
+      "$ref": "#/definitions/name"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email address",
+      "$ref": "#/definitions/emailaddress"
+    },
+    "status": {
+      "type": "object",
+      "description": "Application status and reason",
+      "properties": {
+        "status_type": {
+          "type": "string",
+          "description": "Application status",
+          "pattern": "04|06|08|10|11"
+        },
+        "status_reason": {
+          "type": "string",
+          "description": "Application status reason",
+          "pattern": "[0-99]{2}"
+        }
+      },
+      "required": [
+        "status_type"
+      ]
+    },
+    "contact_type": {
+      "type": "string",
+      "description": "Type of notification",
+      "enum": [
+        "REJR",
+        "REVR",
+        "CONA",
+        "MTRJ",
+        "NMRJ",
+        "MTRV",
+        "NMRV",
+        "OTHR"
+      ]
+    },
+    "contact_number": {
+      "type": "string",
+      "pattern": "[0-9]{12}"
+    },
+    "variation": {
+      "type": "boolean",
+      "description": "Variation application"
+    }
+  }
+}

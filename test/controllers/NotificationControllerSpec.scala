@@ -40,11 +40,23 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
   }
 
   val body = NotificationPushRequest("name", "hh@test.com",
-    Some(Status(Some(StatusType.DeRegistered), Some(DeregisteredReason.CeasedTrading))), Some(ContactType.ApplicationApproval), None, false)
+    Some(Status(StatusType.DeRegistered, Some(DeregisteredReason.CeasedTrading))), Some(ContactType.ApplicationApproval), None, false)
+
+  val json =  Json.obj("name" -> "test",
+    "email" -> "test@gg.com",
+    "status" -> Json.obj("status_type" -> "06",
+      "status_reason" -> "100"),
+    "contact_type" -> "REJR",
+    "contact_number" -> "112345678251212",
+    "variation" -> false)
 
   val postRequest = FakeRequest("POST", "/")
     .withHeaders(CONTENT_TYPE -> "application/json")
     .withBody[JsValue](Json.toJson(body))
+
+  val postRequestWithError = FakeRequest("POST", "/")
+    .withHeaders(CONTENT_TYPE -> "application/json")
+    .withBody[JsValue](json)
 
   val getRequest = FakeRequest()
     .withHeaders(CONTENT_TYPE -> "application/json")
@@ -63,7 +75,12 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
       contentAsJson(result) must be(Json.toJson(true))
     }
 
+    "fail validation when json parse throws error" in {
 
+      val result = TestNotificationController.saveNotification(amlsRegistrationNumber)(postRequestWithError)
+      status(result) must be(BAD_REQUEST)
+      contentAsJson(result) must be(Json.obj("errors" -> Json.arr(Json.obj("path" ->"obj.status.status_reason","error" ->"error.invalid"))))
+    }
 
     "return BadRequest, if input request fails validation" in {
       val result = TestNotificationController.saveNotification("hhhh")(postRequest)
@@ -141,7 +158,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
       "valid amlsRegistration number is passed" in {
 
         val notificationRecord = NotificationRow (
-          Some(Status(Some(StatusType.Revoked),
+          Some(Status(StatusType.Revoked,
             Some(RevokedReason.RevokedCeasedTrading))),
           Some(ContactType.MindedToRevoke), None, false, DateTime.now(DateTimeZone.UTC), false, new IDType("5832e38e01000001005ca3ff"))
 
