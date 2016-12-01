@@ -47,7 +47,10 @@
           "description": "Application status reason",
           "pattern": "[0-99]{2}"
         }
-      }
+      },
+      "required": [
+        "status_type"
+      ]
     },
     "contact_type": {
       "type": "string",
