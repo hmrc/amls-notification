@@ -78,7 +78,7 @@ class ViewNotificationConnectorSpec
 
   "ViewNotificationConnector" must {
 
-    "return a succesful future containing the Notification response" in new Fixture {
+    "return a successful future containing the Notification response" in new Fixture {
 
       val response = HttpResponse(
         responseStatus = OK,
