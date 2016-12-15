@@ -34,7 +34,8 @@ trait NotificationController extends BaseController {
 
   val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
   val prefix = "[NotificationController]"
-  val emailConnector: EmailConnector
+
+  private[controllers] def emailConnector: EmailConnector
 
   private[controllers] def notificationRepository: NotificationRepository
 

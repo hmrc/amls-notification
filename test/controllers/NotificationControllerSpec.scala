@@ -16,18 +16,18 @@
 
 package controllers
 
+import connectors.EmailConnector
 import exceptions.HttpStatusException
 import models._
 import org.joda.time.{DateTime, DateTimeZone}
+import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.libs.json.{JsNull, JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import org.mockito.Mockito._
-import org.mockito.Matchers.{eq => eqTo, _}
-import reactivemongo.bson.BSONObjectID
 import repositories.NotificationRepository
 
 import scala.concurrent.Future
@@ -36,6 +36,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
 
   object TestNotificationController extends NotificationController {
     override private[controllers] val notificationRepository = mock[NotificationRepository]
+    override private[controllers] val emailConnector = mock[EmailConnector]
 
   }
 

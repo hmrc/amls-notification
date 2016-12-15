@@ -33,28 +33,31 @@ object SendTemplatedEmailRequest {
 
 trait EmailConnector extends ServicesConfig {
 
-  private[connectors] val httpPost: HttpPost = WSHttp
+  private[connectors] def httpPost: HttpPost
+
+  private[connectors] def url: String
 
   def sendNotificationReceivedTemplatedEmail(to: List[String])(implicit hc: HeaderCarrier): Future[Boolean] = {
-
     val request = SendTemplatedEmailRequest(to, "amls_notification_received_template", Map())
     sendEmail(request)
-
   }
 
   private def sendEmail(request: SendTemplatedEmailRequest)(implicit hc: HeaderCarrier): Future[Boolean] = {
 
-    val url = s"${baseUrl("email")}/send-templated-email"
-
     Logger.debug(s"[EmailConnector] Sending email to ${request.to.mkString(", ")}")
 
-    httpPost.POST[SendTemplatedEmailRequest, HttpResponse](url, request, Seq(("Content-Type", "application/json"))) map { response =>
-      response.status match {
-        case 202 => Logger.debug(s"[EmailConnector] Email sent: ${response.body}"); true
-        case _ => Logger.error(s"[EmailConnector] Email not sent: ${response.body}"); false
-      }
+    httpPost.POST[SendTemplatedEmailRequest, HttpResponse](url, request, Seq(("Content-Type", "application/json"))) map {
+      response =>
+        response.status match {
+          case 202 => Logger.debug(s"[EmailConnector] Email sent: ${response.body}"); true
+          case _ => Logger.error(s"[EmailConnector] Email not sent: ${response.body}"); false
+        }
     }
   }
 }
 
-object EmailConnector extends EmailConnector
+object EmailConnector extends EmailConnector {
+  // $COVERAGE-OFF$
+  override def httpPost: HttpPost = WSHttp
+  override def url = s"${baseUrl("email")}/send-templated-email"
+}
