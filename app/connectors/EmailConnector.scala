@@ -16,7 +16,7 @@
 
 package connectors
 
-import config.WSHttp
+import config.{AmlsConfig, WSHttp}
 import play.api.Logger
 import play.api.libs.json.Json
 import uk.gov.hmrc.play.config.ServicesConfig
@@ -59,5 +59,5 @@ trait EmailConnector extends ServicesConfig {
 object EmailConnector extends EmailConnector {
   // $COVERAGE-OFF$
   override def httpPost: HttpPost = WSHttp
-  override def url = s"${baseUrl("email")}/send-templated-email"
+  override def url = s"${AmlsConfig.emailUrl}/send-templated-email"
 }
