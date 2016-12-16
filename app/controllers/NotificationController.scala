@@ -16,9 +16,10 @@
 
 package controllers
 
+import connectors.EmailConnector
 import exceptions.HttpStatusException
 import models.{NotificationPushRequest, NotificationRecord}
-import org.joda.time.{DateTimeZone, DateTime}
+import org.joda.time.{DateTime, DateTimeZone}
 import play.api.Logger
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
@@ -33,6 +34,8 @@ trait NotificationController extends BaseController {
 
   val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
   val prefix = "[NotificationController]"
+
+  private[controllers] def emailConnector: EmailConnector
 
   private[controllers] def notificationRepository: NotificationRepository
 
@@ -72,6 +75,7 @@ trait NotificationController extends BaseController {
                 )
                 notificationRepository.insertRecord(record) map {
                   response =>
+                    emailConnector.sendNotificationReceivedTemplatedEmail(List(body.email))
                     Ok(Json.toJson(response))
                 } recoverWith {
                   case e@HttpStatusException(status, Some(body)) =>
@@ -115,4 +119,5 @@ trait NotificationController extends BaseController {
 object NotificationController extends NotificationController {
   // $COVERAGE-OFF$
   override private[controllers] val notificationRepository = NotificationRepository()
+  override private[controllers] val emailConnector: EmailConnector = EmailConnector
 }
