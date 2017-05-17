@@ -59,14 +59,17 @@ trait ViewNotificationController extends BaseController {
                     record.contactType,
                     record.status,
                     None,
-                    record.variation))))
+                    record.variation,
+                    record.receivedAt))))
                 ) {contactNumber =>
                   connector.getNotification(amlsRegistrationNumber, contactNumber) map { detail =>
                     Ok(Json.toJson(NotificationDetails(
                       record.contactType,
                       record.status,
                       Some(detail.secureCommText),
-                      record.variation)))
+                      record.variation,
+                      record.receivedAt
+                    )))
                   }
                 }
               }.andThen { case _ => markNotificationAsRead(notificationId)}

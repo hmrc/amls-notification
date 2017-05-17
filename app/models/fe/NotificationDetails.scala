@@ -16,13 +16,16 @@
 
 package models.fe
 
-import models.{Status, ContactType}
+import models.{ContactType, Status}
+import org.joda.time.DateTime
 import play.api.libs.json.Json
 
 case class NotificationDetails(contactType : Option[ContactType],
                                status : Option[Status],
                                messageText : Option[String],
-                               variation : Boolean)
+                               variation : Boolean,
+                               receivedAt: DateTime
+                              )
 
 object NotificationDetails {
   implicit val writes = Json.writes[NotificationDetails]

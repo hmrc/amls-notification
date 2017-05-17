@@ -21,6 +21,7 @@ import connectors.ViewNotificationConnector
 import exceptions.HttpStatusException
 import models._
 import models.fe.NotificationDetails
+import org.joda.time.DateTime
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatestplus.play.PlaySpec
@@ -31,6 +32,7 @@ import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import repositories.NotificationRepository
+
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import utils.DataGen._
@@ -71,7 +73,8 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
         record flatMap {_.contactType},
         record flatMap {_.status},
         Some("secure-comms text"),
-        record.fold(false) {_.variation}
+        record.fold(false) {_.variation},
+        record.fold(new DateTime()){_.receivedAt}
       )
 
       when {

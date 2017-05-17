@@ -48,7 +48,7 @@ trait ViewNotificationConnector extends DESConnector {
         Logger.debug(s"$prefix - Response Body: ${response.body}")
         response
     } flatMap {
-      case r@status(OK) & bodyParser(JsSuccess(body: NotificationResponse, _)) =>
+      case _@status(OK) & bodyParser(JsSuccess(body: NotificationResponse, _)) =>
         metrics.success(API11)
         audit.sendDataEvent(ViewNotificationEvent(amlsRegistrationNumber, contactNumber, body))
         Logger.debug(s"$prefix - Success response")
