@@ -17,6 +17,7 @@
 package models.fe
 
 import models._
+import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatest.WordSpec
 import org.scalatest.MustMatchers
 import play.api.libs.json.Json
@@ -24,29 +25,34 @@ import play.api.libs.json.Json
 class NotificationDetailsSpec extends WordSpec with MustMatchers {
 
   "NotificationDetails serialisation" must {
+
+    val dateTime = new DateTime(1479730062573L, DateTimeZone.UTC)
+
     "Serialise the object correctly" in {
-      val result = NotificationDetails.writes.writes(
+      NotificationDetails.writes.writes(
         NotificationDetails(
           Some(ContactType.NoLongerMindedToRevoke),
           Some(Status(StatusType.Approved, Some(RejectedReason.FailedToRespond))),
           Some("THIS IS THE TEST TEXT"),
-          false)
-      )
-      result must be (Json.obj(
+          false,
+          dateTime
+        )
+      ) must be (Json.obj(
         "contactType" -> "NMRV",
         "status" -> Json.obj("status_type" -> "04", "status_reason" -> "02"),
         "messageText" -> "THIS IS THE TEST TEXT",
-        "variation" -> false
+        "variation" -> false,
+        "receivedAt" -> Json.parse("""{"$date":1479730062573}""")
       ))
     }
 
     "serialise the object correctly when data is missing" in {
-      val result = NotificationDetails.writes.writes(
-        NotificationDetails(None, None,  Some("THIS IS THE TEST TEXT"), false)
-      )
-      result must be (Json.obj(
+      NotificationDetails.writes.writes(
+        NotificationDetails(None, None,  Some("THIS IS THE TEST TEXT"), false, dateTime)
+      ) must be (Json.obj(
         "messageText" -> "THIS IS THE TEST TEXT",
-        "variation" -> false
+        "variation" -> false,
+        "receivedAt" -> Json.parse("""{"$date":1479730062573}""")
       ))
     }
   }
