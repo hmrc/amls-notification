@@ -21,7 +21,7 @@ import connectors.ViewNotificationConnector
 import exceptions.HttpStatusException
 import models._
 import models.fe.NotificationDetails
-import org.joda.time.DateTime
+import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatestplus.play.PlaySpec
@@ -49,8 +49,9 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
     }
   }
 
-  val request = FakeRequest()
-    .withHeaders(CONTENT_TYPE -> "application/json")
+  val request = FakeRequest() withHeaders CONTENT_TYPE -> "application/json"
+
+  val dateTime = new DateTime(2017, 12, 1, 3, 3, DateTimeZone.UTC)
 
   "ViewNotificationController" must {
     val amlsRegistrationNumber = amlsRegNumberGen.sample.get
@@ -166,7 +167,8 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
                 contactNumber = Some("CONTACTNUMBER1"),
                 contactType = Some(ContactType.ReminderToPayForManualCharges),
                 status = Some(Status(StatusType.Approved, Some(RejectedReason.FailedToRespond))),
-                variation = true
+                variation = true,
+                receivedAt = dateTime
               ))))
 
               when {
@@ -181,7 +183,8 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
                 "contactType" -> "RPM1",
                 "status" -> Json.obj("status_type"->"04", "status_reason" -> "02"),
                 "messageText" -> "THIS IS THE MESSAGE TEXT 00001",
-                "variation" -> true
+                "variation" -> true,
+                "receivedAt" -> Json.toJson(dateTime)
               ))
             }
           }
@@ -196,7 +199,8 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
                 contactNumber = None,
                 contactType = Some(ContactType.ReminderToPayForManualCharges),
                 status = Some(Status(StatusType.Approved, Some(RejectedReason.FailedToRespond))),
-                variation = true
+                variation = true,
+                receivedAt = dateTime
               ))))
 
               val result = TestController.viewNotification("accountType", "ref", regNo, "NOTIFICATIONID2")(request)
@@ -205,7 +209,8 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
               contentAsJson(result) must be(Json.obj(
                 "contactType" -> "RPM1",
                 "status" -> Json.obj("status_type" -> "04", "status_reason" -> "02"),
-                "variation" -> true
+                "variation" -> true,
+                "receivedAt" -> Json.toJson(dateTime)
               ))
             }
           }
