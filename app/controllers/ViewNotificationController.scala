@@ -36,7 +36,6 @@ trait ViewNotificationController extends BaseController {
 
   private[controllers] def notificationRepository: NotificationRepository
 
-
   val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
   val prefix = "[ViewNotificationController]"
 
@@ -63,16 +62,20 @@ trait ViewNotificationController extends BaseController {
                     record.receivedAt))))
                 ) {contactNumber =>
                   connector.getNotification(amlsRegistrationNumber, contactNumber) map { detail =>
-                    Ok(Json.toJson(NotificationDetails(
+                    val notificationDetails = Json.toJson(NotificationDetails(
                       record.contactType,
                       record.status,
                       Some(detail.secureCommText),
                       record.variation,
                       record.receivedAt
-                    )))
+                    ))
+
+                    Logger.debug(s"$prefix[viewNotification] - sending: $notificationDetails")
+
+                    Ok(notificationDetails)
                   }
                 }
-              }.andThen { case _ => markNotificationAsRead(notificationId)}
+              }.andThen{case _ => markNotificationAsRead(notificationId)}
             case _ => Future.successful(NotFound)
           }
           case None => Future.successful(BadRequest(toError("Invalid AMLS Registration Number")))

@@ -51,7 +51,7 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
 
   val request = FakeRequest() withHeaders CONTENT_TYPE -> "application/json"
 
-  val dateTime = new DateTime(2017, 12, 1, 3, 3, DateTimeZone.UTC)
+  val dateTime = new DateTime(1479730062573L, DateTimeZone.UTC)
 
   "ViewNotificationController" must {
     val amlsRegistrationNumber = amlsRegNumberGen.sample.get
@@ -184,7 +184,7 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
                 "status" -> Json.obj("status_type"->"04", "status_reason" -> "02"),
                 "messageText" -> "THIS IS THE MESSAGE TEXT 00001",
                 "variation" -> true,
-                "receivedAt" -> Json.toJson(dateTime)
+                "receivedAt" -> Json.parse("""{"$date":1479730062573}""")
               ))
             }
           }
@@ -210,7 +210,7 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
                 "contactType" -> "RPM1",
                 "status" -> Json.obj("status_type" -> "04", "status_reason" -> "02"),
                 "variation" -> true,
-                "receivedAt" -> Json.toJson(dateTime)
+                "receivedAt" -> Json.parse("""{"$date":1479730062573}""")
               ))
             }
           }

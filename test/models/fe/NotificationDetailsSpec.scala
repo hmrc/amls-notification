@@ -26,7 +26,7 @@ class NotificationDetailsSpec extends WordSpec with MustMatchers {
 
   "NotificationDetails serialisation" must {
 
-    val dateTime = new DateTime(2017, 12, 1, 3, 3, DateTimeZone.UTC)
+    val dateTime = new DateTime(1479730062573L, DateTimeZone.UTC)
 
     "Serialise the object correctly" in {
       NotificationDetails.writes.writes(
@@ -42,7 +42,7 @@ class NotificationDetailsSpec extends WordSpec with MustMatchers {
         "status" -> Json.obj("status_type" -> "04", "status_reason" -> "02"),
         "messageText" -> "THIS IS THE TEST TEXT",
         "variation" -> false,
-        "receivedAt" -> Json.toJson(dateTime)
+        "receivedAt" -> Json.parse("""{"$date":1479730062573}""")
       ))
     }
 
@@ -52,7 +52,7 @@ class NotificationDetailsSpec extends WordSpec with MustMatchers {
       ) must be (Json.obj(
         "messageText" -> "THIS IS THE TEST TEXT",
         "variation" -> false,
-        "receivedAt" -> Json.toJson(dateTime)
+        "receivedAt" -> Json.parse("""{"$date":1479730062573}""")
       ))
     }
   }
