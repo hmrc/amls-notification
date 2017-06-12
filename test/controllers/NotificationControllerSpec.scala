@@ -40,10 +40,11 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
 
   }
 
-  val body = NotificationPushRequest("name", "hh@test.com",
+  val body = NotificationPushRequest("AA1234567891234","name", "hh@test.com",
     Some(Status(StatusType.DeRegistered, Some(DeregisteredReason.CeasedTrading))), Some(ContactType.ApplicationApproval), None, false)
 
-  val json =  Json.obj("name" -> "test",
+  val json =  Json.obj("safeId" -> "AA1234567891234",
+    "name" -> "test",
     "email" -> "test@gg.com",
     "status" -> Json.obj("status_type" -> "06",
       "status_reason" -> "100"),
@@ -112,6 +113,10 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
 
       val response = Json.obj(
         "errors" -> Seq(
+          Json.obj(
+            "path" -> "obj.safeId",
+            "error" -> "error.path.missing"
+          ),
           Json.obj(
             "path" -> "obj.variation",
             "error" -> "error.path.missing"

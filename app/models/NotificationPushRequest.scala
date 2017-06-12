@@ -18,7 +18,9 @@ package models
 
 import play.api.libs.json._
 
-case class NotificationPushRequest (name: String,
+case class NotificationPushRequest (
+                                   safeId: String,
+                                   name: String,
                                    email: String,
                                    status: Option[Status],
                                    contactType: Option[ContactType],
@@ -32,10 +34,12 @@ object NotificationPushRequest {
     import play.api.libs.functional.syntax._
     import play.api.libs.json.Reads._
     import play.api.libs.json._
+    val safeIdPattern = "^[A-Za-z0-9]{15}$".r
     val namePattern = "^[A-Za-z0-9 ]{1,140}$".r
     val maxEmailLength = 100
 
-      ((__ \ "name").read[String] (pattern(namePattern)) and
+      ((__ \ "safeId").read[String] (pattern(safeIdPattern)) and
+        (__ \ "name").read[String] (pattern(namePattern)) and
         (__ \ "email").read[String] (minLength[String](1)keepAnd maxLength[String](maxEmailLength)) and
         (__ \ "status").readNullable[Status] and
         (__ \ "contact_type").readNullable[ContactType] and
@@ -50,6 +54,7 @@ object NotificationPushRequest {
     import play.api.libs.json._
 
       (
+        (__ \ "safeId").write[String] and
         (__ \ "name").write[String] and
           (__ \ "email").write[String] and
           (__ \ "status").writeNullable[Status] and
