@@ -10,7 +10,7 @@ Send a POST request in JSON format to `/amls-notification/<reg number>` in order
 
 #### Fields
 | Name | Type | Description | Required | Validation |
-| ----- | ------| ----- | ------- | ------ |
+| ----- | :------: | ----- | :-------: | ------ |
 | name | string | The name of the recipient | Yes | Max 140 characters
 | email | string | The recipient's email address | Yes | Max 100 characters
 | variation | boolean | | Yes | Must be `true` or `false`
@@ -21,14 +21,14 @@ Send a POST request in JSON format to `/amls-notification/<reg number>` in order
 **Status** is a subtype that has the following fields:
 
 | Name | Type | Description | Required | Validation |
-| ----- | ------| ----- | ------- | ------- |
+| ----- | :------: | ----- | :-------: | ------- |
 | status_type | string | A two-digit status indicator | Yes | Must be one of "04", "06", "08", "10", "11"
 | status_reason | string | A two-digit reason indicator | No | Must be two digits between "00" and "99"
 
 #### Responses
 
 | Status | Description | Body |
-| ---- | ---- | ---- |
+| :----: | ---- | ---- |
 | 200 | The notification was created successfully | Content type of `application/json` with body content of `true` |
 | 400 | The service was sent an invalid JSON request | Content type of `application/json` with a error packet containing validation errors (see below)|
 | 400 | The service was sent an invalid AMLS Reference number | Content type of `application/json` with an error packet (see below) |
@@ -38,7 +38,7 @@ Send a POST request in JSON format to `/amls-notification/<reg number>` in order
 In the cases where the service returns an error status, an error packet will be returned containing the following fields:
 
 | Name | Type | Description |
-| ---- | ---- | ------------|
+| ---- | :----: | ------------|
 | errors | String or Array | This will contain a single string as the error message, or an array of validation errors | 
 
 ##### Error packet example
