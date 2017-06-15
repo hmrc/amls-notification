@@ -84,13 +84,14 @@ object DataGen {
     a <- amlsRegNumberGen
     b <- Gen.alphaStr
     c <- Gen.alphaStr
-    d <- Gen.option(statusGen)
-    e <- Gen.option(contactTypeGen)
-    f <- Gen.option(Gen.alphaStr)
-    g <- Gen.oneOf(true, false)
-    h <- dateTimeGen
-    i <- Gen.oneOf(true,false)
-  } yield NotificationRecord(a, b, c, d, e, f, g, h, i)
+    d <- Gen.alphaStr
+    e <- Gen.option(statusGen)
+    f <- Gen.option(contactTypeGen)
+    g <- Gen.option(Gen.alphaStr)
+    h <- Gen.oneOf(true, false)
+    i <- dateTimeGen
+    j <- Gen.oneOf(true,false)
+  } yield NotificationRecord(a, b, c, d, e, f, g, h, i, j)
 
   object Des {
     import models.des._

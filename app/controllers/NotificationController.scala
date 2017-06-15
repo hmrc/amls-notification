@@ -64,6 +64,7 @@ trait NotificationController extends BaseController {
             Json.fromJson[NotificationPushRequest](request.body) match {
               case JsSuccess(body, _) => {
                 val record = NotificationRecord(amlsRegistrationNumber,
+                  body.safeId,
                   body.name,
                   body.email,
                   body.status,
