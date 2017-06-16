@@ -29,6 +29,7 @@ import play.api.libs.json.{JsNull, JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repositories.NotificationRepository
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 import scala.concurrent.Future
 
@@ -37,7 +38,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
   object TestNotificationController extends NotificationController {
     override private[controllers] val notificationRepository = mock[NotificationRepository]
     override private[controllers] val emailConnector = mock[EmailConnector]
-
+    override private[controllers] val audit = mock[AuditConnector]
   }
 
   val body = NotificationPushRequest("AA1234567891234","name", "hh@test.com",
