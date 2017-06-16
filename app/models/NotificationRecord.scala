@@ -22,6 +22,7 @@ import reactivemongo.bson.BSONObjectID
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 case class NotificationRecord (amlsRegistrationNumber: String,
+                               safeId: String,
                                name: String,
                                email: String,
                                status: Option[Status],

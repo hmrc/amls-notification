@@ -27,6 +27,7 @@ class NotificationRecordSpec extends PlaySpec {
 
       val model = NotificationRecord(
         "amlsNumber",
+        "safeId",
         "name",
         "hh@test.com",
         Some(
