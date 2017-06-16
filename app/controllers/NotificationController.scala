@@ -16,6 +16,8 @@
 
 package controllers
 
+import audit.NotificationReceivedEvent
+import config.MicroserviceAuditConnector
 import connectors.EmailConnector
 import exceptions.HttpStatusException
 import models.{NotificationPushRequest, NotificationRecord}
@@ -23,8 +25,9 @@ import org.joda.time.{DateTime, DateTimeZone}
 import play.api.Logger
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
-import play.api.mvc.{Action, Result}
+import play.api.mvc.Action
 import repositories.NotificationRepository
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -36,7 +39,7 @@ trait NotificationController extends BaseController {
   val prefix = "[NotificationController]"
 
   private[controllers] def emailConnector: EmailConnector
-
+  private[controllers] val audit: AuditConnector
   private[controllers] def notificationRepository: NotificationRepository
 
   private def toError(errors: Seq[(JsPath, Seq[ValidationError])]): JsObject =
@@ -77,6 +80,7 @@ trait NotificationController extends BaseController {
                 notificationRepository.insertRecord(record) map {
                   response =>
                     emailConnector.sendNotificationReceivedTemplatedEmail(List(body.email))
+                    audit.sendEvent(NotificationReceivedEvent(amlsRegistrationNumber, body))
                     Ok(Json.toJson(response))
                 } recoverWith {
                   case e@HttpStatusException(status, Some(body)) =>
@@ -121,4 +125,5 @@ object NotificationController extends NotificationController {
   // $COVERAGE-OFF$
   override private[controllers] val notificationRepository = NotificationRepository()
   override private[controllers] val emailConnector: EmailConnector = EmailConnector
+  override private[controllers] val audit = MicroserviceAuditConnector
 }

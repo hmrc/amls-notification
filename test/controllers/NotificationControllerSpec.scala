@@ -20,6 +20,7 @@ import connectors.EmailConnector
 import exceptions.HttpStatusException
 import models._
 import org.joda.time.{DateTime, DateTimeZone}
+import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
@@ -29,6 +30,8 @@ import play.api.libs.json.{JsNull, JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repositories.NotificationRepository
+import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
+import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 
 import scala.concurrent.Future
 
@@ -37,7 +40,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
   object TestNotificationController extends NotificationController {
     override private[controllers] val notificationRepository = mock[NotificationRepository]
     override private[controllers] val emailConnector = mock[EmailConnector]
-
+    override private[controllers] val audit = mock[AuditConnector]
   }
 
   val body = NotificationPushRequest("AA1234567891234","name", "hh@test.com",
@@ -72,9 +75,18 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
 
       when(TestNotificationController.notificationRepository.insertRecord(any())).thenReturn(Future.successful(true))
 
+      when {
+        TestNotificationController.audit.sendEvent(any())(any(), any())
+      } thenReturn Future.successful(mock[AuditResult])
+
       val result = TestNotificationController.saveNotification(amlsRegistrationNumber)(postRequest)
       status(result) must be(OK)
       contentAsJson(result) must be(Json.toJson(true))
+
+      val captor = ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
+      verify(TestNotificationController.audit).sendEvent(captor.capture())(any(), any())
+
+      captor.getValue.auditType mustBe "notificationReceived"
     }
 
     "fail validation when json parse throws error" in {
