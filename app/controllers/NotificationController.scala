@@ -25,11 +25,9 @@ import org.joda.time.{DateTime, DateTimeZone}
 import play.api.Logger
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
-import play.api.mvc.{Action, Result}
+import play.api.mvc.Action
 import repositories.NotificationRepository
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.audit.model.{Audit, DataEvent}
-import uk.gov.hmrc.play.config.AppName
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
