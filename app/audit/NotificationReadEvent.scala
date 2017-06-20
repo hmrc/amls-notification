@@ -16,7 +16,8 @@
 
 package audit
 
-import models.{ContactType, NotificationPushRequest, Status}
+import models.fe.NotificationDetails
+import models.{ContactType, Status}
 import play.api.libs.json.{JsObject, Json, Writes}
 import uk.gov.hmrc.play.audit.AuditExtensions._
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
@@ -25,15 +26,13 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 object NotificationReadEvent {
 
-  def apply(amlsRegNo: String, request: NotificationPushRequest)
+  def apply(amlsRegNo: String, request: NotificationDetails)
            (implicit hc: HeaderCarrier, contactW: Writes[ContactType], statusW: Writes[Status]) = {
 
     val data = Json.toJson(hc.toAuditDetails()).as[JsObject] ++ Json.obj(
       "registrationNumber" -> amlsRegNo,
-      "emailAddress" -> request.email,
       "contactType" -> request.contactType,
-      "status" -> request.status,
-      "safeId" -> request.safeId
+      "messageContent" -> request.messageText
     )
 
     ExtendedDataEvent(

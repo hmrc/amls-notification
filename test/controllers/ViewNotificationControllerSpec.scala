@@ -22,9 +22,10 @@ import exceptions.HttpStatusException
 import models._
 import models.fe.NotificationDetails
 import org.joda.time.{DateTime, DateTimeZone}
+import org.mockito.ArgumentCaptor
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatestplus.play.PlaySpec
+import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -32,6 +33,8 @@ import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import repositories.NotificationRepository
+import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
+import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -40,11 +43,13 @@ import utils.DataGen._
 
 class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenPropertyChecks
   with ScalaFutures
-  with MockitoSugar {
+  with MockitoSugar
+  with OneAppPerSuite {
 
   trait Fixture {
     val TestController = new ViewNotificationController {
       override val connector = mock[ViewNotificationConnector]
+      override private[controllers] val audit = mock[AuditConnector]
       override private[controllers] val notificationRepository = mock[NotificationRepository]
     }
   }
@@ -60,6 +65,10 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
     "return a `BadRequest` response when the amls registration number is invalid" in new Fixture {
       val result = TestController.viewNotification("accountType", "ref", "test", "test")(request)
       val failure = Json.obj("errors" -> Seq("Invalid AMLS Registration Number"))
+
+      when {
+        TestController.audit.sendEvent(any())(any(), any())
+      } thenReturn Future.successful(mock[AuditResult])
 
       status(result) must be(BAD_REQUEST)
       contentAsJson(result) must be(failure)
@@ -79,6 +88,10 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
       )
 
       when {
+        TestController.audit.sendEvent(any())(any(), any())
+      } thenReturn Future.successful(mock[AuditResult])
+
+      when {
         TestController.notificationRepository.findById("NOTIFICATIONID")
       } thenReturn Future.successful(record)
 
@@ -90,6 +103,10 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
 
       status(result) must be(OK)
       contentAsJson(result) must be(Json.toJson(expectedDetails))
+
+      val captor = ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
+      verify(TestController.audit).sendEvent(captor.capture())(any(), any())
+      captor.getValue.auditType mustBe "notificationRead"
     }
 
     "update the isRead flag" in new Fixture {
