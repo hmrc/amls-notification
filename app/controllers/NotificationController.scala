@@ -36,6 +36,7 @@ import scala.concurrent.Future
 trait NotificationController extends BaseController {
 
   val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
+  val safeIdRegex = "^[A-Za-z0-9]{15}$".r
   val prefix = "[NotificationController]"
 
   private[controllers] def emailConnector: EmailConnector
@@ -116,6 +117,28 @@ trait NotificationController extends BaseController {
           case _ =>
             Future.successful {
               BadRequest(toError("Invalid AMLS Registration Number"))
+            }
+        }
+    }
+
+  def fetchNotificationsBySafeId(accountType:String, ref:String, safeId: String) =
+    Action.async {
+      implicit request =>
+        Logger.debug(s"$prefix[fetchNotificationsBySafeId] - safeId: $safeId")
+        safeIdRegex.findFirstIn(safeId) match {
+          case Some(_) =>
+            notificationRepository.findBySafeId(safeId) map {
+              response =>
+                Logger.debug(s"$prefix[fetchNotificationsBySafeId] - Response: ${Json.toJson(response)}")
+                Ok(Json.toJson(response))
+            } recoverWith {
+              case e@HttpStatusException(status, Some(body)) =>
+                Logger.warn(s"$prefix[fetchNotificationsBySafeId] - Status: ${status}, Message: $body")
+                Future.failed(e)
+            }
+          case _ =>
+            Future.successful {
+              BadRequest(toError("Invalid SafeID"))
             }
         }
     }

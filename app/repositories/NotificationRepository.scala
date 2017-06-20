@@ -35,7 +35,8 @@ trait NotificationRepository extends Repository[NotificationRecord, BSONObjectID
   def markAsRead(id: String):Future[Boolean]
 
   def findById(idString : String ) : Future[Option[NotificationRecord]]
-  def findByAmlsReference(amlsReferenceNumber: String):Future[Seq[NotificationRow]]
+  def findByAmlsReference(amlsReferenceNumber: String): Future[Seq[NotificationRow]]
+  def findBySafeId(safeId: String): Future[Seq[NotificationRow]]
 }
 
 class NotificationMongoRepository()(implicit mongo: () => DefaultDB)
@@ -79,6 +80,10 @@ class NotificationMongoRepository()(implicit mongo: () => DefaultDB)
     collection.find(Json.obj("amlsRegistrationNumber" -> amlsReferenceNumber)).
       sort(Json.obj("receivedAt" -> -1)).cursor[NotificationRow]().collect[Seq]()
   }
+
+  override def findBySafeId(safeId: String) = collection.find {
+    Json.obj("safeId" -> safeId)
+  }.sort(Json.obj("receivedAt" -> -1)).cursor[NotificationRow]().collect[Seq]()
 }
 
 object NotificationRepository extends MongoDbConnection {
