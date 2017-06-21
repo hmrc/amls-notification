@@ -213,6 +213,15 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
 
         verify(TestNotificationController.notificationRepository).findBySafeId(safeId)
       }
+
+    }
+
+    "return a bad request" when {
+      "an invalid safeId is passed" in {
+        val result = TestNotificationController.fetchNotificationsBySafeId("accountType", "ref", "an invalid safe ID")(getRequest)
+
+        status(result) mustBe BAD_REQUEST
+      }
     }
   }
 }
