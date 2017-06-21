@@ -133,8 +133,10 @@ trait NotificationController extends BaseController {
                 Ok(Json.toJson(response))
             } recoverWith {
               case e@HttpStatusException(status, Some(body)) =>
+                // $COVERAGE-OFF$
                 Logger.warn(s"$prefix[fetchNotificationsBySafeId] - Status: ${status}, Message: $body")
                 Future.failed(e)
+                // $COVERAGE-ON$
             }
           case _ =>
             Future.successful {

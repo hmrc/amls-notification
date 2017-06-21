@@ -187,6 +187,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
         false,
         DateTime.now(DateTimeZone.UTC),
         false,
+        amlsRegistrationNumber,
         new IDType("5832e38e01000001005ca3ff"))
 
       val notificationRows = Seq(notificationRecord)
@@ -211,6 +212,15 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
         contentAsJson(result) mustBe Json.toJson(notificationRows)
 
         verify(TestNotificationController.notificationRepository).findBySafeId(safeId)
+      }
+
+    }
+
+    "return a bad request" when {
+      "an invalid safeId is passed" in {
+        val result = TestNotificationController.fetchNotificationsBySafeId("accountType", "ref", "an invalid safe ID")(getRequest)
+
+        status(result) mustBe BAD_REQUEST
       }
     }
   }
