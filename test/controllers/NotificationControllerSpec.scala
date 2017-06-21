@@ -187,6 +187,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
         false,
         DateTime.now(DateTimeZone.UTC),
         false,
+        amlsRegistrationNumber,
         new IDType("5832e38e01000001005ca3ff"))
 
       val notificationRows = Seq(notificationRecord)

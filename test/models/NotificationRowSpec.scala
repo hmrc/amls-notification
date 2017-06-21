@@ -24,16 +24,36 @@ import reactivemongo.bson.BSONObjectID
 class NotificationRowSpec extends PlaySpec {
 
   "NotificationRow" must {
-    "read and write json successfully"  in {
-        val id = BSONObjectID.generate
+    "read and write json successfully" in {
+      val id = BSONObjectID.generate
+      val amlsRegistrationNumber = "XAML00000567890"
+
       val model = NotificationRow(
-        Some(Status(StatusType.Revoked,
-          Some(RevokedReason.RevokedCeasedTrading))),
-        Some(ContactType.MindedToRevoke), None, false, new DateTime(1479730062573L, DateTimeZone.UTC), false, new IDType("5832e38e01000001005ca3ff"))
+        Some(Status(StatusType.Revoked, Some(RevokedReason.RevokedCeasedTrading))),
+        Some(ContactType.MindedToRevoke),
+        None,
+        false,
+        new DateTime(1479730062573L, DateTimeZone.UTC),
+        false,
+        amlsRegistrationNumber,
+        new IDType("5832e38e01000001005ca3ff"))
 
       val json = Json.parse(
         """
-          |{"status":{"status_type":"08","status_reason":"02"},"contactType":"MTRV","variation":false,"receivedAt":{"$date":1479730062573},"isRead":false,"_id":{"$oid":"5832e38e01000001005ca3ff"}}
+          | {
+          |   "status": {
+          |     "status_type":"08",
+          |     "status_reason":"02"
+          |   },
+          |   "contactType":"MTRV",
+          |   "variation":false,
+          |   "receivedAt":{
+          |     "$date":1479730062573
+          |   },
+          |   "isRead":false,
+          |   "amlsRegistrationNumber":"XAML00000567890",
+          |   "_id":{"$oid":"5832e38e01000001005ca3ff"}
+          | }
           |
         """.stripMargin)
 
