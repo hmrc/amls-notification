@@ -29,7 +29,7 @@ Send a POST request in JSON format to `/amls-notification/<reg number>` in order
 
 | Status | Description | Body |
 | :----: | ---- | ---- |
-| 200 | The notification was created successfully | Content type of `application/json` with body content of `true` |
+| 204 | The notification was created successfully | The content body will be empty |
 | 400 | The service was sent an invalid JSON request | Content type of `application/json` with a error packet containing validation errors (see below)|
 | 400 | The service was sent an invalid AMLS Reference number | Content type of `application/json` with an error packet (see below) |
 
