@@ -40,7 +40,9 @@ trait NotificationController extends BaseController {
   val prefix = "[NotificationController]"
 
   private[controllers] def emailConnector: EmailConnector
+
   private[controllers] val audit: AuditConnector
+
   private[controllers] def notificationRepository: NotificationRepository
 
   private def toError(errors: Seq[(JsPath, Seq[ValidationError])]): JsObject =
@@ -78,11 +80,10 @@ trait NotificationController extends BaseController {
                   DateTime.now(DateTimeZone.UTC),
                   false
                 )
-                notificationRepository.insertRecord(record) map {
-                  response =>
-                    emailConnector.sendNotificationReceivedTemplatedEmail(List(body.email))
-                    audit.sendEvent(NotificationReceivedEvent(amlsRegistrationNumber, body))
-                    Ok(Json.toJson(response))
+                notificationRepository.insertRecord(record) map { _ =>
+                  emailConnector.sendNotificationReceivedTemplatedEmail(List(body.email))
+                  audit.sendEvent(NotificationReceivedEvent(amlsRegistrationNumber, body))
+                  NoContent
                 } recoverWith {
                   case e@HttpStatusException(status, Some(body)) =>
                     Logger.warn(s"$prefix[saveNotification] - Status: ${status}, Message: $body")
@@ -99,7 +100,7 @@ trait NotificationController extends BaseController {
         }
     }
 
-  def fetchNotifications(accountType:String, ref:String, amlsRegistrationNumber: String) =
+  def fetchNotifications(accountType: String, ref: String, amlsRegistrationNumber: String) =
     Action.async {
       implicit request =>
         Logger.debug(s"$prefix[fetchNotifications] - amlsRegNo: $amlsRegistrationNumber")
@@ -121,7 +122,7 @@ trait NotificationController extends BaseController {
         }
     }
 
-  def fetchNotificationsBySafeId(accountType:String, ref:String, safeId: String) =
+  def fetchNotificationsBySafeId(accountType: String, ref: String, safeId: String) =
     Action.async {
       implicit request =>
         Logger.debug(s"$prefix[fetchNotificationsBySafeId] - safeId: $safeId")
@@ -136,7 +137,7 @@ trait NotificationController extends BaseController {
                 // $COVERAGE-OFF$
                 Logger.warn(s"$prefix[fetchNotificationsBySafeId] - Status: ${status}, Message: $body")
                 Future.failed(e)
-                // $COVERAGE-ON$
+              // $COVERAGE-ON$
             }
           case _ =>
             Future.successful {
