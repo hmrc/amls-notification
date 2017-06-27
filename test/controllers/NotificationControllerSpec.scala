@@ -86,8 +86,8 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
       } thenReturn Future.successful(mock[AuditResult])
 
       val result = TestNotificationController.saveNotification(amlsRegistrationNumber)(postRequest)
-      status(result) must be(OK)
-      contentAsJson(result) must be(Json.toJson(true))
+      status(result) must be(NO_CONTENT)
+      contentAsString(result) mustBe ""
 
       val captor = ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
       verify(TestNotificationController.audit).sendEvent(captor.capture())(any(), any())
@@ -119,8 +119,8 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
 
       whenReady(TestNotificationController.saveNotification(amlsRegistrationNumber)(postRequest).failed) {
         case HttpStatusException(status, body) =>
-          status mustEqual INTERNAL_SERVER_ERROR
-          body mustEqual Some("message")
+          status mustBe INTERNAL_SERVER_ERROR
+          body mustBe Some("message")
       }
     }
 
