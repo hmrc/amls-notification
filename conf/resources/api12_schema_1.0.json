@@ -6,7 +6,8 @@
   "required": [
     "name",
     "email",
-    "variation"
+    "variation",
+    "safeId"
   ],
   "definitions": {
     "name": {
