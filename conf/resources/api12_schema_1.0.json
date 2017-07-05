@@ -19,6 +19,11 @@
       "description": "Email address",
       "minLength": 1,
       "maxLength": 100
+    },
+    "safeId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9]{15}$",
+      "description": "safeId"
     }
   },
   "additionalProperties": false,
@@ -32,6 +37,9 @@
       "type": "string",
       "description": "Email address",
       "$ref": "#/definitions/emailaddress"
+    },
+    "safeId":{
+      "$ref": "#/definitions/safeId"
     },
     "status": {
       "type": "object",
@@ -76,7 +84,9 @@
     },
     "contact_number": {
       "type": "string",
-      "pattern": "[0-9]{12}"
+      "pattern": "[0-9]{12}",
+      "minLength": 1,
+      "maxLength": 12
     },
     "variation": {
       "type": "boolean",
