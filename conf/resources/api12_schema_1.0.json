@@ -85,9 +85,7 @@
     },
     "contact_number": {
       "type": "string",
-      "pattern": "[0-9]{12}",
-      "minLength": 1,
-      "maxLength": 12
+      "pattern": "[0-9]{1,12}"
     },
     "variation": {
       "type": "boolean",
