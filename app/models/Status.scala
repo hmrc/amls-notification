@@ -23,13 +23,21 @@ case class Status(status: StatusType, statusReason: Option[StatusReason])
 object Status {
 
   implicit val jsonReads: Reads[Status] = {
-
     import play.api.libs.functional.syntax._
-    import play.api.libs.json.Reads._
     import play.api.libs.json._
-    (
+
+    val reads = (
       (__ \ "status_type").read[StatusType] and
-      __.read[Option[StatusReason]])(Status.apply _)
+        (__ \ "status_reason").readNullable[String]
+      ).tupled
+
+    reads flatMap {
+      case (statusType, Some(_)) => StatusReason.jsonReads(statusType) map {
+        case EmptyReason => Status(statusType, None)
+        case reason => Status(statusType, Some(reason))
+      }
+      case (statusType, _) => Reads(_ => JsSuccess(Status(statusType, None)))
+    }
   }
 
   implicit val jsonWrites: Writes[Status] = {
