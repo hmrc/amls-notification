@@ -64,7 +64,7 @@ trait NotificationController extends BaseController {
   def saveNotification(amlsRegistrationNumber: String) =
     Action.async(parse.json) {
       implicit request =>
-        Logger.debug(s"$prefix[saveNotification] - amlsRegNo: $amlsRegistrationNumber")
+        Logger.debug(s"$prefix[saveNotification] - amlsRegNo: $amlsRegistrationNumber, body: ${request.body.toString}")
         amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
           case Some(_) =>
             Json.fromJson[NotificationPushRequest](request.body) match {
