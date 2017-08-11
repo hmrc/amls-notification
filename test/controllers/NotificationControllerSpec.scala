@@ -92,7 +92,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
       val captor = ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
       verify(TestNotificationController.audit).sendEvent(captor.capture())(any(), any())
 
-      captor.getValue.auditType mustBe "notificationReceived"
+      captor.getValue.auditType mustBe "ServiceRequestReceived"
     }
 
     "fail validation when json parse throws error" in {

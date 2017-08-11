@@ -106,7 +106,7 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
 
       val captor = ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
       verify(TestController.audit).sendEvent(captor.capture())(any(), any())
-      captor.getValue.auditType mustBe "notificationRead"
+      captor.getValue.auditType mustBe "OutboundCall"
     }
 
     "update the isRead flag" in new Fixture {
