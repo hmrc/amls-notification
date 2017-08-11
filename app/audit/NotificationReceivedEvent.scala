@@ -38,7 +38,7 @@ object NotificationReceivedEvent {
 
     ExtendedDataEvent(
       auditSource = AppName.appName,
-      auditType = "notificationReceived",
+      auditType = "ServiceRequestReceived",
       tags = hc.toAuditTags("Received Notification", "N/A"),
       detail = data
     )
