@@ -161,7 +161,6 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
 
       status(result) must be(BAD_REQUEST)
       contentAsJson(result) must be(failure)
-
     }
 
 

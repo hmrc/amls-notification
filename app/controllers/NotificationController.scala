@@ -83,7 +83,9 @@ trait NotificationController extends BaseController {
                 )
 
                 if (!body.isSane) {
+                  // $COVERAGE-OFF$
                   Logger.warn(s"$prefix[saveNotification] - $amlsRegistrationNumber - malformed API 12 message received")
+                  // $COVERAGE-ON$
                 }
 
                 notificationRepository.insertRecord(record) map { _ =>
