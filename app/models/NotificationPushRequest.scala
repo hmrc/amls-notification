@@ -16,6 +16,7 @@
 
 package models
 
+import models.StatusType.DeRegistered
 import play.api.libs.json._
 
 case class NotificationPushRequest (
@@ -26,7 +27,17 @@ case class NotificationPushRequest (
                                    contactType: Option[ContactType],
                                    contactNumber: Option[String],
                                    variation:Boolean
-                                  )
+                                  ) {
+  def isSane = this match {
+    case NotificationPushRequest(_, _, _, status, None, _, false) => status match {
+      case Some(Status(DeRegistered, _)) => true
+      case Some(Status(_, None)) => false
+      case None => false
+      case _ => true
+    }
+    case _ => true
+  }
+}
 
 object NotificationPushRequest {
 

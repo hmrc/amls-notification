@@ -69,6 +69,7 @@ trait NotificationController extends BaseController {
           case Some(_) =>
             Json.fromJson[NotificationPushRequest](request.body) match {
               case JsSuccess(body, _) => {
+
                 val record = NotificationRecord(amlsRegistrationNumber,
                   body.safeId,
                   body.name,
@@ -80,6 +81,11 @@ trait NotificationController extends BaseController {
                   DateTime.now(DateTimeZone.UTC),
                   false
                 )
+
+                if (!body.isSane) {
+                  Logger.warn(s"$prefix[saveNotification] - $amlsRegistrationNumber - malformed API 12 message received")
+                }
+
                 notificationRepository.insertRecord(record) map { _ =>
                   emailConnector.sendNotificationReceivedTemplatedEmail(List(body.email))
                   audit.sendEvent(NotificationReceivedEvent(amlsRegistrationNumber, body))
@@ -89,6 +95,7 @@ trait NotificationController extends BaseController {
                     Logger.warn(s"$prefix[saveNotification] - Status: ${status}, Message: $body")
                     Future.failed(e)
                 }
+
               }
               case JsError(errors) =>
                 Future.successful(BadRequest(toError(errors)))

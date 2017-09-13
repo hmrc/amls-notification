@@ -33,7 +33,8 @@ object NotificationReceivedEvent {
       "emailAddress" -> request.email,
       "contactType" -> request.contactType,
       "status" -> request.status,
-      "safeId" -> request.safeId
+      "safeId" -> request.safeId,
+      "isVariation" -> request.variation
     )
 
     ExtendedDataEvent(
