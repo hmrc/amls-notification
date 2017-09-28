@@ -16,13 +16,14 @@
 
 package repositories
 
-import models.{NotificationRow, NotificationRecord}
+import models.{NotificationRecord, NotificationRow}
 import play.api.Logger
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OWrites}
 import play.modules.reactivemongo.MongoDbConnection
-import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.api.DefaultDB
-import reactivemongo.bson.{BSONDocument, BSONObjectID}
+import reactivemongo.api.commands.WriteResult
+import reactivemongo.api.indexes.{Index, IndexType}
+import reactivemongo.bson.BSONObjectID
 import uk.gov.hmrc.mongo.{ReactiveRepository, Repository}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -50,7 +51,7 @@ class NotificationMongoRepository()(implicit mongo: () => DefaultDB)
   override def insertRecord(notificationRequest: NotificationRecord):Future[Boolean] = {
     collection.insert(notificationRequest) map { lastError =>
       Logger.debug(s"[NotificationMongoRepository][insert] : { NotificationRequest : $notificationRequest" +
-        s" , result: ${lastError.ok}, errors: ${lastError.errmsg} }")
+        s" , result: ${lastError.ok}, errors: ${WriteResult.lastError(lastError)} }")
       lastError.ok
     }
   }

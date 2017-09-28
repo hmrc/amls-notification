@@ -82,7 +82,7 @@ trait NotificationController extends BaseController {
                 )
                 notificationRepository.insertRecord(record) map { _ =>
                   emailConnector.sendNotificationReceivedTemplatedEmail(List(body.email))
-                  audit.sendEvent(NotificationReceivedEvent(amlsRegistrationNumber, body))
+                  audit.sendExtendedEvent(NotificationReceivedEvent(amlsRegistrationNumber, body))
                   NoContent
                 } recoverWith {
                   case e@HttpStatusException(status, Some(body)) =>

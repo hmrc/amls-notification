@@ -67,7 +67,7 @@ trait ViewNotificationController extends BaseController {
                   )
 
                   Logger.debug(s"$prefix[viewNotification] - sending: $notificationDetails")
-                  audit.sendEvent(NotificationReadEvent(amlsRegistrationNumber,notificationDetails))
+                  audit.sendExtendedEvent(NotificationReadEvent(amlsRegistrationNumber,notificationDetails))
                   Ok(Json.toJson(notificationDetails))
               }
             }
