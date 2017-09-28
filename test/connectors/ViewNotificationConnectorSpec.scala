@@ -29,11 +29,11 @@ import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.http.Status._
 import play.api.libs.json.Json
-import uk.gov.hmrc.play.http.{HttpResponse, HttpGet, HttpPost}
 import models.des.NotificationResponse
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.{ HttpGet, HttpPost, HttpResponse }
 
 class ViewNotificationConnectorSpec
   extends PlaySpec

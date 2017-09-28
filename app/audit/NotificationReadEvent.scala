@@ -22,7 +22,7 @@ import play.api.libs.json.{JsObject, Json, Writes}
 import uk.gov.hmrc.play.audit.AuditExtensions._
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 import uk.gov.hmrc.play.config.AppName
-import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.http.HeaderCarrier
 
 object NotificationReadEvent {
 

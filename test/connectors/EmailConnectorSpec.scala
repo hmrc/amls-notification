@@ -23,13 +23,13 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpPost, HttpResponse}
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.mockito.Matchers.{eq => eqTo, _}
 import uk.gov.hmrc.play.http.ws.WSHttp
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpPost, HttpResponse }
 
 class EmailConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with IntegrationPatience with OneServerPerSuite with BeforeAndAfterAll {
 

@@ -24,9 +24,9 @@ import models.des.NotificationResponse
 import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.{JsSuccess, Json, Writes}
-import uk.gov.hmrc.play.http.{HttpGet, HttpResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.http.{ HttpGet, HttpResponse }
 
 
 trait ViewNotificationConnector extends DESConnector {
