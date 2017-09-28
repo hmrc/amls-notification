@@ -21,9 +21,8 @@ import metrics.Metrics
 import play.mvc.Http.HeaderNames
 import uk.gov.hmrc.play.audit.model.Audit
 import uk.gov.hmrc.play.config.AppName
-import uk.gov.hmrc.play.http.{HeaderNames => _, _}
 import utils.HttpResponseHelper
-import uk.gov.hmrc.http.{ HeaderCarrier, HeaderNames, HttpGet, HttpPost }
+import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.logging.Authorization
 
 trait DESConnector extends HttpResponseHelper {
@@ -31,8 +30,8 @@ trait DESConnector extends HttpResponseHelper {
   private[connectors] def baseUrl: String
   private[connectors] def env: String
   private[connectors] def token: String
-  private[connectors] def httpPost: HttpPost
-  private[connectors] def httpGet: HttpGet
+  private[connectors] def httpPost: CorePost
+  private[connectors] def httpGet: CoreGet
   private[connectors] def metrics: Metrics
   private[connectors] def audit: Audit
   private[connectors] def fullUrl: String
