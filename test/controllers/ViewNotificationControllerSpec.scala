@@ -105,7 +105,7 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
       contentAsJson(result) must be(Json.toJson(expectedDetails))
 
       val captor = ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
-      verify(TestController.audit).sendEvent(captor.capture())(any(), any())
+      verify(TestController.audit).sendExtendedEvent(captor.capture())(any(), any())
       captor.getValue.auditType mustBe "notificationRead"
     }
 

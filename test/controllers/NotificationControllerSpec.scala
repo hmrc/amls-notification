@@ -90,7 +90,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
       contentAsString(result) mustBe ""
 
       val captor = ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
-      verify(TestNotificationController.audit).sendEvent(captor.capture())(any(), any())
+      verify(TestNotificationController.audit).sendExtendedEvent(captor.capture())(any(), any())
 
       captor.getValue.auditType mustBe "notificationReceived"
     }

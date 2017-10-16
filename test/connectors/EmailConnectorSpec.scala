@@ -29,7 +29,7 @@ import org.mockito.Matchers.{eq => eqTo, _}
 import uk.gov.hmrc.play.http.ws.WSHttp
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpPost, HttpResponse }
+import uk.gov.hmrc.http.{CorePost, HeaderCarrier, HttpPost, HttpResponse}
 
 class EmailConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with IntegrationPatience with OneServerPerSuite with BeforeAndAfterAll {
 
@@ -37,11 +37,11 @@ class EmailConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures wi
 
     implicit val hc = HeaderCarrier()
 
-    val mockHttp = mock[WSHttp]
+    val mockHttp = mock[CorePost]
     val sendTo = "e@mail.com"
 
-    object TestEmailConnector extends EmailConnector{
-      override def httpPost: HttpPost = mockHttp
+    object TestEmailConnector extends EmailConnector {
+      override def httpPost = mockHttp
       override def url = "test-email-url"
     }
 
@@ -49,27 +49,19 @@ class EmailConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures wi
 
   "The Email connector" must {
     "send a details of the email template and content and report a positive response" in new Fixture {
-
-//      val requestCaptor = ArgumentCaptor.forClass(classOf[SendTemplatedEmailRequest])
-
-      when(mockHttp.POST[SendTemplatedEmailRequest, HttpResponse](any(), any(), any())(any(), any(), any()))
+      when(mockHttp.POST[SendTemplatedEmailRequest, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
         .thenReturn(Future.successful(HttpResponse(202)))
 
       val result = await(TestEmailConnector.sendNotificationReceivedTemplatedEmail(List(sendTo)))
 
       result must be(true)
-
-//      verify(httpRequest)
-//
-//      requestCaptor.getValue.to must contain(sendTo)
-//      requestCaptor.getValue.templateId must be("amls_notification_received_template")
-
     }
+
     "send a details of the email template and content and report a negative response" in new Fixture {
 
       val requestCaptor = ArgumentCaptor.forClass(classOf[SendTemplatedEmailRequest])
 
-      when(mockHttp.POST[SendTemplatedEmailRequest, HttpResponse](any(), any(), any())(any(), any(), any()))
+      when(mockHttp.POST[SendTemplatedEmailRequest, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
         .thenReturn(Future.successful(HttpResponse(400)))
 
       val result = await(TestEmailConnector.sendNotificationReceivedTemplatedEmail(List(sendTo)))
@@ -77,7 +69,5 @@ class EmailConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures wi
       result must be(false)
 
     }
-
   }
-
 }

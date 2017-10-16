@@ -24,14 +24,12 @@ import models.des.NotificationResponse
 import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.{JsSuccess, Json, Writes}
+import uk.gov.hmrc.http.HttpResponse
 
 import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.http.{ HttpGet, HttpResponse }
 
 
 trait ViewNotificationConnector extends DESConnector {
-
-  private[connectors] def httpGet: HttpGet
 
   def getNotification(amlsRegistrationNumber: String, contactNumber: String)
                      (implicit ec: ExecutionContext, wr: Writes[NotificationResponse]): Future[NotificationResponse] = {
@@ -41,7 +39,7 @@ trait ViewNotificationConnector extends DESConnector {
     val timer = metrics.timer(API11)
     Logger.debug(s"$prefix - reg no: $amlsRegistrationNumber - contactNumber: $contactNumber")
 
-    httpGet.GET[HttpResponse](s"$fullUrl/reg-number/$amlsRegistrationNumber/contact-number/$contactNumber") map {
+    http.GET[HttpResponse](s"$fullUrl/reg-number/$amlsRegistrationNumber/contact-number/$contactNumber") map {
       response =>
         timer.stop()
         Logger.debug(s"$prefix - Base Response: ${response.status}")
