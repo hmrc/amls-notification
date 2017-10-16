@@ -37,7 +37,7 @@ object NotificationReadEvent {
 
     ExtendedDataEvent(
       auditSource = AppName.appName,
-      auditType = "notificationRead",
+      auditType = "OutboundCall",
       tags = hc.toAuditTags("Read Notification", "N/A"),
       detail = data
     )

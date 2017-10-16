@@ -16,22 +16,21 @@
 
 package models
 
+import models.StatusType.{DeRegistered, Rejected, Revoked}
 import play.api.libs.json._
 
 trait StatusReason
 
+case object EmptyReason extends StatusReason
+
 object StatusReason {
 
-  implicit val jsonReads: Reads[Option[StatusReason]] = {
-    import play.api.libs.json._
-
-    (__ \ "status_type").read[String].flatMap[Option[StatusReason]] {
-      case "04" => Reads(_ => JsSuccess(None))
-      case "06" => __.read(Reads.optionWithNull[RejectedReason]).map (identity[Option[StatusReason]])
-      case "08" => __.read(Reads.optionWithNull[RevokedReason]).map (identity[Option[StatusReason]])
-      case "10" => __.read(Reads.optionWithNull[DeregisteredReason]).map (identity[Option[StatusReason]])
-      case "11" => Reads(_ => JsSuccess(None))
-      case _ => Reads(_ => JsSuccess(None))
+  def jsonReads(statusType: StatusType) = new Reads[StatusReason] {
+    override def reads(json: JsValue) = statusType match {
+      case Rejected => RejectedReason.jsonReads.reads(json) map identity[StatusReason]
+      case Revoked => RevokedReason.jsonReads.reads(json) map identity[StatusReason]
+      case DeRegistered => DeregisteredReason.jsonReads.reads(json) map identity[StatusReason]
+      case _ => JsSuccess(EmptyReason)
     }
   }
 

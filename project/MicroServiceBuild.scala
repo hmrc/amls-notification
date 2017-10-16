@@ -16,6 +16,7 @@ private object AppDependencies {
   private val hmrcTestVersion = "2.4.0"
   private val scalaTestVersion = "2.2.6"
   private val pegdownVersion = "1.6.0"
+  private val playUiVersion = "7.4.0"
 
   private val playReactivemongoVersion = "6.1.0"
   private val scalatestPlusPlayVersion = "1.5.1"

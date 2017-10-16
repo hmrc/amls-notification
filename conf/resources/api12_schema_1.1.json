@@ -12,7 +12,7 @@
   "definitions": {
     "name": {
       "type": "string",
-      "pattern": "^[A-Za-z0-9 ]{1,140}$",
+      "pattern": "^.{1,140}$",
       "description": "Name"
     },
     "emailaddress": {
