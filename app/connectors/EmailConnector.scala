@@ -19,8 +19,8 @@ package connectors
 import config.{AmlsConfig, WSHttp}
 import play.api.Logger
 import play.api.libs.json.Json
+import uk.gov.hmrc.http.{CorePost, HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpPost, HttpResponse}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -33,7 +33,7 @@ object SendTemplatedEmailRequest {
 
 trait EmailConnector extends ServicesConfig {
 
-  private[connectors] def httpPost: HttpPost
+  private[connectors] def httpPost: CorePost
 
   private[connectors] def url: String
 
@@ -58,6 +58,6 @@ trait EmailConnector extends ServicesConfig {
 
 object EmailConnector extends EmailConnector {
   // $COVERAGE-OFF$
-  override def httpPost: HttpPost = WSHttp
+  override def httpPost: CorePost = WSHttp
   override def url = s"${AmlsConfig.emailUrl}/send-templated-email"
 }

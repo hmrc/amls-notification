@@ -29,11 +29,11 @@ import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.http.Status._
 import play.api.libs.json.Json
-import uk.gov.hmrc.play.http.{HttpResponse, HttpGet, HttpPost}
 import models.des.NotificationResponse
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http._
 
 class ViewNotificationConnectorSpec
   extends PlaySpec
@@ -55,8 +55,7 @@ class ViewNotificationConnectorSpec
       override private[connectors] val baseUrl: String = "baseUrl"
       override private[connectors] val token: String = "token"
       override private[connectors] val env: String = "ist0"
-      override private[connectors] val httpGet: HttpGet = mock[HttpGet]
-      override private[connectors] val httpPost: HttpPost = mock[HttpPost]
+      override private[connectors] val http = mock[CoreGet with CorePost]
       override private[connectors] val metrics: Metrics = mock[Metrics]
       override private[connectors] val audit = MockAudit
       override private[connectors] val fullUrl: String = s"$baseUrl/$requestUrl"
@@ -87,7 +86,7 @@ class ViewNotificationConnectorSpec
       )
 
       when {
-        testConnector.httpGet.GET[HttpResponse](eqTo(url))(any(), any())
+        testConnector.http.GET[HttpResponse](eqTo(url))(any(), any(), any())
       } thenReturn Future.successful(response)
 
       whenReady(testConnector.getNotification(amlsRegistrationNumber, contactNumber)) {
@@ -102,7 +101,7 @@ class ViewNotificationConnectorSpec
         responseHeaders = Map.empty
       )
       when {
-        testConnector.httpGet.GET[HttpResponse](eqTo(url))(any(), any())
+        testConnector.http.GET[HttpResponse](eqTo(url))(any(), any(), any())
       } thenReturn Future.successful(response)
 
       whenReady(testConnector.getNotification(amlsRegistrationNumber, contactNumber).failed) {
@@ -121,7 +120,7 @@ class ViewNotificationConnectorSpec
       )
 
       when {
-        testConnector.httpGet.GET[HttpResponse](any())(any(), any())
+        testConnector.http.GET[HttpResponse](any())(any(), any(), any())
       } thenReturn Future.successful(response)
 
       whenReady(testConnector.getNotification(amlsRegistrationNumber, contactNumber).failed) {
@@ -134,7 +133,7 @@ class ViewNotificationConnectorSpec
     "return a failed future containing an exception message" in new Fixture {
 
       when {
-        testConnector.httpGet.GET[HttpResponse](eqTo(url))(any(), any())
+        testConnector.http.GET[HttpResponse](eqTo(url))(any(), any(), any())
       } thenReturn Future.failed(new Exception("message"))
 
       whenReady(testConnector.getNotification(amlsRegistrationNumber, contactNumber).failed) {

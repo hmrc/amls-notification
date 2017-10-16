@@ -21,17 +21,16 @@ import metrics.Metrics
 import play.mvc.Http.HeaderNames
 import uk.gov.hmrc.play.audit.model.Audit
 import uk.gov.hmrc.play.config.AppName
-import uk.gov.hmrc.play.http.logging.Authorization
-import uk.gov.hmrc.play.http.{HeaderNames => _, _}
 import utils.HttpResponseHelper
+import uk.gov.hmrc.http._
+import uk.gov.hmrc.http.logging.Authorization
 
 trait DESConnector extends HttpResponseHelper {
 
   private[connectors] def baseUrl: String
   private[connectors] def env: String
   private[connectors] def token: String
-  private[connectors] def httpPost: HttpPost
-  private[connectors] def httpGet: HttpGet
+  private[connectors] def http: CoreGet with CorePost
   private[connectors] def metrics: Metrics
   private[connectors] def audit: Audit
   private[connectors] def fullUrl: String
@@ -55,8 +54,7 @@ object DESConnector extends ViewNotificationConnector {
   override private[connectors] lazy val baseUrl: String = AmlsConfig.desUrl
   override private[connectors] lazy val token: String = s"Bearer ${AmlsConfig.desToken}"
   override private[connectors] lazy val env: String = AmlsConfig.desEnv
-  override private[connectors] lazy val httpPost: HttpPost = WSHttp
-  override private[connectors] lazy val httpGet: HttpGet = WSHttp
+  override private[connectors] lazy val http = WSHttp
   override private[connectors] val metrics: Metrics = Metrics
   override private[connectors] val audit: Audit = new Audit(AppName.appName, MicroserviceAuditConnector)
   override private[connectors] val fullUrl: String = s"$baseUrl/$requestUrl"
