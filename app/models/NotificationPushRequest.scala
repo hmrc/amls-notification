@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 HM Revenue & Customs
+ * Copyright 2018 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ case class NotificationPushRequest (
                                    contactNumber: Option[String],
                                    variation:Boolean
                                   ) {
-  def isSane = this match {
-    case NotificationPushRequest(_, _, _, status, None, _, false) => status match {
+  def isSane: Boolean = this match {
+    case NotificationPushRequest(_, _, _, `status`, None, _, false) => status match {
       case Some(Status(DeRegistered, _)) => true
       case Some(Status(_, None)) => false
       case None => false
@@ -46,7 +46,7 @@ object NotificationPushRequest {
     import play.api.libs.json.Reads._
     import play.api.libs.json._
     val safeIdPattern = "^[A-Za-z0-9]{15}$".r
-    val namePattern = "^[A-Za-z0-9 ]{1,140}$".r
+    val namePattern = "^.{1,140}$".r
     val maxEmailLength = 100
 
       ((__ \ "safeId").read[String] (pattern(safeIdPattern)) and
