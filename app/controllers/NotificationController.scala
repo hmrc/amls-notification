@@ -16,7 +16,7 @@
 
 package controllers
 
-import audit.NotificationReceivedEvent
+import audit.{NotificationFailedEvent, NotificationReceivedEvent}
 import config.MicroserviceAuditConnector
 import connectors.EmailConnector
 import exceptions.HttpStatusException
@@ -61,14 +61,15 @@ trait NotificationController extends BaseController {
       "errors" -> Seq(message)
     )
 
+  //noinspection ScalaStyle
   def saveNotification(amlsRegistrationNumber: String) =
     Action.async(parse.json) {
       implicit request =>
-        Logger.debug(s"$prefix[saveNotification] - amlsRegNo: $amlsRegistrationNumber, body: ${request.body.toString}")
+        Logger.debug(s"$prefix [saveNotification] - amlsRegNo: $amlsRegistrationNumber, body: ${request.body.toString}")
         amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
           case Some(_) =>
             Json.fromJson[NotificationPushRequest](request.body) match {
-              case JsSuccess(body, _) => {
+              case JsSuccess(body, _) =>
 
                 val record = NotificationRecord(amlsRegistrationNumber,
                   body.safeId,
@@ -79,26 +80,42 @@ trait NotificationController extends BaseController {
                   body.contactNumber,
                   body.variation,
                   DateTime.now(DateTimeZone.UTC),
-                  false
+                  isRead = false
                 )
 
                 if (!body.isSane) {
                   // $COVERAGE-OFF$
-                  Logger.warn(s"$prefix[saveNotification] - $amlsRegistrationNumber - malformed API 12 message received")
+                  Logger.warn(s"$prefix [saveNotification] - $amlsRegistrationNumber - malformed API 12 message received")
                   // $COVERAGE-ON$
                 }
 
-                notificationRepository.insertRecord(record) map { _ =>
-                  emailConnector.sendNotificationReceivedTemplatedEmail(List(body.email))
-                  audit.sendExtendedEvent(NotificationReceivedEvent(amlsRegistrationNumber, body))
-                  NoContent
+                notificationRepository.insertRecord(record) map {
+                  case result if result.ok =>
+                    emailConnector.sendNotificationReceivedTemplatedEmail(List(body.email))
+                    audit.sendExtendedEvent(NotificationReceivedEvent(amlsRegistrationNumber, body))
+                    NoContent
+                  case result =>
+                    Logger.error(s"$prefix [saveNotification] - Could not save notification results")
+
+                    audit.sendExtendedEvent(NotificationFailedEvent(
+                      amlsRegistrationNumber,
+                      body,
+                      result.writeErrors map { e => s"${e.code}: ${e.errmsg}" }
+                    ))
+
+                    InternalServerError
                 } recoverWith {
-                  case e@HttpStatusException(status, Some(body)) =>
-                    Logger.warn(s"$prefix[saveNotification] - Status: ${status}, Message: $body")
+                  case e@HttpStatusException(status, Some(exceptionBody)) =>
+                    Logger.warn(s"$prefix [saveNotification] - Status: $status, Message: $exceptionBody")
+
+                    audit.sendExtendedEvent(NotificationFailedEvent(
+                      amlsRegistrationNumber,
+                      body,
+                      Seq(e.getMessage)
+                    ))
+
                     Future.failed(e)
                 }
-
-              }
               case JsError(errors) =>
                 Future.successful(BadRequest(toError(errors)))
             }
@@ -112,16 +129,16 @@ trait NotificationController extends BaseController {
   def fetchNotifications(accountType: String, ref: String, amlsRegistrationNumber: String) =
     Action.async {
       implicit request =>
-        Logger.debug(s"$prefix[fetchNotifications] - amlsRegNo: $amlsRegistrationNumber")
+        Logger.debug(s"$prefix [fetchNotifications] - amlsRegNo: $amlsRegistrationNumber")
         amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
           case Some(_) =>
             notificationRepository.findByAmlsReference(amlsRegistrationNumber) map {
               response =>
-                Logger.debug(s"$prefix[fetchNotifications] - Response: ${Json.toJson(response)}")
+                Logger.debug(s"$prefix [fetchNotifications] - Response: ${Json.toJson(response)}")
                 Ok(Json.toJson(response))
             } recoverWith {
               case e@HttpStatusException(status, Some(body)) =>
-                Logger.warn(s"$prefix[fetchNotifications] - Status: ${status}, Message: $body")
+                Logger.warn(s"$prefix [fetchNotifications] - Status: ${status}, Message: $body")
                 Future.failed(e)
             }
           case _ =>
@@ -134,17 +151,17 @@ trait NotificationController extends BaseController {
   def fetchNotificationsBySafeId(accountType: String, ref: String, safeId: String) =
     Action.async {
       implicit request =>
-        Logger.debug(s"$prefix[fetchNotificationsBySafeId] - safeId: $safeId")
+        Logger.debug(s"$prefix [fetchNotificationsBySafeId] - safeId: $safeId")
         safeIdRegex.findFirstIn(safeId) match {
           case Some(_) =>
             notificationRepository.findBySafeId(safeId) map {
               response =>
-                Logger.debug(s"$prefix[fetchNotificationsBySafeId] - Response: ${Json.toJson(response)}")
+                Logger.debug(s"$prefix [fetchNotificationsBySafeId] - Response: ${Json.toJson(response)}")
                 Ok(Json.toJson(response))
             } recoverWith {
               case e@HttpStatusException(status, Some(body)) =>
                 // $COVERAGE-OFF$
-                Logger.warn(s"$prefix[fetchNotificationsBySafeId] - Status: ${status}, Message: $body")
+                Logger.warn(s"$prefix [fetchNotificationsBySafeId] - Status: ${status}, Message: $body")
                 Future.failed(e)
               // $COVERAGE-ON$
             }
