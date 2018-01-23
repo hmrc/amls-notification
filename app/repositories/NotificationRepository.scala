@@ -33,7 +33,7 @@ import scala.util.Try
 
 trait NotificationRepository extends Repository[NotificationRecord, BSONObjectID] {
 
-  def insertRecord(notificationRequest: NotificationRecord):Future[Boolean]
+  def insertRecord(notificationRequest: NotificationRecord): Future[WriteResult]
   def markAsRead(id: String):Future[Boolean]
 
   def findById(idString : String ) : Future[Option[NotificationRecord]]
@@ -49,11 +49,11 @@ class NotificationMongoRepository()(implicit mongo: () => DefaultDB)
     Seq(Index(Seq("receivedAt" -> IndexType.Ascending)))
   }
 
-  override def insertRecord(notificationRequest: NotificationRecord):Future[Boolean] = {
-    collection.insert(notificationRequest) map { lastError =>
+  override def insertRecord(notificationRequest: NotificationRecord): Future[WriteResult] = {
+    collection.insert(notificationRequest) map { writeResult =>
       Logger.debug(s"[NotificationMongoRepository][insert] : { NotificationRequest : $notificationRequest" +
-        s" , result: ${lastError.ok}, errors: ${WriteResult.lastError(lastError)} }")
-      lastError.ok
+        s" , result: ${writeResult.ok}, errors: ${WriteResult.lastError(writeResult)} }")
+      writeResult
     }
   }
 
