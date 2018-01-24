@@ -32,6 +32,7 @@ object NotificationReceivedEvent {
       "registrationNumber" -> amlsRegNo,
       "emailAddress" -> request.email,
       "contactType" -> request.contactType,
+      "contactNumber" -> request.contactNumber,
       "status" -> request.status,
       "safeId" -> request.safeId,
       "isVariation" -> request.variation
@@ -45,3 +46,29 @@ object NotificationReceivedEvent {
     )
   }
 }
+
+object NotificationFailedEvent {
+
+  def apply(amlsRegNo: String, request: NotificationPushRequest, errors: Seq[String])
+           (implicit hc: HeaderCarrier, contactW: Writes[ContactType], statusW: Writes[Status]) = {
+
+    val data = Json.toJson(hc.toAuditDetails()).as[JsObject] ++ Json.obj(
+      "registrationNumber" -> amlsRegNo,
+      "emailAddress" -> request.email,
+      "contactType" -> request.contactType,
+      "contactNumber" -> request.contactNumber,
+      "status" -> request.status,
+      "safeId" -> request.safeId,
+      "isVariation" -> request.variation,
+      "errors" -> errors
+    )
+
+    ExtendedDataEvent(
+      auditSource = AppName.appName,
+      auditType = "ServiceRequestReceived",
+      tags = hc.toAuditTags("Failed Notification", "N/A"),
+      detail = data
+    )
+  }
+}
+

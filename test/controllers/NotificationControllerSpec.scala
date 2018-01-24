@@ -30,6 +30,7 @@ import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.libs.json.{JsNull, JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import reactivemongo.api.commands.{WriteError, WriteResult}
 import repositories.NotificationRepository
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
@@ -79,7 +80,12 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
 
     "save the input notificationPushRequest into mongo repo successfully" in {
 
-      when(TestNotificationController.notificationRepository.insertRecord(any())).thenReturn(Future.successful(true))
+      val writeResult = mock[WriteResult]
+      when(writeResult.ok) thenReturn true
+
+      when {
+        TestNotificationController.notificationRepository.insertRecord(any())
+      } thenReturn Future.successful(writeResult)
 
       when {
         TestNotificationController.audit.sendEvent(any())(any(), any())
@@ -108,19 +114,32 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
 
       status(result) must be(BAD_REQUEST)
       contentAsJson(result) must be(failure)
-
     }
 
     "return an invalid response when mongo insertion fails" in {
 
       when {
         TestNotificationController.notificationRepository.insertRecord(any())
-      } thenReturn Future.failed(new HttpStatusException(INTERNAL_SERVER_ERROR, Some("message")))
+      } thenReturn Future.failed(HttpStatusException(INTERNAL_SERVER_ERROR, Some("message")))
 
       whenReady(TestNotificationController.saveNotification(amlsRegistrationNumber)(postRequest).failed) {
-        case HttpStatusException(status, body) =>
+        case HttpStatusException(status, b) =>
           status mustBe INTERNAL_SERVER_ERROR
-          body mustBe Some("message")
+          b mustBe Some("message")
+      }
+    }
+
+    "return an invalid response when mongo returns bad write result" in {
+      val writeResult = mock[WriteResult]
+      when(writeResult.ok) thenReturn false
+      when(writeResult.writeErrors) thenReturn Seq(WriteError(0, 1, "Some error"))
+
+      when {
+        TestNotificationController.notificationRepository.insertRecord(any())
+      } thenReturn Future.successful(writeResult)
+
+      whenReady(TestNotificationController.saveNotification(amlsRegistrationNumber)(postRequest)) { r =>
+        r.header.status mustBe INTERNAL_SERVER_ERROR
       }
     }
 
