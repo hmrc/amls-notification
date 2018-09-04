@@ -17,7 +17,7 @@
 package controllers
 
 import audit.{NotificationFailedEvent, NotificationReceivedEvent}
-import config.MicroserviceAuditConnector
+import config.{AmlsConfig, MicroserviceAuditConnector}
 import connectors.EmailConnector
 import exceptions.HttpStatusException
 import models.{NotificationPushRequest, NotificationRecord}
@@ -80,7 +80,8 @@ trait NotificationController extends BaseController {
                   body.contactNumber,
                   body.variation,
                   DateTime.now(DateTimeZone.UTC),
-                  isRead = false
+                  isRead = false,
+                  AmlsConfig.currentTemplatePackageVersion
                 )
 
                 if (!body.isSane) {

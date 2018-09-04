@@ -28,4 +28,5 @@ object AmlsConfig extends ServicesConfig {
   lazy val desEnv = loadConfig("des.env")
 
   lazy val emailUrl = baseUrl("email")
+  lazy val currentTemplatePackageVersion = loadConfig("current-template-package-version")
 }
