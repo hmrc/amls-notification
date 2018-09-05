@@ -28,7 +28,7 @@ case class NotificationRow (
                              receivedAt: DateTime,
                              isRead: Boolean,
                              amlsRegistrationNumber: String,
-                             templatePackageVersion: String,
+                             templatePackageVersion: Option[String],
                              _id: IDType
                            )
 

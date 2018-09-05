@@ -29,4 +29,5 @@ object AmlsConfig extends ServicesConfig {
 
   lazy val emailUrl = baseUrl("email")
   lazy val currentTemplatePackageVersion = loadConfig("current-template-package-version")
+  lazy val defaultTemplatePackageVersion = loadConfig("default-template-package-version")
 }

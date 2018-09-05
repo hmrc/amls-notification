@@ -16,11 +16,13 @@
 
 package controllers
 
+import java.io
+
 import audit.{NotificationFailedEvent, NotificationReceivedEvent}
 import config.{AmlsConfig, MicroserviceAuditConnector}
 import connectors.EmailConnector
 import exceptions.HttpStatusException
-import models.{NotificationPushRequest, NotificationRecord}
+import models.{NotificationPushRequest, NotificationRecord, NotificationRow}
 import org.joda.time.{DateTime, DateTimeZone}
 import play.api.Logger
 import play.api.data.validation.ValidationError
@@ -135,8 +137,9 @@ trait NotificationController extends BaseController {
           case Some(_) =>
             notificationRepository.findByAmlsReference(amlsRegistrationNumber) map {
               response =>
-                Logger.debug(s"$prefix [fetchNotifications] - Response: ${Json.toJson(response)}")
-                Ok(Json.toJson(response))
+                val newResponse = response.map(x => x.copy(templatePackageVersion = x.templatePackageVersion orElse Some(AmlsConfig.defaultTemplatePackageVersion)) )
+                Logger.debug(s"$prefix [fetchNotifications] - Response: ${Json.toJson(newResponse)}")
+                Ok(Json.toJson(newResponse))
             } recoverWith {
               case e@HttpStatusException(status, Some(body)) =>
                 Logger.warn(s"$prefix [fetchNotifications] - Status: ${status}, Message: $body")
@@ -157,8 +160,9 @@ trait NotificationController extends BaseController {
           case Some(_) =>
             notificationRepository.findBySafeId(safeId) map {
               response =>
-                Logger.debug(s"$prefix [fetchNotificationsBySafeId] - Response: ${Json.toJson(response)}")
-                Ok(Json.toJson(response))
+              val newResponse = response.map(x => x.copy(templatePackageVersion = x.templatePackageVersion orElse Some(AmlsConfig.defaultTemplatePackageVersion)) )
+              Logger.debug(s"$prefix [fetchNotificationsBySafeId] - Response: ${Json.toJson(newResponse)}")
+              Ok(Json.toJson(newResponse))
             } recoverWith {
               case e@HttpStatusException(status, Some(body)) =>
                 // $COVERAGE-OFF$

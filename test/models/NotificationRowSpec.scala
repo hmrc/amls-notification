@@ -36,7 +36,7 @@ class NotificationRowSpec extends PlaySpec {
         new DateTime(1479730062573L, DateTimeZone.UTC),
         false,
         amlsRegistrationNumber,
-        "1",
+        Some("1"),
         new IDType("5832e38e01000001005ca3ff"))
 
       val json = Json.parse(

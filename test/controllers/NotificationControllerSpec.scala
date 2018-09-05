@@ -16,6 +16,7 @@
 
 package controllers
 
+import config.AmlsConfig
 import connectors.EmailConnector
 import exceptions.HttpStatusException
 import models._
@@ -206,12 +207,25 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
         DateTime.now(DateTimeZone.UTC),
         false,
         amlsRegistrationNumber,
-        "1",
+        Some("1"),
         new IDType("5832e38e01000001005ca3ff"))
 
       val notificationRows = Seq(notificationRecord)
 
-      "valid amlsRegistration number is passed" in {
+      val notificationRecordWithoutVersion = NotificationRow(
+        Some(Status(StatusType.Revoked, Some(RevokedReason.RevokedCeasedTrading))),
+        Some(ContactType.MindedToRevoke),
+        None,
+        false,
+        DateTime.now(DateTimeZone.UTC),
+        false,
+        amlsRegistrationNumber,
+        None,
+        new IDType("5832e38e01000001005ca3ff"))
+
+      val notificationRowsWithoutVersion = Seq(notificationRecordWithoutVersion)
+
+      "valid amlsRegistration number is passed and a version number" in {
         when(TestNotificationController.notificationRepository.findByAmlsReference(any())).thenReturn(Future.successful(notificationRows))
 
         val result = TestNotificationController.fetchNotifications("accountType", "ref", amlsRegistrationNumber)(getRequest)
@@ -221,7 +235,17 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
         verify(TestNotificationController.notificationRepository).findByAmlsReference(amlsRegistrationNumber)
       }
 
-      "a valid safeId is passed" in {
+      "valid amlsRegistration number is passed and no version number" in {
+        when(TestNotificationController.notificationRepository.findByAmlsReference(any())).thenReturn(Future.successful(notificationRowsWithoutVersion))
+
+        val result = TestNotificationController.fetchNotifications("accountType", "ref", amlsRegistrationNumber)(getRequest)
+        status(result) must be(OK)
+        contentAsJson(result) must be(Json.toJson(Seq(notificationRecordWithoutVersion.copy(templatePackageVersion = Some(AmlsConfig.defaultTemplatePackageVersion)))))
+
+        verify(TestNotificationController.notificationRepository).findByAmlsReference(amlsRegistrationNumber)
+      }
+
+      "a valid safeId is passed and a version number" in {
         when {
           TestNotificationController.notificationRepository.findBySafeId(eqTo(safeId))
         } thenReturn Future.successful(notificationRows)
@@ -230,6 +254,17 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
         status(result) mustBe OK
         contentAsJson(result) mustBe Json.toJson(notificationRows)
 
+        verify(TestNotificationController.notificationRepository).findBySafeId(safeId)
+      }
+
+      "a valid safeId is passed and no version number" in {
+        when {
+          TestNotificationController.notificationRepository.findBySafeId(eqTo(safeId))
+        } thenReturn Future.successful(notificationRowsWithoutVersion)
+
+        val result = TestNotificationController.fetchNotificationsBySafeId("accountType", "ref", safeId)(getRequest)
+        status(result) mustBe OK
+        contentAsJson(result) mustBe Json.toJson(Seq(notificationRecordWithoutVersion.copy(templatePackageVersion = Some(AmlsConfig.defaultTemplatePackageVersion))))
         verify(TestNotificationController.notificationRepository).findBySafeId(safeId)
       }
 
