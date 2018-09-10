@@ -36,6 +36,7 @@ class NotificationRowSpec extends PlaySpec {
         new DateTime(1479730062573L, DateTimeZone.UTC),
         false,
         amlsRegistrationNumber,
+        Some("1"),
         new IDType("5832e38e01000001005ca3ff"))
 
       val json = Json.parse(
@@ -52,6 +53,7 @@ class NotificationRowSpec extends PlaySpec {
           |   },
           |   "isRead":false,
           |   "amlsRegistrationNumber":"XAML00000567890",
+          |   "templatePackageVersion":"1",
           |   "_id":{"$oid":"5832e38e01000001005ca3ff"}
           | }
           |

@@ -31,6 +31,7 @@ case class NotificationRecord (amlsRegistrationNumber: String,
                                variation: Boolean,
                                receivedAt: DateTime,
                                isRead: Boolean,
+                               templatePackageVersion: String,
                                _id: BSONObjectID = BSONObjectID.generate
                               )
 

@@ -55,7 +55,7 @@ trait ViewNotificationController extends BaseController {
 
         amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
           case Some(_) => notificationRepository.findById(notificationId) flatMap {
-            case Some(record@NotificationRecord(`amlsRegistrationNumber`, _,_,_,_,_,_,_,_,_,_)) => { record match {
+            case Some(record@NotificationRecord(`amlsRegistrationNumber`, _,_,_,_,_,_,_,_,_,_,_)) => { record match {
               case record if record.contactNumber.isDefined => {
                 connector.getNotification(amlsRegistrationNumber, record.contactNumber.get) map { detail =>
                   val notificationDetails = NotificationDetails(

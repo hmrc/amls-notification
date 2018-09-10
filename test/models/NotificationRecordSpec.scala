@@ -38,7 +38,8 @@ class NotificationRecordSpec extends PlaySpec {
         None,
         false,
         DateTime.now(DateTimeZone.UTC),
-        false
+        false,
+        "1"
       )
 
       NotificationRecord.format.reads(NotificationRecord.format.writes(model)) must be(JsSuccess(model))

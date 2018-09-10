@@ -1,0 +1,12 @@
+{
+  "safeId":"AA1234567891234",
+  "name": "test",
+  "email": "test@gg.com",
+  "status": {
+    "status_type": "06",
+    "status_reason": "03"
+  },
+  "contact_type":"REJR",
+  "contact_number":"112345678251212",
+  "variation":false
+}

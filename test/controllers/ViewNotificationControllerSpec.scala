@@ -77,7 +77,7 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
     "return a valid response when the amls registration number is valid" in new Fixture {
       val record = notificationRecordGen.sample.map(_.copy(
         contactNumber = Some(contactNumber),
-        amlsRegistrationNumber = amlsRegistrationNumber))
+        amlsRegistrationNumber = amlsRegistrationNumber) )
 
       val expectedDetails = NotificationDetails(
         record flatMap {_.contactType},
