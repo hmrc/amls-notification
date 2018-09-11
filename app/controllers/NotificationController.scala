@@ -83,7 +83,7 @@ trait NotificationController extends BaseController {
                   body.variation,
                   DateTime.now(DateTimeZone.UTC),
                   isRead = false,
-                  AmlsConfig.currentTemplatePackageVersion
+                  Some(AmlsConfig.currentTemplatePackageVersion)
                 )
 
                 if (!body.isSane) {
