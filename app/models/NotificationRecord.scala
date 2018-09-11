@@ -15,7 +15,6 @@
  */
 
 package models
-
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 import reactivemongo.bson.BSONObjectID
@@ -31,7 +30,7 @@ case class NotificationRecord (amlsRegistrationNumber: String,
                                variation: Boolean,
                                receivedAt: DateTime,
                                isRead: Boolean,
-                               templatePackageVersion: String,
+                               templatePackageVersion: Option[String],
                                _id: BSONObjectID = BSONObjectID.generate
                               )
 
