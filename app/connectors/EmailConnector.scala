@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,8 @@
 package connectors
 
 import config.{AmlsConfig, WSHttp}
-import play.api.Logger
+import play.api.Mode.Mode
+import play.api.{Configuration, Logger, Play}
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.{CorePost, HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.config.ServicesConfig
@@ -60,4 +61,8 @@ object EmailConnector extends EmailConnector {
   // $COVERAGE-OFF$
   override def httpPost: CorePost = WSHttp
   override def url = s"${AmlsConfig.emailUrl}/send-templated-email"
+
+  override protected def mode: Mode = Play.current.mode
+
+  override protected def runModeConfiguration: Configuration = Play.current.configuration
 }

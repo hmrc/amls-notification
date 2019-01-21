@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,19 @@
 
 package connectors
 
-import config.WSHttp
 import org.mockito.ArgumentCaptor
-import play.api.test.Helpers._
+import org.mockito.Matchers._
+import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
-import org.mockito.Matchers._
-import org.mockito.Mockito._
-import org.mockito.Matchers.{eq => eqTo, _}
-import uk.gov.hmrc.play.http.ws.WSHttp
+import play.api.Mode.Mode
+import play.api.test.Helpers._
+import play.api.{Configuration, Play}
+import uk.gov.hmrc.http.{CorePost, HeaderCarrier, HttpResponse}
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.{CorePost, HeaderCarrier, HttpPost, HttpResponse}
 
 class EmailConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with IntegrationPatience with OneServerPerSuite with BeforeAndAfterAll {
 
@@ -43,6 +42,10 @@ class EmailConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures wi
     object TestEmailConnector extends EmailConnector {
       override def httpPost = mockHttp
       override def url = "test-email-url"
+
+      override protected def mode: Mode = Play.current.mode
+
+      override protected def runModeConfiguration: Configuration = Play.current.configuration
     }
 
   }

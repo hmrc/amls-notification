@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,10 @@ package connectors
 import config.{AmlsConfig, MicroserviceAuditConnector, WSHttp}
 import metrics.Metrics
 import play.mvc.Http.HeaderNames
-import uk.gov.hmrc.play.audit.model.Audit
-import uk.gov.hmrc.play.config.AppName
-import utils.HttpResponseHelper
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.logging.Authorization
+import uk.gov.hmrc.play.audit.model.Audit
+import utils.{AuditHelper, HttpResponseHelper}
 
 trait DESConnector extends HttpResponseHelper {
 
@@ -56,6 +55,6 @@ object DESConnector extends ViewNotificationConnector {
   override private[connectors] lazy val env: String = AmlsConfig.desEnv
   override private[connectors] lazy val http = WSHttp
   override private[connectors] val metrics: Metrics = Metrics
-  override private[connectors] val audit: Audit = new Audit(AppName.appName, MicroserviceAuditConnector)
+  override private[connectors] val audit: Audit = new Audit(AuditHelper.appName, MicroserviceAuditConnector)
   override private[connectors] val fullUrl: String = s"$baseUrl/$requestUrl"
 }

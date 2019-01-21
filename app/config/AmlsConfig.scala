@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,15 @@
 
 package config
 
+import play.api.{Configuration, Play}
+import play.api.Mode.Mode
 import uk.gov.hmrc.play.config.ServicesConfig
 
 object AmlsConfig extends ServicesConfig {
+
+  override protected def mode: Mode = Play.current.mode
+
+  override protected def runModeConfiguration: Configuration = Play.current.configuration
 
   private def loadConfig(key: String) =
     getConfString(key, throw new Exception(s"Config missing key: $key"))
@@ -30,4 +36,6 @@ object AmlsConfig extends ServicesConfig {
   lazy val emailUrl = baseUrl("email")
   lazy val currentTemplatePackageVersion = loadConfig("current-template-package-version")
   lazy val defaultTemplatePackageVersion = loadConfig("default-template-package-version")
+
+
 }
