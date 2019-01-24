@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
-package exceptions
+package utils
 
-case class HttpStatusException(status: Int, body: Option[String]) extends Throwable
+object AuditHelper {
+  def appName = {
+    "amls-frontend"
+  }
+}

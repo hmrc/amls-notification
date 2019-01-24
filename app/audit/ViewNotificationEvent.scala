@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
 
 package audit
 
-import models.des.{NotificationResponse}
+import models.des.NotificationResponse
 import play.api.libs.json.{Json, Writes}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.AuditExtensions._
 import uk.gov.hmrc.play.audit.model.DataEvent
-import uk.gov.hmrc.play.config.AppName
-import uk.gov.hmrc.http.HeaderCarrier
+import utils.AuditHelper
 
 object ViewNotificationEvent {
   def apply
@@ -31,7 +31,7 @@ object ViewNotificationEvent {
    resW: Writes[NotificationResponse]
   ): DataEvent =
     DataEvent(
-      auditSource = AppName.appName,
+      auditSource = AuditHelper.appName,
       auditType = "OutboundCall",
       tags = hc.toAuditTags("Get Notification", "N/A"),
       detail = hc.toAuditDetails() ++ Map(

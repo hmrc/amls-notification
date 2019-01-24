@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ package audit
 
 import models.{ContactType, NotificationPushRequest, Status}
 import play.api.libs.json.{JsObject, Json, Writes}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.AuditExtensions._
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
-import uk.gov.hmrc.play.config.AppName
-import uk.gov.hmrc.http.HeaderCarrier
+import utils.AuditHelper
 
 object NotificationReceivedEvent {
 
@@ -39,7 +39,7 @@ object NotificationReceivedEvent {
     )
 
     ExtendedDataEvent(
-      auditSource = AppName.appName,
+      auditSource = AuditHelper.appName,
       auditType = "ServiceRequestReceived",
       tags = hc.toAuditTags("Received Notification", "N/A"),
       detail = data
@@ -64,7 +64,7 @@ object NotificationFailedEvent {
     )
 
     ExtendedDataEvent(
-      auditSource = AppName.appName,
+      auditSource = AuditHelper.appName,
       auditType = "ServiceRequestReceived",
       tags = hc.toAuditTags("Failed Notification", "N/A"),
       detail = data
