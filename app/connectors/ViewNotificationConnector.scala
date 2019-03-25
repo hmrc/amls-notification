@@ -31,7 +31,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait ViewNotificationConnector extends DESConnector {
 
-  def  getNotification(amlsRegistrationNumber: String, contactNumber: String)
+  def getNotification(amlsRegistrationNumber: String, contactNumber: String)
                      (implicit ec: ExecutionContext, wr: Writes[NotificationResponse]): Future[NotificationResponse] = {
 
     val prefix = "[DESConnector][getNotification]"
