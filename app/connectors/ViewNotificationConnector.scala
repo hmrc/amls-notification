@@ -17,7 +17,7 @@
 package connectors
 
 
-import audit.ViewNotificationEvent
+import audit.{ ViewNotificationEvent, ViewNotificationEventFailed }
 import exceptions.HttpStatusException
 import metrics.API11
 import models.des.NotificationResponse
@@ -31,7 +31,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait ViewNotificationConnector extends DESConnector {
 
-  def getNotification(amlsRegistrationNumber: String, contactNumber: String)
+  def  getNotification(amlsRegistrationNumber: String, contactNumber: String)
                      (implicit ec: ExecutionContext, wr: Writes[NotificationResponse]): Future[NotificationResponse] = {
 
     val prefix = "[DESConnector][getNotification]"
@@ -55,10 +55,13 @@ trait ViewNotificationConnector extends DESConnector {
       case r@status(s) =>
         metrics.failed(API11)
         Logger.warn(s"$prefix - Failure response: $s")
+        val httpEx = HttpStatusException(s, Option(r.body))
+        auditConnector.sendExtendedEvent(ViewNotificationEventFailed(amlsRegistrationNumber, contactNumber, httpEx))
         Future.failed(HttpStatusException(s, Option(r.body)))
     } recoverWith {
       case e: HttpStatusException =>
         Logger.warn(s"$prefix - Failure: Exception", e)
+        auditConnector.sendExtendedEvent(ViewNotificationEventFailed(amlsRegistrationNumber, contactNumber, e))
         Future.failed(e)
       case e =>
         timer.stop()

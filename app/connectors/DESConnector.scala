@@ -21,6 +21,7 @@ import metrics.Metrics
 import play.mvc.Http.HeaderNames
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.logging.Authorization
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.Audit
 import utils.{AuditHelper, HttpResponseHelper}
 
@@ -33,6 +34,7 @@ trait DESConnector extends HttpResponseHelper {
   private[connectors] def metrics: Metrics
   private[connectors] def audit: Audit
   private[connectors] def fullUrl: String
+  private[connectors] def auditConnector: AuditConnector
 
 
   val requestUrl = "anti-money-laundering/secure-comms"
@@ -57,4 +59,5 @@ object DESConnector extends ViewNotificationConnector {
   override private[connectors] val metrics: Metrics = Metrics
   override private[connectors] val audit: Audit = new Audit(AuditHelper.appName, MicroserviceAuditConnector)
   override private[connectors] val fullUrl: String = s"$baseUrl/$requestUrl"
+  override private[connectors] lazy val auditConnector: AuditConnector = MicroserviceAuditConnector
 }

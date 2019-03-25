@@ -18,6 +18,7 @@ package connectors
 
 import audit.MockAudit
 import com.codahale.metrics.Timer
+import config.MicroserviceAuditConnector
 import exceptions.HttpStatusException
 import metrics.{API11, Metrics}
 import org.joda.time.{DateTimeUtils, LocalDateTime}
@@ -34,6 +35,7 @@ import models.des.NotificationResponse
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import uk.gov.hmrc.http._
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 class ViewNotificationConnectorSpec
   extends PlaySpec
@@ -59,6 +61,7 @@ class ViewNotificationConnectorSpec
       override private[connectors] val metrics: Metrics = mock[Metrics]
       override private[connectors] val audit = MockAudit
       override private[connectors] val fullUrl: String = s"$baseUrl/$requestUrl"
+      override private[connectors] lazy val auditConnector: AuditConnector = MicroserviceAuditConnector
     }
 
     val successModel = NotificationResponse(LocalDateTime.now(), "Approved")
