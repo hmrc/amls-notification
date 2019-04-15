@@ -1,1 +1,1 @@
- + [AMLS-4893](https://jira.tools.tax.service.gov.uk/browse/AMLS-4893) - ' Kibana Incident - AMLS Notifications - Upgrade to microservice-bootstrap 10.4.0'
+ + [AMLS-4893] - ' Kibana Incident - AMLS Notifications - Upgrade to microservice-bootstrap 10.4.0'
