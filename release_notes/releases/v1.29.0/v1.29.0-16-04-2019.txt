@@ -1,0 +1,1 @@
+ + [AMLS-4893] - ' Kibana Incident - AMLS Notifications - Upgrade to microservice-bootstrap 10.4.0'
