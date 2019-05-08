@@ -18,7 +18,9 @@ package connectors
 
 
 import audit.ViewNotificationEvent
+import config.{AmlsConfig, MicroserviceAuditConnector, WSHttp}
 import exceptions.HttpStatusException
+import javax.inject.Inject
 import metrics.API11
 import models.des.NotificationResponse
 import play.api.Logger
@@ -29,10 +31,14 @@ import uk.gov.hmrc.http.HttpResponse
 import scala.concurrent.{ExecutionContext, Future}
 
 
-trait ViewNotificationConnector extends DESConnector {
+class ViewNotificationConnector @Inject()(
+  amlsConfig: AmlsConfig,
+  wsHttp: WSHttp,
+  auditConnector: MicroserviceAuditConnector
+) extends DESConnector(amlsConfig, wsHttp, auditConnector) {
 
   def getNotification(amlsRegistrationNumber: String, contactNumber: String)
-                     (implicit ec: ExecutionContext, wr: Writes[NotificationResponse]): Future[NotificationResponse] = {
+    (implicit ec: ExecutionContext, wr: Writes[NotificationResponse]): Future[NotificationResponse] = {
 
     val prefix = "[DESConnector][getNotification]"
     val bodyParser = JsonParsed[NotificationResponse]

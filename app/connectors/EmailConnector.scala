@@ -17,9 +17,10 @@
 package connectors
 
 import config.{AmlsConfig, WSHttp}
+import javax.inject.Inject
 import play.api.Mode.Mode
-import play.api.{Configuration, Logger, Play}
 import play.api.libs.json.Json
+import play.api.{Application, Configuration, Logger}
 import uk.gov.hmrc.http.{CorePost, HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.config.ServicesConfig
 
@@ -32,11 +33,12 @@ object SendTemplatedEmailRequest {
   implicit val format = Json.format[SendTemplatedEmailRequest]
 }
 
-trait EmailConnector extends ServicesConfig {
+class EmailConnector @Inject()(app: Application, amlsConfig: AmlsConfig, wsHttp: WSHttp) extends ServicesConfig {
 
-  private[connectors] def httpPost: CorePost
-
-  private[connectors] def url: String
+  def httpPost: CorePost = wsHttp
+  def url = s"${amlsConfig.emailUrl}/send-templated-email"
+  override protected def mode: Mode = app.mode
+  override protected def runModeConfiguration: Configuration = app.configuration
 
   def sendNotificationReceivedTemplatedEmail(to: List[String])(implicit hc: HeaderCarrier): Future[Boolean] = {
     val request = SendTemplatedEmailRequest(to, "amls_notification_received_template", Map())
@@ -55,14 +57,4 @@ trait EmailConnector extends ServicesConfig {
         }
     }
   }
-}
-
-object EmailConnector extends EmailConnector {
-  // $COVERAGE-OFF$
-  override def httpPost: CorePost = WSHttp
-  override def url = s"${AmlsConfig.emailUrl}/send-templated-email"
-
-  override protected def mode: Mode = Play.current.mode
-
-  override protected def runModeConfiguration: Configuration = Play.current.configuration
 }
