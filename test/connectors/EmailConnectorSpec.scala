@@ -23,7 +23,7 @@ import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
+import org.scalatestplus.play.{OneAppPerSuite, OneServerPerSuite, PlaySpec}
 import play.api.Configuration
 import play.api.Mode.Mode
 import play.api.test.Helpers._
@@ -53,12 +53,13 @@ class EmailConnectorSpec
 
       override def httpPost = mockHttp
       override def url = "test-email-url"
-      override protected def mode: Mode = app.mode
-      override protected def runModeConfiguration: Configuration = app.configuration
+      //override protected def mode: Mode = app.mode
+      //override protected def runModeConfiguration: Configuration = app.configuration
     }
   }
 
   "The Email connector" must {
+
     "send a details of the email template and content and report a positive response" in new Fixture {
       when(mockHttp.POST[SendTemplatedEmailRequest, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
         .thenReturn(Future.successful(HttpResponse(202)))
