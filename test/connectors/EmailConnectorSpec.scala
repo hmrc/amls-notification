@@ -23,9 +23,7 @@ import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.{OneAppPerSuite, OneServerPerSuite, PlaySpec}
-import play.api.Configuration
-import play.api.Mode.Mode
+import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.{CorePost, HeaderCarrier, HttpResponse}
 
@@ -53,8 +51,6 @@ class EmailConnectorSpec
 
       override def httpPost = mockHttp
       override def url = "test-email-url"
-      //override protected def mode: Mode = app.mode
-      //override protected def runModeConfiguration: Configuration = app.configuration
     }
   }
 
