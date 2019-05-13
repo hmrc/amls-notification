@@ -33,12 +33,9 @@ object SendTemplatedEmailRequest {
   implicit val format = Json.format[SendTemplatedEmailRequest]
 }
 
-class EmailConnector @Inject()(app: Application, amlsConfig: AmlsConfig, wsHttp: WSHttp) extends ServicesConfig {
-
+class EmailConnector @Inject()(app: Application, amlsConfig: AmlsConfig, wsHttp: WSHttp) {
   def httpPost: CorePost = wsHttp
   def url = s"${amlsConfig.emailUrl}/send-templated-email"
-  override protected def mode: Mode = app.mode
-  override protected def runModeConfiguration: Configuration = app.configuration
 
   def sendNotificationReceivedTemplatedEmail(to: List[String])(implicit hc: HeaderCarrier): Future[Boolean] = {
     val request = SendTemplatedEmailRequest(to, "amls_notification_received_template", Map())

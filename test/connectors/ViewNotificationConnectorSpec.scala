@@ -57,9 +57,8 @@ class ViewNotificationConnectorSpec extends PlaySpec
       app.injector.instanceOf(classOf[MicroserviceAuditConnector])) {
 
       lazy override private[connectors] val baseUrl: String = "baseUrl"
-      lazy override private[connectors] val token: String = "token"
       lazy override private[connectors] val env: String = "ist0"
-      lazy override private[connectors] val http = mock[WSHttp]
+      override private[connectors] val http = mock[WSHttp]
       override private[connectors] val metrics: Metrics = mock[Metrics]
       override private[connectors] val audit = MockAudit
       override private[connectors] val fullUrl: String = s"$baseUrl/$requestUrl"
