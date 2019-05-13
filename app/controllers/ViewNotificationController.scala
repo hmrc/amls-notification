@@ -33,11 +33,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class ViewNotificationController @Inject()(
-  connector: DESConnector,
+  conn: DESConnector,
   notificationConnector: ViewNotificationConnector,
   msAuditConnector: MicroserviceAuditConnector
 ) extends BaseController {
 
+  private[controllers] val connector = notificationConnector
   private[controllers] val audit = msAuditConnector
   private[controllers] val notificationRepository = NotificationRepository()
 

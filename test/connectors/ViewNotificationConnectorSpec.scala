@@ -20,8 +20,8 @@ import audit.MockAudit
 import com.codahale.metrics.Timer
 import config.{AmlsConfig, MicroserviceAuditConnector, WSHttp}
 import exceptions.HttpStatusException
-import javax.inject.Inject
 import metrics.{API11, Metrics}
+import models.des.NotificationResponse
 import org.joda.time.{DateTimeUtils, LocalDateTime}
 import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
@@ -31,17 +31,12 @@ import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.http.Status._
 import play.api.libs.json.Json
-import models.des.NotificationResponse
+import uk.gov.hmrc.http._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http._
 
-class ViewNotificationConnectorSpec @Inject()(
-  amlsConfig: AmlsConfig,
-  wsHttp: WSHttp,
-  auditConnector:MicroserviceAuditConnector
-) extends PlaySpec
+class ViewNotificationConnectorSpec extends PlaySpec
   with MockitoSugar
   with ScalaFutures
   with IntegrationPatience with OneServerPerSuite with BeforeAndAfterAll {
@@ -56,7 +51,11 @@ class ViewNotificationConnectorSpec @Inject()(
 
   trait Fixture {
 
-    object testConnector extends ViewNotificationConnector(amlsConfig, wsHttp, auditConnector) {
+    object testConnector extends ViewNotificationConnector(
+      app.injector.instanceOf(classOf[AmlsConfig]),
+      app.injector.instanceOf(classOf[WSHttp]),
+      app.injector.instanceOf(classOf[MicroserviceAuditConnector])) {
+
       lazy override private[connectors] val baseUrl: String = "baseUrl"
       lazy override private[connectors] val token: String = "token"
       lazy override private[connectors] val env: String = "ist0"

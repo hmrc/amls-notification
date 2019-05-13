@@ -20,7 +20,6 @@ package controllers
 import config.MicroserviceAuditConnector
 import connectors.{DESConnector, ViewNotificationConnector}
 import exceptions.HttpStatusException
-import javax.inject.Inject
 import models._
 import models.fe.NotificationDetails
 import org.joda.time.{DateTime, DateTimeZone}
@@ -42,16 +41,16 @@ import utils.DataGen._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ViewNotificationControllerSpec @Inject()(
-  connector: DESConnector,
-  notificationConnector: ViewNotificationConnector,
-  msAuditConnector: MicroserviceAuditConnector
-) extends PlaySpec with GeneratorDrivenPropertyChecks with ScalaFutures  with MockitoSugar with OneAppPerSuite {
+class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenPropertyChecks with ScalaFutures  with MockitoSugar with OneAppPerSuite {
 
   trait Fixture {
-    val TestController = new ViewNotificationController(connector, notificationConnector, msAuditConnector) {
-      val connector = mock[ViewNotificationConnector]
-      override private[controllers] val audit = mock[MicroserviceAuditConnector]
+
+    val TestController = new ViewNotificationController(
+      mock[DESConnector],
+      mock[ViewNotificationConnector],
+      //app.injector.instanceOf(classOf[ViewNotificationConnector]),
+      mock[MicroserviceAuditConnector]
+    ) {
       override private[controllers] val notificationRepository = mock[NotificationMongoRepository]
     }
   }
