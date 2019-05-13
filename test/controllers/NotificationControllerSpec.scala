@@ -19,7 +19,6 @@ package controllers
 import config.{AmlsConfig, MicroserviceAuditConnector}
 import connectors.EmailConnector
 import exceptions.HttpStatusException
-import javax.inject.Inject
 import models._
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.ArgumentCaptor
@@ -39,17 +38,18 @@ import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 
 import scala.concurrent.Future
 
-class NotificationControllerSpec @Inject()(
-  emailConnector: EmailConnector,
-  amlsConfig: AmlsConfig,
-  msAuditConnector: MicroserviceAuditConnector
-) extends PlaySpec
+class NotificationControllerSpec extends PlaySpec
   with MockitoSugar
   with ScalaFutures
   with OneServerPerSuite
   with BeforeAndAfter {
 
-  object TestNotificationController extends NotificationController(emailConnector, amlsConfig, msAuditConnector) {
+
+  val amlsConfig:AmlsConfig = app.injector.instanceOf(classOf[AmlsConfig]);
+  object TestNotificationController extends NotificationController(
+    app.injector.instanceOf(classOf[EmailConnector]),
+    amlsConfig,
+    app.injector.instanceOf(classOf[MicroserviceAuditConnector])) {
     override private[controllers] val notificationRepository = mock[NotificationMongoRepository]
     private[controllers] val emailConnector = mock[EmailConnector]
     override private[controllers] val audit = mock[MicroserviceAuditConnector]
