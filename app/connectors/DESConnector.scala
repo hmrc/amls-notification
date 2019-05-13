@@ -17,6 +17,7 @@
 package connectors
 
 import config.{AmlsConfig, MicroserviceAuditConnector, WSHttp}
+import javax.inject.Inject
 import metrics.Metrics
 import play.mvc.Http.HeaderNames
 import uk.gov.hmrc.http._
@@ -24,18 +25,19 @@ import uk.gov.hmrc.http.logging.Authorization
 import uk.gov.hmrc.play.audit.model.Audit
 import utils.{AuditHelper, HttpResponseHelper}
 
-trait DESConnector extends HttpResponseHelper {
-
-  private[connectors] def baseUrl: String
-  private[connectors] def env: String
-  private[connectors] def token: String
-  private[connectors] def http: CoreGet with CorePost
-  private[connectors] def metrics: Metrics
-  private[connectors] def audit: Audit
-  private[connectors] def fullUrl: String
+class DESConnector @Inject()(amlsConfig: AmlsConfig, wsHttp: WSHttp, msAuditConnector: MicroserviceAuditConnector)
+  extends HttpResponseHelper {
 
 
   val requestUrl = "anti-money-laundering/secure-comms"
+
+  private[connectors] lazy val baseUrl: String = amlsConfig.desUrl
+  private[connectors] lazy val token: String = s"Bearer ${amlsConfig.desToken}"
+  private[connectors] lazy val env: String = amlsConfig.desEnv
+  private[connectors] lazy val http = wsHttp
+  private[connectors] val metrics: Metrics = Metrics
+  private[connectors] val audit: Audit = new Audit(AuditHelper.appName, msAuditConnector)
+  private[connectors] val fullUrl: String = s"$baseUrl/$requestUrl"
 
   protected implicit val hc = HeaderCarrier(
     extraHeaders = Seq(
@@ -44,17 +46,4 @@ trait DESConnector extends HttpResponseHelper {
     ),
     authorization = Some(Authorization(token))
   )
-}
-
-
-object DESConnector extends ViewNotificationConnector {
-
-  // $COVERAGE-OFF$
-  override private[connectors] lazy val baseUrl: String = AmlsConfig.desUrl
-  override private[connectors] lazy val token: String = s"Bearer ${AmlsConfig.desToken}"
-  override private[connectors] lazy val env: String = AmlsConfig.desEnv
-  override private[connectors] lazy val http = WSHttp
-  override private[connectors] val metrics: Metrics = Metrics
-  override private[connectors] val audit: Audit = new Audit(AuditHelper.appName, MicroserviceAuditConnector)
-  override private[connectors] val fullUrl: String = s"$baseUrl/$requestUrl"
 }

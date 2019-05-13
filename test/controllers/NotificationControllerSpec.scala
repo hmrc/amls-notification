@@ -16,9 +16,10 @@
 
 package controllers
 
-import config.AmlsConfig
+import config.{AmlsConfig, MicroserviceAuditConnector}
 import connectors.EmailConnector
 import exceptions.HttpStatusException
+import javax.inject.Inject
 import models._
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.ArgumentCaptor
@@ -32,18 +33,26 @@ import play.api.libs.json.{JsNull, JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import reactivemongo.api.commands.{WriteError, WriteResult}
-import repositories.NotificationRepository
-import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
+import repositories.NotificationMongoRepository
+import uk.gov.hmrc.play.audit.http.connector.AuditResult
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 
 import scala.concurrent.Future
 
-class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFutures with OneServerPerSuite with BeforeAndAfter {
+class NotificationControllerSpec @Inject()(
+  emailConnector: EmailConnector,
+  amlsConfig: AmlsConfig,
+  msAuditConnector: MicroserviceAuditConnector
+) extends PlaySpec
+  with MockitoSugar
+  with ScalaFutures
+  with OneServerPerSuite
+  with BeforeAndAfter {
 
-  object TestNotificationController extends NotificationController {
-    override private[controllers] val notificationRepository = mock[NotificationRepository]
-    override private[controllers] val emailConnector = mock[EmailConnector]
-    override private[controllers] val audit = mock[AuditConnector]
+  object TestNotificationController extends NotificationController(emailConnector, amlsConfig, msAuditConnector) {
+    override private[controllers] val notificationRepository = mock[NotificationMongoRepository]
+    private[controllers] val emailConnector = mock[EmailConnector]
+    override private[controllers] val audit = mock[MicroserviceAuditConnector]
   }
 
   before {
@@ -240,7 +249,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
 
         val result = TestNotificationController.fetchNotifications("accountType", "ref", amlsRegistrationNumber)(getRequest)
         status(result) must be(OK)
-        contentAsJson(result) must be(Json.toJson(Seq(notificationRecordWithoutVersion.copy(templatePackageVersion = Some(AmlsConfig.defaultTemplatePackageVersion)))))
+        contentAsJson(result) must be(Json.toJson(Seq(notificationRecordWithoutVersion.copy(templatePackageVersion = Some(amlsConfig.defaultTemplatePackageVersion)))))
 
         verify(TestNotificationController.notificationRepository).findByAmlsReference(amlsRegistrationNumber)
       }
@@ -264,7 +273,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
 
         val result = TestNotificationController.fetchNotificationsBySafeId("accountType", "ref", safeId)(getRequest)
         status(result) mustBe OK
-        contentAsJson(result) mustBe Json.toJson(Seq(notificationRecordWithoutVersion.copy(templatePackageVersion = Some(AmlsConfig.defaultTemplatePackageVersion))))
+        contentAsJson(result) mustBe Json.toJson(Seq(notificationRecordWithoutVersion.copy(templatePackageVersion = Some(amlsConfig.defaultTemplatePackageVersion))))
         verify(TestNotificationController.notificationRepository).findBySafeId(safeId)
       }
 

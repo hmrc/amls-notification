@@ -16,15 +16,15 @@
 
 package config
 
-import play.api.{Configuration, Play}
+import javax.inject.Inject
 import play.api.Mode.Mode
+import play.api.{Application, Configuration}
 import uk.gov.hmrc.play.config.ServicesConfig
 
-object AmlsConfig extends ServicesConfig {
+class AmlsConfig @Inject()(app: Application) extends ServicesConfig {
 
-  override protected def mode: Mode = Play.current.mode
-
-  override protected def runModeConfiguration: Configuration = Play.current.configuration
+  override protected def mode: Mode = app.mode
+  override protected def runModeConfiguration: Configuration = app.configuration
 
   private def loadConfig(key: String) =
     getConfString(key, throw new Exception(s"Config missing key: $key"))
@@ -36,6 +36,4 @@ object AmlsConfig extends ServicesConfig {
   lazy val emailUrl = baseUrl("email")
   lazy val currentTemplatePackageVersion = loadConfig("current-template-package-version")
   lazy val defaultTemplatePackageVersion = loadConfig("default-template-package-version")
-
-
 }

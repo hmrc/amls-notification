@@ -16,36 +16,35 @@
 
 package controllers
 
-import java.io
-
 import audit.{NotificationFailedEvent, NotificationReceivedEvent}
 import config.{AmlsConfig, MicroserviceAuditConnector}
 import connectors.EmailConnector
 import exceptions.HttpStatusException
-import models.{NotificationPushRequest, NotificationRecord, NotificationRow}
+import javax.inject.Inject
+import models.{NotificationPushRequest, NotificationRecord}
 import org.joda.time.{DateTime, DateTimeZone}
 import play.api.Logger
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
 import play.api.mvc.Action
 import repositories.NotificationRepository
-import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait NotificationController extends BaseController {
+class NotificationController @Inject()(
+  emailConnector: EmailConnector,
+  amlsConfig: AmlsConfig,
+  msAuditConnector: MicroserviceAuditConnector
+) extends BaseController {
 
   val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
   val safeIdRegex = "^[A-Za-z0-9]{15}$".r
   val prefix = "[NotificationController]"
 
-  private[controllers] def emailConnector: EmailConnector
-
-  private[controllers] val audit: AuditConnector
-
-  private[controllers] def notificationRepository: NotificationRepository
+  private[controllers] val notificationRepository = NotificationRepository()
+  private[controllers] val audit = msAuditConnector
 
   private def toError(errors: Seq[(JsPath, Seq[ValidationError])]): JsObject =
     Json.obj(
@@ -83,7 +82,7 @@ trait NotificationController extends BaseController {
                   body.variation,
                   DateTime.now(DateTimeZone.UTC),
                   isRead = false,
-                  Some(AmlsConfig.currentTemplatePackageVersion)
+                  Some(amlsConfig.currentTemplatePackageVersion)
                 )
 
                 if (!body.isSane) {
@@ -137,7 +136,7 @@ trait NotificationController extends BaseController {
           case Some(_) =>
             notificationRepository.findByAmlsReference(amlsRegistrationNumber) map {
               response =>
-                val newResponse = response.map(x => x.copy(templatePackageVersion = x.templatePackageVersion orElse Some(AmlsConfig.defaultTemplatePackageVersion)) )
+                val newResponse = response.map(x => x.copy(templatePackageVersion = x.templatePackageVersion orElse Some(amlsConfig.defaultTemplatePackageVersion)) )
                 Logger.debug(s"$prefix [fetchNotifications] - Response: ${Json.toJson(newResponse)}")
                 Ok(Json.toJson(newResponse))
             } recoverWith {
@@ -160,7 +159,7 @@ trait NotificationController extends BaseController {
           case Some(_) =>
             notificationRepository.findBySafeId(safeId) map {
               response =>
-              val newResponse = response.map(x => x.copy(templatePackageVersion = x.templatePackageVersion orElse Some(AmlsConfig.defaultTemplatePackageVersion)) )
+              val newResponse = response.map(x => x.copy(templatePackageVersion = x.templatePackageVersion orElse Some(amlsConfig.defaultTemplatePackageVersion)) )
               Logger.debug(s"$prefix [fetchNotificationsBySafeId] - Response: ${Json.toJson(newResponse)}")
               Ok(Json.toJson(newResponse))
             } recoverWith {
@@ -178,9 +177,3 @@ trait NotificationController extends BaseController {
     }
 }
 
-object NotificationController extends NotificationController {
-  // $COVERAGE-OFF$
-  override private[controllers] val notificationRepository = NotificationRepository()
-  override private[controllers] val emailConnector: EmailConnector = EmailConnector
-  override private[controllers] val audit = MicroserviceAuditConnector
-}

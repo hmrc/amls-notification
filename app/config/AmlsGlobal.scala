@@ -22,16 +22,34 @@ import play.api.{Application, Configuration, Play}
 import uk.gov.hmrc.play.config.RunMode
 import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
 
+//TODO: Remove this file when upgrading to Play 2.6 - see https://www.playframework.com/documentation/2.7.x/GlobalSettings
+
 object AmlsGlobal extends DefaultMicroserviceGlobal with RunMode {
-  override lazy  val auditConnector = MicroserviceAuditConnector
 
-  override def microserviceMetricsConfig(implicit app: Application): Option[Configuration] = app.configuration.getConfig("microservice.metrics")
+  private lazy val msAuthConnector = new MicroserviceAuthConnector(Play.current, auditConnector)
 
-  override lazy  val loggingFilter = MicroserviceLoggingFilter
+  private lazy val controllerConfiguration = new ControllerConfiguration(Play.current)
 
-  override lazy  val microserviceAuditFilter = MicroserviceAuditFilter
+  private lazy val msAuthFilter = new MicroserviceAuthFilter(
+    new AuthParamsControllerConfiguration(controllerConfiguration),
+    controllerConfiguration,
+    msAuthConnector
+  )
 
-  override def authFilter: Option[EssentialFilter]  = Some(MicroserviceAuthFilter)
+  override lazy val auditConnector = new MicroserviceAuditConnector(Play.current)
+
+  override def microserviceMetricsConfig(implicit app: Application): Option[Configuration] =
+    Play.current.configuration.getConfig("microservice.metrics")
+
+  override lazy val loggingFilter = new MicroserviceLoggingFilter(controllerConfiguration)
+
+  override lazy val microserviceAuditFilter = new MicroserviceAuditFilter(
+    Play.current,
+    controllerConfiguration,
+    auditConnector
+  )
+
+  override def authFilter: Option[EssentialFilter]  = Some(msAuthFilter)
 
   override protected def mode: Mode = Play.current.mode
 
