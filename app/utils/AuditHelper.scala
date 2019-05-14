@@ -18,6 +18,6 @@ package utils
 
 object AuditHelper {
   def appName = {
-    "amls-frontend"
+    "amls-notification"
   }
 }

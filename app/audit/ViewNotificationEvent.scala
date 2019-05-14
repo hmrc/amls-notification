@@ -49,14 +49,15 @@ object ViewNotificationEventFailed {
   (implicit
    hc: HeaderCarrier,
    resW: Writes[NotificationResponse]
-  ): ExtendedDataEvent =
-    ExtendedDataEvent(
+  ): DataEvent =
+    DataEvent(
       auditSource = AuditHelper.appName,
       auditType = "viewNotificationEventFailed",
-      tags = hc.toAuditTags("Notification", "N/A"),
-      detail = Json.toJson(hc.toAuditDetails()).as[JsObject]
-        ++ JsObject(Map("amlsRegistrationNumber" -> JsString(amlsRegistrationNumber)))
-        ++ JsObject(Map("contactNumber" -> JsString(contactNumber)))
-        ++ JsObject(Map("reason" -> JsString(ex.body.getOrElse("No body found"))))
+      tags = hc.toAuditTags("Get Notification Failed", "N/A"),
+      detail = hc.toAuditDetails() ++ Map(
+        "amlsRegNo" -> amlsRegistrationNumber,
+        "contactNumber" -> contactNumber,
+        "reason" -> Json.toJson(ex.body.getOrElse("No body found")).toString
+      )
     )
 }

@@ -62,12 +62,12 @@ class ViewNotificationConnector @Inject()(
         metrics.failed(API11)
         Logger.warn(s"$prefix - Failure response: $s")
         val httpEx = HttpStatusException(s, Option(r.body))
-        auditConnector.sendExtendedEvent(ViewNotificationEventFailed(amlsRegistrationNumber, contactNumber, httpEx))
+        audit.sendDataEvent(ViewNotificationEventFailed(amlsRegistrationNumber, contactNumber, httpEx))
         Future.failed(HttpStatusException(s, Option(r.body)))
     } recoverWith {
       case e: HttpStatusException =>
         Logger.warn(s"$prefix - Failure: Exception", e)
-        auditConnector.sendExtendedEvent(ViewNotificationEventFailed(amlsRegistrationNumber, contactNumber, e))
+        audit.sendDataEvent(ViewNotificationEventFailed(amlsRegistrationNumber, contactNumber, e))
         Future.failed(e)
       case e =>
         timer.stop()
