@@ -18,10 +18,10 @@ package audit
 
 import exceptions.HttpStatusException
 import models.des.NotificationResponse
-import play.api.libs.json.{JsObject, JsString, Json, Writes}
+import play.api.libs.json.{Json, Writes}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.AuditExtensions._
-import uk.gov.hmrc.play.audit.model.{DataEvent, ExtendedDataEvent}
+import uk.gov.hmrc.play.audit.model.{DataEvent}
 import utils.AuditHelper
 
 object ViewNotificationEvent {
