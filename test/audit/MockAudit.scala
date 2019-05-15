@@ -16,12 +16,12 @@
 
 package audit
 
-import uk.gov.hmrc.play.audit.model.{Audit, DataEvent}
+import uk.gov.hmrc.play.audit.model.{Audit, DataEvent, ExtendedDataEvent}
 
 // This only exists because of the difficulty in mocking
 // the `sendDataEvent` method of the `Audit` class
 // scalastyle:off null
-object MockAudit extends Audit("mockApp", null) {
+class MockAudit extends Audit("mockApp", null) {
   override def sendDataEvent: (DataEvent) => Unit =
     _ => {}
 }

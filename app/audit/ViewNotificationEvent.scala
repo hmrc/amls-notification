@@ -16,11 +16,12 @@
 
 package audit
 
+import exceptions.HttpStatusException
 import models.des.NotificationResponse
 import play.api.libs.json.{Json, Writes}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.AuditExtensions._
-import uk.gov.hmrc.play.audit.model.DataEvent
+import uk.gov.hmrc.play.audit.model.{DataEvent}
 import utils.AuditHelper
 
 object ViewNotificationEvent {
@@ -38,6 +39,25 @@ object ViewNotificationEvent {
         "amlsRegNo" -> amlsRegistrationNumber,
         "contactNumber" -> contactNumber,
         "response" -> Json.toJson(response).toString
+      )
+    )
+}
+
+object ViewNotificationEventFailed {
+  def apply
+  (amlsRegistrationNumber: String, contactNumber: String, ex: HttpStatusException)
+  (implicit
+   hc: HeaderCarrier,
+   resW: Writes[NotificationResponse]
+  ): DataEvent =
+    DataEvent(
+      auditSource = AuditHelper.appName,
+      auditType = "viewNotificationEventFailed",
+      tags = hc.toAuditTags("Get Notification Failed", "N/A"),
+      detail = hc.toAuditDetails() ++ Map(
+        "amlsRegNo" -> amlsRegistrationNumber,
+        "contactNumber" -> contactNumber,
+        "reason" -> Json.toJson(ex.body.getOrElse("No body found")).toString
       )
     )
 }

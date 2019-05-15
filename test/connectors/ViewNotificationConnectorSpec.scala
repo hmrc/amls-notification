@@ -23,6 +23,7 @@ import exceptions.HttpStatusException
 import metrics.{API11, Metrics}
 import models.des.NotificationResponse
 import org.joda.time.{DateTimeUtils, LocalDateTime}
+import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterAll
@@ -31,7 +32,10 @@ import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.http.Status._
 import play.api.libs.json.Json
+import uk.gov.hmrc.audit.HandlerResult
 import uk.gov.hmrc.http._
+import uk.gov.hmrc.play.audit.http.connector.AuditResult
+import uk.gov.hmrc.play.audit.model.{Audit, DataEvent}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -60,7 +64,7 @@ class ViewNotificationConnectorSpec extends PlaySpec
       lazy override private[connectors] val env: String = "ist0"
       override private[connectors] val http = mock[WSHttp]
       override private[connectors] val metrics: Metrics = mock[Metrics]
-      override private[connectors] val audit = MockAudit
+      override private[connectors] val audit = mock[MockAudit]
       override private[connectors] val fullUrl: String = s"$baseUrl/$requestUrl"
     }
 
@@ -72,6 +76,7 @@ class ViewNotificationConnectorSpec extends PlaySpec
     val contactNumber = "contactNumber"
 
     val url = s"${testConnector.baseUrl}/anti-money-laundering/secure-comms/reg-number/$amlsRegistrationNumber/contact-number/$contactNumber"
+    var dataEvent: DataEvent = null
 
     when {
       testConnector.metrics.timer(eqTo(API11))
@@ -89,12 +94,19 @@ class ViewNotificationConnectorSpec extends PlaySpec
       )
 
       when {
+        testConnector.audit.sendDataEvent
+      } thenReturn ((f: DataEvent) => dataEvent = f)
+
+      when {
         testConnector.http.GET[HttpResponse](eqTo(url))(any(), any(), any())
       } thenReturn Future.successful(response)
 
       whenReady(testConnector.getNotification(amlsRegistrationNumber, contactNumber)) {
         _ mustEqual successModel
       }
+
+      dataEvent.auditSource mustEqual "amls-notification"
+      dataEvent.auditType mustEqual "OutboundCall"
     }
 
     "return a failed future when the response contains a BAD_REQUEST and no response body" in new Fixture {
@@ -107,10 +119,16 @@ class ViewNotificationConnectorSpec extends PlaySpec
         testConnector.http.GET[HttpResponse](eqTo(url))(any(), any(), any())
       } thenReturn Future.successful(response)
 
+      when {
+        testConnector.audit.sendDataEvent
+      } thenReturn ((f: DataEvent) => dataEvent = f)
+
       whenReady(testConnector.getNotification(amlsRegistrationNumber, contactNumber).failed) {
         case HttpStatusException(status, body) =>
           status mustEqual BAD_REQUEST
           body mustEqual None
+          dataEvent.auditSource mustEqual "amls-notification"
+          dataEvent.auditType mustEqual "viewNotificationEventFailed"
       }
     }
 
@@ -126,10 +144,16 @@ class ViewNotificationConnectorSpec extends PlaySpec
         testConnector.http.GET[HttpResponse](any())(any(), any(), any())
       } thenReturn Future.successful(response)
 
+      when {
+        testConnector.audit.sendDataEvent
+      } thenReturn ((f: DataEvent) => dataEvent = f)
+
       whenReady(testConnector.getNotification(amlsRegistrationNumber, contactNumber).failed) {
         case HttpStatusException(status, body) =>
           status mustEqual OK
           body mustEqual Some("message")
+          dataEvent.auditSource mustEqual "amls-notification"
+          dataEvent.auditType mustEqual "viewNotificationEventFailed"
       }
     }
 
