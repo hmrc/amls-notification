@@ -1,1 +1,2 @@
+ + [AMLS-4738] - | Updated DI in Notifications
  + [AMLS-4945] - 'Add audit event for notification fails'
