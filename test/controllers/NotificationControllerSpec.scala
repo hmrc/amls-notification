@@ -16,24 +16,24 @@
 
 package controllers
 
-import config.{AmlsConfig, MicroserviceAuditConnector}
+import config.ApplicationConfig
 import connectors.EmailConnector
 import exceptions.HttpStatusException
 import models._
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfter
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.libs.json.{JsNull, JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import reactivemongo.api.commands.{WriteError, WriteResult}
 import repositories.NotificationMongoRepository
-import uk.gov.hmrc.play.audit.http.connector.AuditResult
+import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 
 import scala.concurrent.Future
@@ -45,14 +45,14 @@ class NotificationControllerSpec extends PlaySpec
   with BeforeAndAfter {
 
 
-  val amlsConfig:AmlsConfig = app.injector.instanceOf(classOf[AmlsConfig]);
+  val amlsConfig:ApplicationConfig = app.injector.instanceOf(classOf[ApplicationConfig]);
   object TestNotificationController extends NotificationController(
     app.injector.instanceOf(classOf[EmailConnector]),
     amlsConfig,
-    app.injector.instanceOf(classOf[MicroserviceAuditConnector])) {
+    app.injector.instanceOf(classOf[AuditConnector])) {
     override private[controllers] val notificationRepository = mock[NotificationMongoRepository]
     private[controllers] val emailConnector = mock[EmailConnector]
-    override private[controllers] val audit = mock[MicroserviceAuditConnector]
+    override private[controllers] val audit = mock[AuditConnector]
   }
 
   before {

@@ -16,15 +16,16 @@
 
 package config
 
+import com.google.inject.Singleton
 import javax.inject.Inject
 import play.api.Mode.Mode
-import play.api.{Application, Configuration}
+import play.api.{Configuration, Environment}
 import uk.gov.hmrc.play.config.ServicesConfig
 
-class AmlsConfig @Inject()(app: Application) extends ServicesConfig {
+@Singleton
+class ApplicationConfig @Inject()(val runModeConfiguration: Configuration, environment: Environment) extends ServicesConfig {
 
-  override protected def mode: Mode = app.mode
-  override protected def runModeConfiguration: Configuration = app.configuration
+  override protected def mode: Mode = environment.mode
 
   private def loadConfig(key: String) =
     getConfString(key, throw new Exception(s"Config missing key: $key"))

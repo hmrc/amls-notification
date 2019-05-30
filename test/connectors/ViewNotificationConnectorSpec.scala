@@ -18,24 +18,23 @@ package connectors
 
 import audit.MockAudit
 import com.codahale.metrics.Timer
-import config.{AmlsConfig, MicroserviceAuditConnector, WSHttp}
+import config.ApplicationConfig
 import exceptions.HttpStatusException
 import metrics.{API11, Metrics}
 import models.des.NotificationResponse
 import org.joda.time.{DateTimeUtils, LocalDateTime}
-import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
 import play.api.http.Status._
 import play.api.libs.json.Json
-import uk.gov.hmrc.audit.HandlerResult
 import uk.gov.hmrc.http._
-import uk.gov.hmrc.play.audit.http.connector.AuditResult
-import uk.gov.hmrc.play.audit.model.{Audit, DataEvent}
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.audit.model.DataEvent
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -56,14 +55,16 @@ class ViewNotificationConnectorSpec extends PlaySpec
   trait Fixture {
 
     object testConnector extends ViewNotificationConnector(
-      app.injector.instanceOf(classOf[AmlsConfig]),
-      app.injector.instanceOf(classOf[WSHttp]),
-      app.injector.instanceOf(classOf[MicroserviceAuditConnector])) {
+      app.injector.instanceOf(classOf[ApplicationConfig]),
+      app.injector.instanceOf(classOf[HttpClient]),
+      app.injector.instanceOf(classOf[AuditConnector]),
+      app.injector.instanceOf(classOf[Metrics])
+    ) {
 
       lazy override private[connectors] val baseUrl: String = "baseUrl"
       lazy override private[connectors] val env: String = "ist0"
-      override private[connectors] val http = mock[WSHttp]
-      override private[connectors] val metrics: Metrics = mock[Metrics]
+      override private[connectors] val http = mock[HttpClient]
+      private[connectors] val metrics: Metrics = mock[Metrics]
       override private[connectors] val audit = mock[MockAudit]
       override private[connectors] val fullUrl: String = s"$baseUrl/$requestUrl"
     }

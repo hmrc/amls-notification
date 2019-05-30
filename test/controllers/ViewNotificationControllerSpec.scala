@@ -17,39 +17,37 @@
 package controllers
 
 
-import config.MicroserviceAuditConnector
 import connectors.{DESConnector, ViewNotificationConnector}
 import exceptions.HttpStatusException
 import models._
 import models.fe.NotificationDetails
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repositories.NotificationMongoRepository
-import uk.gov.hmrc.play.audit.http.connector.AuditResult
+import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 import utils.DataGen._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenPropertyChecks with ScalaFutures  with MockitoSugar with OneAppPerSuite {
+class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenPropertyChecks with ScalaFutures  with MockitoSugar with GuiceOneAppPerSuite {
 
   trait Fixture {
 
     val TestController = new ViewNotificationController(
-      mock[DESConnector],
       mock[ViewNotificationConnector],
-      //app.injector.instanceOf(classOf[ViewNotificationConnector]),
-      mock[MicroserviceAuditConnector]
+      mock[AuditConnector]
     ) {
       override private[controllers] val notificationRepository = mock[NotificationMongoRepository]
     }

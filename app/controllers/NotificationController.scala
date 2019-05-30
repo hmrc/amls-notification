@@ -17,7 +17,7 @@
 package controllers
 
 import audit.{NotificationFailedEvent, NotificationReceivedEvent}
-import config.{AmlsConfig, MicroserviceAuditConnector}
+import config.ApplicationConfig
 import connectors.EmailConnector
 import exceptions.HttpStatusException
 import javax.inject.Inject
@@ -28,15 +28,16 @@ import play.api.data.validation.ValidationError
 import play.api.libs.json._
 import play.api.mvc.Action
 import repositories.NotificationRepository
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class NotificationController @Inject()(
-  emailConnector: EmailConnector,
-  amlsConfig: AmlsConfig,
-  msAuditConnector: MicroserviceAuditConnector
+                                        emailConnector: EmailConnector,
+                                        amlsConfig: ApplicationConfig,
+                                        msAuditConnector: AuditConnector
 ) extends BaseController {
 
   val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r

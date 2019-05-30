@@ -17,8 +17,7 @@
 package controllers
 
 import audit.NotificationReadEvent
-import config.MicroserviceAuditConnector
-import connectors.{DESConnector, ViewNotificationConnector}
+import connectors.ViewNotificationConnector
 import exceptions.HttpStatusException
 import javax.inject.Inject
 import models.NotificationRecord
@@ -27,16 +26,13 @@ import play.api.Logger
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Action
 import repositories.NotificationRepository
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ViewNotificationController @Inject()(
-  conn: DESConnector,
-  notificationConnector: ViewNotificationConnector,
-  msAuditConnector: MicroserviceAuditConnector
-) extends BaseController {
+class ViewNotificationController @Inject()(notificationConnector: ViewNotificationConnector, msAuditConnector: AuditConnector) extends BaseController {
 
   private[controllers] val connector = notificationConnector
   private[controllers] val audit = msAuditConnector
