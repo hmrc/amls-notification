@@ -18,7 +18,6 @@ package models
 
 import models.RejectedReason._
 import org.scalatestplus.play.PlaySpec
-import play.api.data.validation.ValidationError
 import play.api.libs.json._
 
 class RejectedReasonSpec extends PlaySpec {
@@ -35,7 +34,7 @@ class RejectedReasonSpec extends PlaySpec {
 
     "fail validation on invalid data" in {
       RejectedReason.jsonReads.reads(Json.obj("status_reason" ->"100")) must be(JsError(List((JsPath \ "status_reason",
-        List(ValidationError(List("error.invalid")))))))
+        List(JsonValidationError(List("error.invalid")))))))
     }
 
     "write data successfully" in {

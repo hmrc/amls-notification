@@ -16,7 +16,6 @@
 
 package models
 
-import play.api.data.validation.ValidationError
 import play.api.libs.json._
 
 sealed trait ContactType
@@ -57,7 +56,7 @@ object ContactType {
       case JsString("RPV1") => JsSuccess(ReminderToPayForVariation)
       case JsString("RPM1") => JsSuccess(ReminderToPayForManualCharges)
 
-      case _ => JsError((JsPath \ "contact_type") -> ValidationError("error.invalid"))
+      case _ => JsError((JsPath \ "contact_type") -> JsonValidationError("error.invalid"))
     }
 
   implicit val jsonWrites =

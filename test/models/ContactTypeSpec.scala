@@ -17,8 +17,7 @@
 package models
 
 import org.scalatestplus.play.PlaySpec
-import play.api.data.validation.ValidationError
-import play.api.libs.json.{JsSuccess, JsPath, JsError, JsString}
+import play.api.libs.json._
 
 class ContactTypeSpec extends PlaySpec {
 
@@ -43,7 +42,7 @@ class ContactTypeSpec extends PlaySpec {
 
 
     "fail with error when status value is passed incorrectly" in {
-      ContactType.jsonReads.reads(JsString("RPM1RPM1")) must be(JsError(List((JsPath  \"contact_type",List(ValidationError(List("error.invalid")))))))
+      ContactType.jsonReads.reads(JsString("RPM1RPM1")) must be(JsError(List((JsPath  \"contact_type",List(JsonValidationError(List("error.invalid")))))))
 
     }
   }

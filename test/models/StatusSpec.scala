@@ -18,8 +18,7 @@ package models
 
 import models.StatusType._
 import org.scalatestplus.play.PlaySpec
-import play.api.data.validation.ValidationError
-import play.api.libs.json.{JsPath, JsError, JsString, JsSuccess}
+import play.api.libs.json._
 
 class StatusSpec extends PlaySpec {
 
@@ -51,7 +50,7 @@ class StatusSpec extends PlaySpec {
     }
 
     "fail with error when status value is passed incorrectly" in {
-      StatusType.jsonReads.reads(JsString("12")) must be(JsError(List((JsPath ,List(ValidationError(List("error.invalid")))))))
+      StatusType.jsonReads.reads(JsString("12")) must be(JsError(List((JsPath ,List(JsonValidationError(List("error.invalid")))))))
 
     }
   }

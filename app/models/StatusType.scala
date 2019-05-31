@@ -16,7 +16,6 @@
 
 package models
 
-import play.api.data.validation.ValidationError
 import play.api.libs.json._
 
 sealed trait StatusType
@@ -40,7 +39,7 @@ object StatusType {
       case JsString("08") => JsSuccess(Revoked)
       case JsString("10") => JsSuccess(DeRegistered)
       case JsString("11") => JsSuccess(Expired)
-      case _ => JsError(JsPath -> ValidationError("error.invalid"))
+      case _ => JsError(JsPath -> JsonValidationError("error.invalid"))
     }
 
   implicit val jsonWrites =

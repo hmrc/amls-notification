@@ -37,7 +37,6 @@ class DESConnector @Inject()(amlsConfig: ApplicationConfig, wsHttp: HttpClient, 
   private[connectors] lazy val token: String = s"Bearer ${amlsConfig.desToken}"
   private[connectors] lazy val env: String = amlsConfig.desEnv
   private[connectors] val http = wsHttp
-  //private[connectors] val metrics: Metrics = Metrics
   private[connectors] val audit: Audit = new Audit(AuditHelper.appName, msAuditConnector)
   private[connectors] val fullUrl: String = s"$baseUrl/$requestUrl"
 

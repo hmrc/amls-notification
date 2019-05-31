@@ -23,7 +23,7 @@ import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
+import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.{CorePost, HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
@@ -34,7 +34,7 @@ class EmailConnectorSpec extends PlaySpec
   with MockitoSugar
   with ScalaFutures
   with IntegrationPatience
-  with OneServerPerSuite
+  with OneAppPerSuite
   with BeforeAndAfterAll {
 
   trait Fixture {
@@ -45,9 +45,8 @@ class EmailConnectorSpec extends PlaySpec
     val sendTo = "e@mail.com"
 
     object TestEmailConnector extends EmailConnector(
-      app,
-      app.injector.instanceOf(classOf[ApplicationConfig]),
-      app.injector.instanceOf(classOf[HttpClient])) {
+      mock[ApplicationConfig],
+      mock[HttpClient]) {
 
       override def httpPost = mockHttp
       override def url = "test-email-url"

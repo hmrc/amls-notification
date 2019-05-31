@@ -18,8 +18,8 @@ package connectors
 
 import config.ApplicationConfig
 import javax.inject.Inject
+import play.api.Logger
 import play.api.libs.json.Json
-import play.api.{Application, Logger}
 import uk.gov.hmrc.http.{CorePost, HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
@@ -32,7 +32,7 @@ object SendTemplatedEmailRequest {
   implicit val format = Json.format[SendTemplatedEmailRequest]
 }
 
-class EmailConnector @Inject()(app: Application, amlsConfig: ApplicationConfig, wsHttp: HttpClient) {
+class EmailConnector @Inject()(amlsConfig: ApplicationConfig, wsHttp: HttpClient) {
   def httpPost: CorePost = wsHttp
   def url = s"${amlsConfig.emailUrl}/send-templated-email"
 

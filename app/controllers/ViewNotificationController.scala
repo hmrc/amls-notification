@@ -24,19 +24,22 @@ import models.NotificationRecord
 import models.fe.NotificationDetails
 import play.api.Logger
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.Action
-import repositories.NotificationRepository
+import play.api.mvc.ControllerComponents
+import repositories.{NotificationMongoRepository}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ViewNotificationController @Inject()(notificationConnector: ViewNotificationConnector, msAuditConnector: AuditConnector) extends BaseController {
+class ViewNotificationController @Inject()(notificationConnector: ViewNotificationConnector,
+                                           msAuditConnector: AuditConnector,
+                                           cc: ControllerComponents,
+                                           nr: NotificationMongoRepository) extends BackendController(cc) {
 
   private[controllers] val connector = notificationConnector
   private[controllers] val audit = msAuditConnector
-  private[controllers] val notificationRepository = NotificationRepository()
+  private[controllers] val notificationRepository = nr
 
   val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
   val prefix = "[ViewNotificationController]"

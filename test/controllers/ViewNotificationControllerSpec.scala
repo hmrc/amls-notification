@@ -31,6 +31,7 @@ import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import play.api.libs.json.Json
+import play.api.mvc.ControllerComponents
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repositories.NotificationMongoRepository
@@ -41,16 +42,21 @@ import utils.DataGen._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenPropertyChecks with ScalaFutures  with MockitoSugar with GuiceOneAppPerSuite {
+class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenPropertyChecks with ScalaFutures  with MockitoSugar with OneAppPerSuite {
 
   trait Fixture {
 
-    val TestController = new ViewNotificationController(
-      mock[ViewNotificationConnector],
-      mock[AuditConnector]
-    ) {
-      override private[controllers] val notificationRepository = mock[NotificationMongoRepository]
-    }
+   val mockViewNotificationConnector = mock[ViewNotificationConnector]
+    val mockAuditConnector =  mock[AuditConnector]
+    val mockCC: ControllerComponents = app.injector.instanceOf[ControllerComponents]
+    val mockNotificationMongoRepository =  mock[NotificationMongoRepository]
+
+    val viewNotificationController = new ViewNotificationController(
+      mockViewNotificationConnector,
+      mockAuditConnector,
+      mockCC,
+      mockNotificationMongoRepository
+    )
   }
 
   val request = FakeRequest() withHeaders CONTENT_TYPE -> "application/json"
@@ -62,11 +68,11 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
     val contactNumber = "11111"
 
     "return a `BadRequest` response when the amls registration number is invalid" in new Fixture {
-      val result = TestController.viewNotification("accountType", "ref", "test", "test")(request)
+      val result = viewNotificationController.viewNotification("accountType", "ref", "test", "test")(request)
       val failure = Json.obj("errors" -> Seq("Invalid AMLS Registration Number"))
 
       when {
-        TestController.audit.sendEvent(any())(any(), any())
+        viewNotificationController.audit.sendEvent(any())(any(), any())
       } thenReturn Future.successful(mock[AuditResult])
 
       status(result) must be(BAD_REQUEST)
@@ -87,61 +93,61 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
       )
 
       when {
-        TestController.audit.sendEvent(any())(any(), any())
+        viewNotificationController.audit.sendEvent(any())(any(), any())
       } thenReturn Future.successful(mock[AuditResult])
 
       when {
-        TestController.notificationRepository.findById("NOTIFICATIONID")
+        viewNotificationController.notificationRepository.findById("NOTIFICATIONID")
       } thenReturn Future.successful(record)
 
       when {
-        TestController.connector.getNotification(eqTo(amlsRegistrationNumber), eqTo(contactNumber))(any(), any())
+        viewNotificationController.connector.getNotification(eqTo(amlsRegistrationNumber), eqTo(contactNumber))(any(), any())
       } thenReturn Future.successful(Des.notificationResponseGen.sample.map(_.copy(secureCommText = "secure-comms text")).get)
 
-      val result = TestController.viewNotification("accountType", "ref", amlsRegistrationNumber, "NOTIFICATIONID")(request)
+      val result = viewNotificationController.viewNotification("accountType", "ref", amlsRegistrationNumber, "NOTIFICATIONID")(request)
 
       status(result) must be(OK)
       contentAsJson(result) must be(Json.toJson(expectedDetails))
 
       val captor = ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
 
-      verify(TestController.audit).sendExtendedEvent(captor.capture())(any(), any())
+      verify(viewNotificationController.audit).sendExtendedEvent(captor.capture())(any(), any())
       captor.getValue.auditType mustBe "OutboundCall"
     }
 
     "update the isRead flag" in new Fixture {
-      when(TestController.notificationRepository.findById(any()))
+      when(viewNotificationController.notificationRepository.findById(any()))
         .thenReturn(Future.successful(notificationRecordGen.sample.map {
           _.copy(amlsRegistrationNumber = amlsRegistrationNumber)
         }))
 
-      when(TestController.connector.getNotification(any(), any())(any(), any()))
+      when(viewNotificationController.connector.getNotification(any(), any())(any(), any()))
         .thenReturn(Future.successful(Des.notificationResponseGen.sample.get))
 
-      when(TestController.notificationRepository.markAsRead("NOTIFICATIONID"))
+      when(viewNotificationController.notificationRepository.markAsRead("NOTIFICATIONID"))
         .thenReturn(Future.successful(true))
 
 
-      val result = TestController.viewNotification("accountType", "ref", amlsRegistrationNumber, "NOTIFICATIONID")(request)
+      val result = viewNotificationController.viewNotification("accountType", "ref", amlsRegistrationNumber, "NOTIFICATIONID")(request)
 
       status(result) must be(OK)
-      verify(TestController.notificationRepository)
+      verify(viewNotificationController.notificationRepository)
         .markAsRead("NOTIFICATIONID")
     }
 
     "still succeed when the notification cannot be marked as read" in new Fixture {
-      when(TestController.notificationRepository.findById(any()))
+      when(viewNotificationController.notificationRepository.findById(any()))
         .thenReturn(Future.successful(notificationRecordGen.sample.map {
           _.copy(amlsRegistrationNumber = amlsRegistrationNumber)
         }))
 
-      when(TestController.connector.getNotification(any(), any())(any(), any()))
+      when(viewNotificationController.connector.getNotification(any(), any())(any(), any()))
         .thenReturn(Future.successful(Des.notificationResponseGen.sample.get))
 
-      when(TestController.notificationRepository.markAsRead(any()))
+      when(viewNotificationController.notificationRepository.markAsRead(any()))
         .thenReturn(Future.failed(new HttpStatusException(500, None)))
 
-      val result = TestController.viewNotification("accountType", "ref", amlsRegistrationNumber, "NOTIFICATIONID")(request)
+      val result = viewNotificationController.viewNotification("accountType", "ref", amlsRegistrationNumber, "NOTIFICATIONID")(request)
 
       status(result) must be(OK)
     }
@@ -152,14 +158,14 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
         contactNumber = Some("CONTACTNUMBER")))
 
       when {
-        TestController.notificationRepository.findById("NOTIFICATIONID")
+        viewNotificationController.notificationRepository.findById("NOTIFICATIONID")
       } thenReturn Future.successful(maybeRecord)
 
       when {
-        TestController.connector.getNotification(any(), any())(any(), any())
+        viewNotificationController.connector.getNotification(any(), any())(any(), any())
       } thenReturn Future.failed(new HttpStatusException(INTERNAL_SERVER_ERROR, Some("message")))
 
-      private val future = TestController.viewNotification("accountType", "ref", amlsRegistrationNumber, "NOTIFICATIONID")(request)
+      private val future = viewNotificationController.viewNotification("accountType", "ref", amlsRegistrationNumber, "NOTIFICATIONID")(request)
 
       whenReady(future.failed) {
         case HttpStatusException(status, body) =>
@@ -178,7 +184,7 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
               val regNo = amlsRegNumberGen.sample.get
 
               when {
-                TestController.notificationRepository.findById("NOTIFICATIONID1")
+                viewNotificationController.notificationRepository.findById("NOTIFICATIONID1")
               }.thenReturn(Future.successful(notificationRecordGen.sample.map(_.copy(
                 amlsRegistrationNumber = regNo,
                 contactNumber = Some("CONTACTNUMBER1"),
@@ -189,11 +195,11 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
               ))))
 
               when {
-                TestController.connector.getNotification(regNo, "CONTACTNUMBER1")
+                viewNotificationController.connector.getNotification(regNo, "CONTACTNUMBER1")
               }.thenReturn(Future.successful(Des.notificationResponseGen.sample.map(_.copy(
                 secureCommText = "THIS IS THE MESSAGE TEXT 00001")).get))
 
-              val result = TestController.viewNotification("accountType", "ref", regNo, "NOTIFICATIONID1")(request)
+              val result = viewNotificationController.viewNotification("accountType", "ref", regNo, "NOTIFICATIONID1")(request)
 
               status(result) must be(OK)
               contentAsJson(result) must be(Json.obj(
@@ -210,7 +216,7 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
             "return message details containing message type from the repo and no message text" in new Fixture {
               val regNo = amlsRegNumberGen.sample.get
               when {
-                TestController.notificationRepository.findById("NOTIFICATIONID2")
+                viewNotificationController.notificationRepository.findById("NOTIFICATIONID2")
               }.thenReturn(Future.successful(notificationRecordGen.sample.map(_.copy(
                 amlsRegistrationNumber = regNo,
                 contactNumber = None,
@@ -220,7 +226,7 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
                 receivedAt = dateTime
               ))))
 
-              val result = TestController.viewNotification("accountType", "ref", regNo, "NOTIFICATIONID2")(request)
+              val result = viewNotificationController.viewNotification("accountType", "ref", regNo, "NOTIFICATIONID2")(request)
 
               status(result) must be(OK)
               contentAsJson(result) must be(Json.obj(
@@ -236,7 +242,7 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
         "the requested notification does not belong to the AMLSRegistration" must {
           "return a Not Found" in new Fixture {
             when {
-              TestController.notificationRepository.findById("NOTIFICATIONID1")
+              viewNotificationController.notificationRepository.findById("NOTIFICATIONID1")
             }.thenReturn(Future.successful(notificationRecordGen.sample.map(_.copy(
               contactNumber = Some("CONTACTNUMBER1"),
               amlsRegistrationNumber = "NOT A REAL AMLS REG NUMBER"
@@ -244,7 +250,7 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
 
             val regNo = amlsRegNumberGen.sample.get
 
-            val result = TestController.viewNotification("accountType", "ref", regNo, "NOTIFICATIONID1")(request)
+            val result = viewNotificationController.viewNotification("accountType", "ref", regNo, "NOTIFICATIONID1")(request)
 
             status(result) must be(NOT_FOUND)
           }
@@ -254,10 +260,10 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
       "the requested notification does not exist in the repo" must {
         "return a not found " in new Fixture {
           when {
-            TestController.notificationRepository.findById(any())
+            viewNotificationController.notificationRepository.findById(any())
           }.thenReturn(Future.successful(None))
 
-          val result = TestController.viewNotification("accountType", "ref", amlsRegNumberGen.sample.get, "NOTIFICATIONID")(request)
+          val result = viewNotificationController.viewNotification("accountType", "ref", amlsRegNumberGen.sample.get, "NOTIFICATIONID")(request)
           status(result) must be(NOT_FOUND)
         }
       }

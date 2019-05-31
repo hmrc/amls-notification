@@ -18,23 +18,39 @@ package config
 
 import com.google.inject.Singleton
 import javax.inject.Inject
-import play.api.Mode.Mode
 import play.api.{Configuration, Environment}
-import uk.gov.hmrc.play.config.ServicesConfig
 
 @Singleton
-class ApplicationConfig @Inject()(val runModeConfiguration: Configuration, environment: Environment) extends ServicesConfig {
+class ApplicationConfig @Inject()(config: Configuration, environment: Environment) {
 
-  override protected def mode: Mode = environment.mode
+  private def baseUrl(serviceName: String) = {
+    val protocol = config.getOptional[String](s"microservice.services.protocol").getOrElse("https")
+    val host = config.get[String](s"microservice.services.$serviceName.host")
+    val port = config.get[String](s"microservice.services.$serviceName.port")
+    s"$protocol://$host:$port"
+  }
 
-  private def loadConfig(key: String) =
-    getConfString(key, throw new Exception(s"Config missing key: $key"))
+  val desUrl = baseUrl("des")
 
-  lazy val desUrl = baseUrl("des")
-  lazy val desToken = loadConfig("des.auth-token")
-  lazy val desEnv = loadConfig("des.env")
+  lazy val desToken = {
+    val token = config.get[String]("microservice.services.des.auth-token")
+    s"Bearer $token"
+  }
+
+  lazy val desEnv = {
+    val env = config.get[String]("microservice.services.des.env")
+    s"Env $env"
+  }
 
   lazy val emailUrl = baseUrl("email")
-  lazy val currentTemplatePackageVersion = loadConfig("current-template-package-version")
-  lazy val defaultTemplatePackageVersion = loadConfig("default-template-package-version")
+
+  def currentTemplatePackageVersion = {
+    val currentTemplate = config.get[String]("microservice.services.current-template-package-version")
+    currentTemplate
+  }
+
+  def defaultTemplatePackageVersion = {
+    val defaultTemplate = config.get[String]("microservice.services.default-template-package-version" )
+    defaultTemplate
+  }
 }

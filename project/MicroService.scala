@@ -1,24 +1,19 @@
 
 import sbt.Keys._
-import sbt.Tests.{SubProcess, Group}
+import sbt.Tests.{Group, SubProcess}
 import sbt._
-import play.routes.compiler.StaticRoutesGenerator
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
 
 
 trait MicroService {
 
   import uk.gov.hmrc._
-  import DefaultBuildSettings.{addTestReportOption, scalaSettings, defaultSettings}
-  import uk.gov.hmrc.{SbtBuildInfo, ShellPrompt, SbtAutoBuildPlugin}
+  import DefaultBuildSettings.{addTestReportOption, defaultSettings, scalaSettings}
+  import TestPhases._
   import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
   import uk.gov.hmrc.versioning.SbtGitVersioning
-  import play.sbt.routes.RoutesKeys.routesGenerator
-  import uk.gov.hmrc.SbtArtifactory
   import uk.gov.hmrc.versioning.SbtGitVersioning.autoImport.majorVersion
-
-
-  import TestPhases._
+  import uk.gov.hmrc.{SbtArtifactory, SbtAutoBuildPlugin}
 
   val appName: String
 
@@ -47,8 +42,7 @@ trait MicroService {
     .settings(
       libraryDependencies ++= appDependencies,
       retrieveManaged := true,
-      evictionWarningOptions in update := EvictionWarningOptions.default.withWarnScalaVersionEviction(false),
-      routesGenerator := StaticRoutesGenerator
+      evictionWarningOptions in update := EvictionWarningOptions.default.withWarnScalaVersionEviction(false)
     )
     .configs(IntegrationTest)
     .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)
