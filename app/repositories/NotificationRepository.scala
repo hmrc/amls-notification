@@ -40,7 +40,7 @@ class NotificationMongoRepository @Inject()(component: ReactiveMongoComponent)
   }
 
    def insertRecord(notificationRequest: NotificationRecord): Future[WriteResult] = {
-    collection.insert(notificationRequest) map { writeResult =>
+    collection.insert(ordered = false).one(notificationRequest) map { writeResult =>
       Logger.debug(s"[NotificationMongoRepository][insert] : { NotificationRequest : $notificationRequest" +
         s" , result: ${writeResult.ok}, errors: ${WriteResult.lastError(writeResult)} }")
       writeResult
@@ -52,7 +52,7 @@ class NotificationMongoRepository @Inject()(component: ReactiveMongoComponent)
     val modifier = Json.obj("$set" -> Json.obj("isRead" -> true))
 
      BSONObjectID.parse(id).map { objId: BSONObjectID =>
-       collection.update(Json.obj("_id" -> Json.toJsFieldJsValueWrapper(objId)(idFormatImplicit)), modifier).
+       collection.update(ordered = false).one(Json.obj("_id" -> Json.toJsFieldJsValueWrapper(objId)(idFormatImplicit)), modifier).
          map { lastError =>
            Logger.debug(s"[NotificationMongoRepository][update] : { ID : $id" +
              s" , result: ${lastError.ok}, errors: ${lastError.errmsg} }")

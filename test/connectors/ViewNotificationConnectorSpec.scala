@@ -28,7 +28,8 @@ import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
+import org.scalatestplus.play.PlaySpec
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.http._
@@ -42,7 +43,7 @@ import scala.concurrent.Future
 class ViewNotificationConnectorSpec extends PlaySpec
   with MockitoSugar
   with ScalaFutures
-  with IntegrationPatience with OneAppPerSuite with BeforeAndAfterAll {
+  with IntegrationPatience with GuiceOneAppPerSuite with BeforeAndAfterAll {
 
   override def beforeAll {
     DateTimeUtils.setCurrentMillisFixed(1000)

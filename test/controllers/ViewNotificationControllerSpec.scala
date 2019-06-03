@@ -42,7 +42,7 @@ import utils.DataGen._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenPropertyChecks with ScalaFutures  with MockitoSugar with OneAppPerSuite {
+class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenPropertyChecks with ScalaFutures  with MockitoSugar with GuiceOneAppPerSuite {
 
   trait Fixture {
 
