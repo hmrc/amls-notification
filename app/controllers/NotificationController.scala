@@ -139,7 +139,6 @@ class NotificationController @Inject()(emailConnector: EmailConnector,
           case Some(_) =>
             notificationRepository.findByAmlsReference(amlsRegistrationNumber) map {
               response =>
-                println("HEREEEEE 6 " + amlsConfig.defaultTemplatePackageVersion)
                 val newResponse = response.map(x => x.copy(templatePackageVersion = x.templatePackageVersion orElse Some(amlsConfig.defaultTemplatePackageVersion)) )
                 Logger.debug(s"$prefix [fetchNotifications] - Response: ${Json.toJson(newResponse)}")
                 Ok(Json.toJson(newResponse))
