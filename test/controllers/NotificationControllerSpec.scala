@@ -35,6 +35,7 @@ import reactivemongo.api.commands.{WriteError, WriteResult}
 import repositories.NotificationMongoRepository
 import uk.gov.hmrc.play.audit.http.connector.AuditResult
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
+import utils.SuccessfulAuthAction
 
 import scala.concurrent.Future
 
@@ -45,11 +46,14 @@ class NotificationControllerSpec extends PlaySpec
   with BeforeAndAfter {
 
 
-  val amlsConfig:AmlsConfig = app.injector.instanceOf(classOf[AmlsConfig]);
+  val amlsConfig:AmlsConfig = app.injector.instanceOf(classOf[AmlsConfig])
+  val authAction = SuccessfulAuthAction
   object TestNotificationController extends NotificationController(
     app.injector.instanceOf(classOf[EmailConnector]),
     amlsConfig,
-    app.injector.instanceOf(classOf[MicroserviceAuditConnector])) {
+    app.injector.instanceOf(classOf[MicroserviceAuditConnector]),
+    authAction
+  ) {
     override private[controllers] val notificationRepository = mock[NotificationMongoRepository]
     private[controllers] val emailConnector = mock[EmailConnector]
     override private[controllers] val audit = mock[MicroserviceAuditConnector]

@@ -28,6 +28,7 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Action
 import repositories.NotificationRepository
 import uk.gov.hmrc.play.microservice.controller.BaseController
+import utils.AuthAction
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -35,7 +36,8 @@ import scala.concurrent.Future
 class ViewNotificationController @Inject()(
   conn: DESConnector,
   notificationConnector: ViewNotificationConnector,
-  msAuditConnector: MicroserviceAuditConnector
+  msAuditConnector: MicroserviceAuditConnector,
+  authAction: AuthAction
 ) extends BaseController {
 
   private[controllers] val connector = notificationConnector
@@ -51,7 +53,7 @@ class ViewNotificationController @Inject()(
     )
 
   def viewNotification(accountType:String, ref:String, amlsRegistrationNumber: String, notificationId: String) =
-    Action.async {
+    authAction.async {
       implicit request =>
         Logger.debug(s"$prefix[viewNotification] - amlsRegNo: $amlsRegistrationNumber - notificationId: $notificationId")
 

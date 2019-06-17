@@ -29,6 +29,7 @@ import play.api.libs.json._
 import play.api.mvc.Action
 import repositories.NotificationRepository
 import uk.gov.hmrc.play.microservice.controller.BaseController
+import utils.AuthAction
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -36,7 +37,8 @@ import scala.concurrent.Future
 class NotificationController @Inject()(
   emailConnector: EmailConnector,
   amlsConfig: AmlsConfig,
-  msAuditConnector: MicroserviceAuditConnector
+  msAuditConnector: MicroserviceAuditConnector,
+  authAction: AuthAction
 ) extends BaseController {
 
   val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
@@ -64,7 +66,7 @@ class NotificationController @Inject()(
 
   //noinspection ScalaStyle
   def saveNotification(amlsRegistrationNumber: String) =
-    Action.async(parse.json) {
+    authAction.async(parse.json) {
       implicit request =>
         Logger.debug(s"$prefix [saveNotification] - amlsRegNo: $amlsRegistrationNumber, body: ${request.body.toString}")
         amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
@@ -129,7 +131,7 @@ class NotificationController @Inject()(
     }
 
   def fetchNotifications(accountType: String, ref: String, amlsRegistrationNumber: String) =
-    Action.async {
+    authAction.async {
       implicit request =>
         Logger.debug(s"$prefix [fetchNotifications] - amlsRegNo: $amlsRegistrationNumber")
         amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
@@ -152,7 +154,7 @@ class NotificationController @Inject()(
     }
 
   def fetchNotificationsBySafeId(accountType: String, ref: String, safeId: String) =
-    Action.async {
+    authAction.async {
       implicit request =>
         Logger.debug(s"$prefix [fetchNotificationsBySafeId] - safeId: $safeId")
         safeIdRegex.findFirstIn(safeId) match {

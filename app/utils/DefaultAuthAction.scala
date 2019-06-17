@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package utils
 
 import javax.inject.Inject
