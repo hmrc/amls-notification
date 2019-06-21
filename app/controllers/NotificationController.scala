@@ -26,7 +26,6 @@ import org.joda.time.{DateTime, DateTimeZone}
 import play.api.Logger
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
-import play.api.mvc.Action
 import repositories.NotificationRepository
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import utils.AuthAction
