@@ -37,6 +37,7 @@ import repositories.NotificationMongoRepository
 import uk.gov.hmrc.play.audit.http.connector.AuditResult
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 import utils.DataGen._
+import utils.SuccessfulAuthAction
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -49,7 +50,8 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
       mock[DESConnector],
       mock[ViewNotificationConnector],
       //app.injector.instanceOf(classOf[ViewNotificationConnector]),
-      mock[MicroserviceAuditConnector]
+      mock[MicroserviceAuditConnector],
+      SuccessfulAuthAction
     ) {
       override private[controllers] val notificationRepository = mock[NotificationMongoRepository]
     }
