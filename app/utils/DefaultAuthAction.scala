@@ -30,7 +30,6 @@ class DefaultAuthAction @Inject()(
                                  )(implicit ec: ExecutionContext) extends AuthAction with AuthorisedFunctions {
 
   override protected def filter[A](request: Request[A]): Future[Option[Result]] = {
-    // $COVERAGE-OFF$
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers)
 
     Logger.debug(s"DefaultAuthAction calling authorised(ConfidenceLevel.L50)")
@@ -44,7 +43,6 @@ class DefaultAuthAction @Inject()(
         Some(Results.Unauthorized)
       }
     }
-    // $COVERAGE-ON$
   }
 }
 

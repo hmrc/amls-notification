@@ -29,6 +29,7 @@ import uk.gov.hmrc.auth.core.{AuthConnector, MissingBearerToken}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class DefaultAuthActionSpec extends PlaySpec
   with MockitoSugar
@@ -37,32 +38,42 @@ class DefaultAuthActionSpec extends PlaySpec
   with IntegrationPatience with OneAppPerSuite {
 
   val mockAuthConnector = mock[AuthConnector]
-  implicit val executionContext = mock[ExecutionContext]
   implicit val headCarrier = mock[HeaderCarrier]
 
   class Harness(authAction: DefaultAuthAction) extends Controller {
     def onPageLoad() = authAction { _ =>
-      Ok //UNAUTHORIZED
+      Ok
     }
   }
 
   def fakeRequest = FakeRequest("", "")
 
   "Default Auth Action" when {
-    "the user hasn't logged in" must {
+    "authentication failed" must {
       "be UNAUTHORIZED" in {
-        val authAction = new DefaultAuthAction(new FakeFailingAuthConnector(new MissingBearerToken))
+        val authAction = new DefaultAuthAction(new FakeAuthConnector(Some(new MissingBearerToken)))
         val controller = new Harness(authAction)
         val result = controller.onPageLoad()(fakeRequest)
         status(result) mustBe UNAUTHORIZED
       }
     }
+
+    "authentication succeded" must {
+      "be OK" in {
+        val authAction = new DefaultAuthAction(new FakeAuthConnector(None))
+        val controller = new Harness(authAction)
+        val result = controller.onPageLoad()(fakeRequest)
+        status(result) mustBe OK
+      }
+    }
   }
 }
 
-class FakeFailingAuthConnector(exceptionToReturn: Throwable) extends AuthConnector {
+class FakeAuthConnector(exceptionToReturn: Option[Throwable]) extends AuthConnector {
   val serviceUrl: String = "amls-notification"
+  def success: Any = ()
 
   override def authorise[A](predicate: Predicate, retrieval: Retrieval[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] =
-    Future.failed(exceptionToReturn)
+    exceptionToReturn.fold(Future.successful(success.asInstanceOf[A]))(Future.failed(_))
+
 }
