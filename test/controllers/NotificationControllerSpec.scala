@@ -51,8 +51,7 @@ class NotificationControllerSpec extends PlaySpec
   object TestNotificationController extends NotificationController(
     app.injector.instanceOf(classOf[EmailConnector]),
     amlsConfig,
-    app.injector.instanceOf(classOf[MicroserviceAuditConnector]),
-    authAction
+    app.injector.instanceOf(classOf[MicroserviceAuditConnector])
   ) {
     override private[controllers] val notificationRepository = mock[NotificationMongoRepository]
     private[controllers] val emailConnector = mock[EmailConnector]
