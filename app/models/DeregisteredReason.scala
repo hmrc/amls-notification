@@ -16,7 +16,6 @@
 
 package models
 
-import play.api.data.validation.ValidationError
 import play.api.libs.json._
 
 sealed trait DeregisteredReason extends StatusReason
@@ -48,7 +47,7 @@ object DeregisteredReason {
       case "05" => Reads(_ => JsSuccess(UnderAnotherSupervisor))
       case "06" => Reads(_ => JsSuccess(ChangeOfLegalEntity))
       case "99" => Reads(_ => JsSuccess(Other))
-      case _ => Reads(_ => JsError(JsPath \ "status_reason" -> ValidationError("error.invalid")))
+      case _ => Reads(_ => JsError(JsPath \ "status_reason" -> JsonValidationError("error.invalid")))
     }
   }
 

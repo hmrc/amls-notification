@@ -16,25 +16,26 @@
 
 package connectors
 
-import config.{AmlsConfig, WSHttp}
+import config.ApplicationConfig
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers._
-import org.mockito.Mockito._
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
+import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.play.PlaySpec
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.{CorePost, HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.Future
 
-class EmailConnectorSpec
-  extends PlaySpec
+class EmailConnectorSpec extends PlaySpec
   with MockitoSugar
   with ScalaFutures
   with IntegrationPatience
-  with OneServerPerSuite
+  with GuiceOneAppPerSuite
   with BeforeAndAfterAll {
 
   trait Fixture {
@@ -45,9 +46,8 @@ class EmailConnectorSpec
     val sendTo = "e@mail.com"
 
     object TestEmailConnector extends EmailConnector(
-      app,
-      app.injector.instanceOf(classOf[AmlsConfig]),
-      app.injector.instanceOf(classOf[WSHttp])) {
+      mock[ApplicationConfig],
+      mock[HttpClient]) {
 
       override def httpPost = mockHttp
       override def url = "test-email-url"

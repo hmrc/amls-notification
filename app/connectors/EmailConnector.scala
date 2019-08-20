@@ -16,13 +16,12 @@
 
 package connectors
 
-import config.{AmlsConfig, WSHttp}
+import config.ApplicationConfig
 import javax.inject.Inject
-import play.api.Mode.Mode
+import play.api.Logger
 import play.api.libs.json.Json
-import play.api.{Application, Configuration, Logger}
 import uk.gov.hmrc.http.{CorePost, HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -33,7 +32,7 @@ object SendTemplatedEmailRequest {
   implicit val format = Json.format[SendTemplatedEmailRequest]
 }
 
-class EmailConnector @Inject()(app: Application, amlsConfig: AmlsConfig, wsHttp: WSHttp) {
+class EmailConnector @Inject()(amlsConfig: ApplicationConfig, wsHttp: HttpClient) {
   def httpPost: CorePost = wsHttp
   def url = s"${amlsConfig.emailUrl}/send-templated-email"
 

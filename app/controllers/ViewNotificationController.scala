@@ -17,8 +17,7 @@
 package controllers
 
 import audit.NotificationReadEvent
-import config.MicroserviceAuditConnector
-import connectors.{DESConnector, ViewNotificationConnector}
+import connectors.ViewNotificationConnector
 import exceptions.HttpStatusException
 import javax.inject.Inject
 import models.NotificationRecord
@@ -28,20 +27,23 @@ import play.api.libs.json.{JsObject, Json}
 import repositories.NotificationRepository
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import utils.AuthAction
+import play.api.mvc.ControllerComponents
+import repositories.{NotificationMongoRepository}
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ViewNotificationController @Inject()(
-  conn: DESConnector,
-  notificationConnector: ViewNotificationConnector,
-  msAuditConnector: MicroserviceAuditConnector,
-  authAction: AuthAction
-) extends BaseController {
+class ViewNotificationController @Inject()(notificationConnector: ViewNotificationConnector,
+                                           msAuditConnector: AuditConnector,
+                                           cc: ControllerComponents,
+                                           authAction: AuthAction,
+                                           nr: NotificationMongoRepository) extends BackendController(cc) {
 
   private[controllers] val connector = notificationConnector
   private[controllers] val audit = msAuditConnector
-  private[controllers] val notificationRepository = NotificationRepository()
+  private[controllers] val notificationRepository = nr
 
   val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
   val prefix = "[ViewNotificationController]"

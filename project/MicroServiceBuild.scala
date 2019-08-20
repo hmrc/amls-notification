@@ -11,23 +11,22 @@ private object AppDependencies {
   import play.sbt.PlayImport._
   import play.core.PlayVersion
 
-  private val microserviceBootstrapVersion = "10.6.0"
-  private val domainVersion = "5.2.0"
-  private val scalaTestVersion = "2.2.6"
+  private val microserviceBootstrapVersion2 = "0.39.0"
+  private val domainVersion2 = "5.6.0-play-26"
+  private val scalaTestVersion = "3.0.5"
   private val pegdownVersion = "1.6.0"
   private val playUiVersion = "7.4.0"
-  private val authVersion = "2.21.0-play-25"
+  private val authVersion = "2.27.0-play-26"
 
-  private val playReactivemongoVersion = "6.2.0"
-  private val scalatestPlusPlayVersion = "1.5.1"
+  private val playReactivemongoVersion = "7.19.0-play-26"
+  private val scalatestPlusPlayVersion2 = "3.1.2"
 
   val compile = Seq(
-    "uk.gov.hmrc" %% "play-reactivemongo" % playReactivemongoVersion,
+    "uk.gov.hmrc" %% "simple-reactivemongo" % playReactivemongoVersion,
     ws,
-    "uk.gov.hmrc" %% "microservice-bootstrap" % microserviceBootstrapVersion,
-    "uk.gov.hmrc" %% "domain" % domainVersion,
-    "uk.gov.hmrc" %% "auth-client" % authVersion,
-    "uk.gov.hmrc" %% "bootstrap-play-25" % "4.13.0"
+    "uk.gov.hmrc" %% "bootstrap-play-26" % microserviceBootstrapVersion2,
+    "uk.gov.hmrc" %% "domain" % domainVersion2,
+    "uk.gov.hmrc" %% "auth-client" % authVersion
   )
 
   trait TestDependencies {
@@ -39,10 +38,10 @@ private object AppDependencies {
     def apply() = new TestDependencies {
       override lazy val test = Seq(
         "org.scalatest" %% "scalatest" % scalaTestVersion % scope,
-        "org.scalatestplus.play" %% "scalatestplus-play" % scalatestPlusPlayVersion,
+        "org.scalatestplus.play" %% "scalatestplus-play" % scalatestPlusPlayVersion2,
         "org.pegdown" % "pegdown" % pegdownVersion % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
-        "org.mockito" % "mockito-core" % "1.9.5" % scope,
+        "org.mockito" % "mockito-core" % "2.1.0" % scope,
         "org.scalacheck" %% "scalacheck" % "1.12.5" % scope
       )
     }.test
@@ -55,10 +54,10 @@ private object AppDependencies {
 
       override lazy val test = Seq(
         "org.scalatest" %% "scalatest" % scalaTestVersion % scope,
-        "org.scalatestplus.play" %% "scalatestplus-play" % scalatestPlusPlayVersion,
+        "org.scalatestplus.play" %% "scalatestplus-play" % scalatestPlusPlayVersion2,
         "org.pegdown" % "pegdown" % pegdownVersion % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
-        "org.mockito" % "mockito-core" % "1.9.5" % scope
+        "org.mockito" % "mockito-core" % "2.1.0" % scope
       )
     }.test
   }
