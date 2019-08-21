@@ -24,11 +24,9 @@ import models.NotificationRecord
 import models.fe.NotificationDetails
 import play.api.Logger
 import play.api.libs.json.{JsObject, Json}
-import repositories.NotificationRepository
-import uk.gov.hmrc.play.microservice.controller.BaseController
 import utils.AuthAction
 import play.api.mvc.ControllerComponents
-import repositories.{NotificationMongoRepository}
+import repositories.NotificationMongoRepository
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 

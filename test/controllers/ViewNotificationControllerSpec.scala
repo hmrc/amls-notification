@@ -56,6 +56,7 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
       mockViewNotificationConnector,
       mockAuditConnector,
       mockCC,
+      SuccessfulAuthAction,
       mockNotificationMongoRepository
     )
   }

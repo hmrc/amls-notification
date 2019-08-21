@@ -26,9 +26,6 @@ import models.{NotificationPushRequest, NotificationRecord}
 import org.joda.time.{DateTime, DateTimeZone}
 import play.api.Logger
 import play.api.libs.json._
-import play.api.mvc.Action
-import repositories.NotificationRepository
-import uk.gov.hmrc.play.microservice.controller.BaseController
 import play.api.mvc.ControllerComponents
 import repositories.NotificationMongoRepository
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector

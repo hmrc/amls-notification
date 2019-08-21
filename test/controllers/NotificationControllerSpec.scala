@@ -32,17 +32,17 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
-import org.scalatest.BeforeAndAfter
+import org.scalatest.{BeforeAndAfter, MustMatchers, WordSpec}
+import org.scalatestplus.play.PlaySpec
 import reactivemongo.api.commands.{WriteError, WriteResult}
 import repositories.NotificationMongoRepository
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 import utils.SuccessfulAuthAction
-import uk.gov.hmrc.play.test.UnitSpec
 
 import scala.concurrent.Future
 
-class NotificationControllerSpec extends UnitSpec with MockitoSugar with ScalaFutures with GuiceOneAppPerSuite with BeforeAndAfter {
+class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFutures with GuiceOneAppPerSuite with BeforeAndAfter {
 
   val mockCC: ControllerComponents = app.injector.instanceOf[ControllerComponents]
   val mockEmailConnector: EmailConnector = mock[EmailConnector]
@@ -99,28 +99,28 @@ class NotificationControllerSpec extends UnitSpec with MockitoSugar with ScalaFu
       } thenReturn Future.successful(mock[AuditResult])
 
       val result = notificationController.saveNotification(amlsRegistrationNumber)(postRequest)
-      status(result) should be(NO_CONTENT)
-      contentAsString(result) shouldBe ""
+      status(result) must be(NO_CONTENT)
+      contentAsString(result) mustBe ""
 
       val captor = ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
       verify(notificationController.audit).sendExtendedEvent(captor.capture())(any(), any())
 
-      captor.getValue.auditType shouldBe "ServiceRequestReceived"
+      captor.getValue.auditType must be("ServiceRequestReceived")
     }
 
     "fail validation when json parse throws error" in {
 
       val result = notificationController.saveNotification(amlsRegistrationNumber)(postRequestWithError)
-      status(result) should be(BAD_REQUEST)
-      contentAsJson(result) should be(Json.obj("errors" -> Json.arr(Json.obj("path" -> "obj.status.status_reason", "error" -> "error.invalid"))))
+      status(result) must be(BAD_REQUEST)
+      contentAsJson(result) must be(Json.obj("errors" -> Json.arr(Json.obj("path" -> "obj.status.status_reason", "error" -> "error.invalid"))))
     }
 
     "return BadRequest, if input request fails validation" in {
       val result = notificationController.saveNotification("hhhh")(postRequest)
       val failure = Json.obj("errors" -> Seq("Invalid AMLS Registration Number"))
 
-      status(result) should be(BAD_REQUEST)
-      contentAsJson(result) should be(failure)
+      status(result) must be(BAD_REQUEST)
+      contentAsJson(result) must be(failure)
     }
 
     "return an invalid response when mongo insertion fails" in {
@@ -131,8 +131,8 @@ class NotificationControllerSpec extends UnitSpec with MockitoSugar with ScalaFu
 
       whenReady(notificationController.saveNotification(amlsRegistrationNumber)(postRequest).failed) {
         case HttpStatusException(status, b) =>
-          status shouldBe INTERNAL_SERVER_ERROR
-          b shouldBe Some("message")
+          status mustBe INTERNAL_SERVER_ERROR
+          b mustBe Some("message")
       }
     }
 
@@ -146,7 +146,7 @@ class NotificationControllerSpec extends UnitSpec with MockitoSugar with ScalaFu
       } thenReturn Future.successful(writeResult)
 
       whenReady(notificationController.saveNotification(amlsRegistrationNumber)(postRequest)) { r =>
-        r.header.status shouldBe INTERNAL_SERVER_ERROR
+        r.header.status mustBe INTERNAL_SERVER_ERROR
       }
     }
 
@@ -177,16 +177,16 @@ class NotificationControllerSpec extends UnitSpec with MockitoSugar with ScalaFu
       )
       val result = notificationController.saveNotification(amlsRegistrationNumber)(request)
 
-      status(result) shouldEqual BAD_REQUEST
-      contentAsJson(result) shouldEqual response
+      status(result) mustEqual BAD_REQUEST
+      contentAsJson(result) mustEqual response
     }
 
     "return BadRequest, if input request fails validation of mongo fetch" in {
       val result = notificationController.fetchNotifications("accountType", "ref", "hhhh")(getRequest)
       val failure = Json.obj("errors" -> Seq("Invalid AMLS Registration Number"))
 
-      status(result) should be(BAD_REQUEST)
-      contentAsJson(result) should be(failure)
+      status(result) must be(BAD_REQUEST)
+      contentAsJson(result) must be(failure)
     }
 
 
@@ -198,8 +198,8 @@ class NotificationControllerSpec extends UnitSpec with MockitoSugar with ScalaFu
 
       whenReady(notificationController.fetchNotifications("accountType", "ref", amlsRegistrationNumber)(getRequest).failed) {
         case HttpStatusException(status, body) =>
-          status shouldEqual INTERNAL_SERVER_ERROR
-          body shouldEqual Some("message")
+          status mustEqual INTERNAL_SERVER_ERROR
+          body mustEqual Some("message")
       }
     }
 
@@ -235,8 +235,8 @@ class NotificationControllerSpec extends UnitSpec with MockitoSugar with ScalaFu
         when(notificationController.notificationRepository.findByAmlsReference(any())).thenReturn(Future.successful(notificationRows))
 
         val result = notificationController.fetchNotifications("accountType", "ref", amlsRegistrationNumber)(getRequest)
-        status(result) should be(OK)
-        contentAsJson(result) should be(Json.toJson(notificationRows))
+        status(result) must be(OK)
+        contentAsJson(result) must be(Json.toJson(notificationRows))
 
         verify(notificationController.notificationRepository).findByAmlsReference(amlsRegistrationNumber)
       }
@@ -245,8 +245,8 @@ class NotificationControllerSpec extends UnitSpec with MockitoSugar with ScalaFu
         when(notificationController.notificationRepository.findByAmlsReference(any())).thenReturn(Future.successful(notificationRowsWithoutVersion))
 
         val result = notificationController.fetchNotifications("accountType", "ref", amlsRegistrationNumber)(getRequest)
-        status(result) should be(OK)
-        contentAsJson(result) should be(Json.toJson(Seq(notificationRecordWithoutVersion.copy(templatePackageVersion = Some("v1m0")))))
+        status(result) must be(OK)
+        contentAsJson(result) must be(Json.toJson(Seq(notificationRecordWithoutVersion.copy(templatePackageVersion = Some("v1m0")))))
 
         verify(notificationController.notificationRepository).findByAmlsReference(amlsRegistrationNumber)
       }
@@ -257,8 +257,8 @@ class NotificationControllerSpec extends UnitSpec with MockitoSugar with ScalaFu
         } thenReturn Future.successful(notificationRows)
 
         val result = notificationController.fetchNotificationsBySafeId("accountType", "ref", safeId)(getRequest)
-        status(result) shouldBe OK
-        contentAsJson(result) shouldBe Json.toJson(notificationRows)
+        status(result) mustBe OK
+        contentAsJson(result) mustBe Json.toJson(notificationRows)
 
         verify(notificationController.notificationRepository).findBySafeId(safeId)
       }
@@ -269,9 +269,9 @@ class NotificationControllerSpec extends UnitSpec with MockitoSugar with ScalaFu
         } thenReturn Future.successful(notificationRowsWithoutVersion)
 
         val result = notificationController.fetchNotificationsBySafeId("accountType", "ref", safeId)(getRequest)
-        status(result) shouldBe OK
+        status(result) mustBe OK
 
-        contentAsJson(result) shouldBe Json.toJson(Seq(notificationRecordWithoutVersion.copy(templatePackageVersion = Some("v1m0"))))
+        contentAsJson(result) mustBe Json.toJson(Seq(notificationRecordWithoutVersion.copy(templatePackageVersion = Some("v1m0"))))
         verify(mockNotificationRepository).findBySafeId(safeId)
       }
 
@@ -281,7 +281,7 @@ class NotificationControllerSpec extends UnitSpec with MockitoSugar with ScalaFu
       "an invalid safeId is passed" in {
         val result = notificationController.fetchNotificationsBySafeId("accountType", "ref", "an invalid safe ID")(getRequest)
 
-        status(result) shouldBe BAD_REQUEST
+        status(result) mustBe BAD_REQUEST
       }
     }
   }
