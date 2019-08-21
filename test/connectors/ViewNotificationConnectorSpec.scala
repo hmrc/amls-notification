@@ -55,19 +55,13 @@ class ViewNotificationConnectorSpec extends PlaySpec
 
   trait Fixture {
 
-    object testConnector extends ViewNotificationConnector(
-      app.injector.instanceOf(classOf[ApplicationConfig]),
-      app.injector.instanceOf(classOf[HttpClient]),
-      app.injector.instanceOf(classOf[AuditConnector]),
-      app.injector.instanceOf(classOf[Metrics])
-    ) {
+    val mockAppConfig = mock[ApplicationConfig]
+    val mockHttpClient = mock[HttpClient]
+    val mockAuditConnector = mock[AuditConnector]
+    val mockMetrics = mock[Metrics]
 
-      lazy override private[connectors] val baseUrl: String = "baseUrl"
-      lazy override private[connectors] val env: String = "ist0"
-      override private[connectors] val http = mock[HttpClient]
-      private[connectors] val metrics: Metrics = mock[Metrics]
+    val viewNotificationConnector = new ViewNotificationConnector(mockAppConfig, mockHttpClient, mockAuditConnector, mockMetrics) {
       override private[connectors] val audit = mock[MockAudit]
-      override private[connectors] val fullUrl: String = s"$baseUrl/$requestUrl"
     }
 
     val successModel = NotificationResponse(LocalDateTime.now(), "Approved")
@@ -77,11 +71,11 @@ class ViewNotificationConnectorSpec extends PlaySpec
     val amlsRegistrationNumber = "test"
     val contactNumber = "contactNumber"
 
-    val url = s"${testConnector.baseUrl}/anti-money-laundering/secure-comms/reg-number/$amlsRegistrationNumber/contact-number/$contactNumber"
+    val url = s"${viewNotificationConnector.baseUrl}/anti-money-laundering/secure-comms/reg-number/$amlsRegistrationNumber/contact-number/$contactNumber"
     var dataEvent: DataEvent = null
 
     when {
-      testConnector.metrics.timer(eqTo(API11))
+      viewNotificationConnector.metrics.timer(eqTo(API11))
     } thenReturn mockTimer
   }
 
@@ -96,14 +90,14 @@ class ViewNotificationConnectorSpec extends PlaySpec
       )
 
       when {
-        testConnector.audit.sendDataEvent
+        viewNotificationConnector.audit.sendDataEvent
       } thenReturn ((f: DataEvent) => dataEvent = f)
 
       when {
-        testConnector.http.GET[HttpResponse](eqTo(url))(any(), any(), any())
+        viewNotificationConnector.http.GET[HttpResponse](eqTo(url))(any(), any(), any())
       } thenReturn Future.successful(response)
 
-      whenReady(testConnector.getNotification(amlsRegistrationNumber, contactNumber)) {
+      whenReady(viewNotificationConnector.getNotification(amlsRegistrationNumber, contactNumber)) {
         _ mustEqual successModel
       }
 
@@ -118,14 +112,14 @@ class ViewNotificationConnectorSpec extends PlaySpec
         responseHeaders = Map.empty
       )
       when {
-        testConnector.http.GET[HttpResponse](eqTo(url))(any(), any(), any())
+        viewNotificationConnector.http.GET[HttpResponse](eqTo(url))(any(), any(), any())
       } thenReturn Future.successful(response)
 
       when {
-        testConnector.audit.sendDataEvent
+        viewNotificationConnector.audit.sendDataEvent
       } thenReturn ((f: DataEvent) => dataEvent = f)
 
-      whenReady(testConnector.getNotification(amlsRegistrationNumber, contactNumber).failed) {
+      whenReady(viewNotificationConnector.getNotification(amlsRegistrationNumber, contactNumber).failed) {
         case HttpStatusException(status, body) =>
           status mustEqual BAD_REQUEST
           body mustEqual None
@@ -143,14 +137,14 @@ class ViewNotificationConnectorSpec extends PlaySpec
       )
 
       when {
-        testConnector.http.GET[HttpResponse](any())(any(), any(), any())
+        viewNotificationConnector.http.GET[HttpResponse](any())(any(), any(), any())
       } thenReturn Future.successful(response)
 
       when {
-        testConnector.audit.sendDataEvent
+        viewNotificationConnector.audit.sendDataEvent
       } thenReturn ((f: DataEvent) => dataEvent = f)
 
-      whenReady(testConnector.getNotification(amlsRegistrationNumber, contactNumber).failed) {
+      whenReady(viewNotificationConnector.getNotification(amlsRegistrationNumber, contactNumber).failed) {
         case HttpStatusException(status, body) =>
           status mustEqual OK
           body mustEqual Some("message")
@@ -162,10 +156,10 @@ class ViewNotificationConnectorSpec extends PlaySpec
     "return a failed future containing an exception message" in new Fixture {
 
       when {
-        testConnector.http.GET[HttpResponse](eqTo(url))(any(), any(), any())
+        viewNotificationConnector.http.GET[HttpResponse](eqTo(url))(any(), any(), any())
       } thenReturn Future.failed(new Exception("message"))
 
-      whenReady(testConnector.getNotification(amlsRegistrationNumber, contactNumber).failed) {
+      whenReady(viewNotificationConnector.getNotification(amlsRegistrationNumber, contactNumber).failed) {
         case HttpStatusException(status, body) =>
           status mustEqual INTERNAL_SERVER_ERROR
           body mustEqual Some("message")

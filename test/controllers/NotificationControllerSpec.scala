@@ -22,23 +22,21 @@ import exceptions.HttpStatusException
 import models._
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
+import org.mockito.ArgumentMatchers.{any, eq => eqTo}
+import org.mockito.Mockito._
+import org.scalatest.BeforeAndAfter
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.libs.json.{JsNull, JsValue, Json}
 import play.api.mvc.ControllerComponents
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito._
-import org.scalatest.{BeforeAndAfter, MustMatchers, WordSpec}
-import org.scalatestplus.play.PlaySpec
 import reactivemongo.api.commands.{WriteError, WriteResult}
 import repositories.NotificationMongoRepository
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
-import utils.SuccessfulAuthAction
 
 import scala.concurrent.Future
 
@@ -79,7 +77,6 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
   val getRequest = FakeRequest()
     .withHeaders(CONTENT_TYPE -> "application/json")
 
-
   "NotificationController" must {
 
     val amlsRegistrationNumber = "XAML00000567890"
@@ -95,7 +92,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
       } thenReturn Future.successful(writeResult)
 
       when {
-        notificationController.audit.sendEvent(any())(any(), any())
+        notificationController.auditConnector.sendEvent(any())(any(), any())
       } thenReturn Future.successful(mock[AuditResult])
 
       val result = notificationController.saveNotification(amlsRegistrationNumber)(postRequest)
@@ -103,7 +100,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
       contentAsString(result) mustBe ""
 
       val captor = ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
-      verify(notificationController.audit).sendExtendedEvent(captor.capture())(any(), any())
+      verify(notificationController.auditConnector).sendExtendedEvent(captor.capture())(any(), any())
 
       captor.getValue.auditType must be("ServiceRequestReceived")
     }
@@ -188,7 +185,6 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
       status(result) must be(BAD_REQUEST)
       contentAsJson(result) must be(failure)
     }
-
 
     "return an invalid response when fetch query fails" in {
 

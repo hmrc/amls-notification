@@ -33,15 +33,11 @@ import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ViewNotificationController @Inject()(notificationConnector: ViewNotificationConnector,
-                                           msAuditConnector: AuditConnector,
+class ViewNotificationController @Inject()(private[controllers] val connector: ViewNotificationConnector,
+                                           private[controllers] val audit: AuditConnector,
                                            cc: ControllerComponents,
                                            authAction: AuthAction,
-                                           nr: NotificationMongoRepository) extends BackendController(cc) {
-
-  private[controllers] val connector = notificationConnector
-  private[controllers] val audit = msAuditConnector
-  private[controllers] val notificationRepository = nr
+                                           private[controllers] val notificationRepository: NotificationMongoRepository) extends BackendController(cc) {
 
   val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
   val prefix = "[ViewNotificationController]"
@@ -60,7 +56,7 @@ class ViewNotificationController @Inject()(notificationConnector: ViewNotificati
           case Some(_) => notificationRepository.findById(notificationId) flatMap {
             case Some(record@NotificationRecord(`amlsRegistrationNumber`, _,_,_,_,_,_,_,_,_,_,_)) => { record match {
               case record if record.contactNumber.isDefined => {
-                notificationConnector.getNotification(amlsRegistrationNumber, record.contactNumber.get) map { detail =>
+                connector.getNotification(amlsRegistrationNumber, record.contactNumber.get) map { detail =>
                   val notificationDetails = NotificationDetails(
                     record.contactType,
                     record.status,

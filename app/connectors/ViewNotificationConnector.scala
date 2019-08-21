@@ -33,12 +33,10 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import scala.concurrent.{ExecutionContext, Future}
 
 
-class ViewNotificationConnector @Inject()(
-                                           amlsConfig: ApplicationConfig,
-                                           wsHttp: HttpClient,
-                                           auditConnector: AuditConnector,
-                                           metrics: Metrics
-) extends DESConnector(amlsConfig, wsHttp, auditConnector, metrics) {
+class ViewNotificationConnector @Inject()(amlsConfig: ApplicationConfig,
+                                          val http: HttpClient,
+                                          auditConnector: AuditConnector,
+                                          val metrics: Metrics) extends DESConnector(amlsConfig, http, auditConnector, metrics) {
 
   def getNotification(amlsRegistrationNumber: String, contactNumber: String)
     (implicit ec: ExecutionContext, wr: Writes[NotificationResponse]): Future[NotificationResponse] = {

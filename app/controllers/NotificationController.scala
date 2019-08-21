@@ -36,19 +36,15 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class NotificationController @Inject()(emailConnector: EmailConnector,
-                                        amlsConfig: ApplicationConfig,
-                                        msAuditConnector: AuditConnector,
-                                        val cc: ControllerComponents,
-                                        nr: NotificationMongoRepository
-) extends BackendController(cc) {
+class NotificationController @Inject()(private[controllers] val emailConnector: EmailConnector,
+                                       amlsConfig: ApplicationConfig,
+                                       private[controllers] val auditConnector: AuditConnector,
+                                       private[controllers] val cc: ControllerComponents,
+                                       private[controllers] val notificationRepository: NotificationMongoRepository) extends BackendController(cc) {
 
   val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
   val safeIdRegex = "^[A-Za-z0-9]{15}$".r
   val prefix = "[NotificationController]"
-
-  private[controllers] val notificationRepository = nr
-  private[controllers] val audit = msAuditConnector
 
   private def toError(errors: Seq[(JsPath, Seq[JsonValidationError])]): JsObject =
     Json.obj(
@@ -98,12 +94,12 @@ class NotificationController @Inject()(emailConnector: EmailConnector,
                 notificationRepository.insertRecord(record) map {
                   case result if result.ok =>
                     emailConnector.sendNotificationReceivedTemplatedEmail(List(body.email))
-                    audit.sendExtendedEvent(NotificationReceivedEvent(amlsRegistrationNumber, body))
+                    auditConnector.sendExtendedEvent(NotificationReceivedEvent(amlsRegistrationNumber, body))
                     NoContent
                   case result =>
                     Logger.error(s"$prefix [saveNotification] - Could not save notification results")
 
-                    audit.sendExtendedEvent(NotificationFailedEvent(
+                    auditConnector.sendExtendedEvent(NotificationFailedEvent(
                       amlsRegistrationNumber,
                       body,
                       result.writeErrors map { e => s"${e.code}: ${e.errmsg}" }
@@ -114,7 +110,7 @@ class NotificationController @Inject()(emailConnector: EmailConnector,
                   case e@HttpStatusException(status, Some(exceptionBody)) =>
                     Logger.warn(s"$prefix [saveNotification] - Status: $status, Message: $exceptionBody")
 
-                    audit.sendExtendedEvent(NotificationFailedEvent(
+                    auditConnector.sendExtendedEvent(NotificationFailedEvent(
                       amlsRegistrationNumber,
                       body,
                       Seq(e.getMessage)

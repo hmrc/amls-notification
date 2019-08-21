@@ -19,9 +19,9 @@ package utils
 import org.scalatest.MustMatchers
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
-import play.api.mvc.{BaseController, Controller, ControllerComponents}
+import play.api.mvc.{BaseController, ControllerComponents}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.auth.core.authorise.Predicate
@@ -29,14 +29,10 @@ import uk.gov.hmrc.auth.core.retrieve.Retrieval
 import uk.gov.hmrc.auth.core.{AuthConnector, MissingBearerToken}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
-class DefaultAuthActionSpec extends PlaySpec
-  with MockitoSugar
-  with ScalaFutures
-  with MustMatchers
-  with IntegrationPatience with GuiceOneAppPerSuite {
+class DefaultAuthActionSpec extends PlaySpec with MockitoSugar with ScalaFutures with MustMatchers with IntegrationPatience with GuiceOneAppPerSuite {
 
   val mockAuthConnector = mock[AuthConnector]
   implicit val headCarrier = mock[HeaderCarrier]

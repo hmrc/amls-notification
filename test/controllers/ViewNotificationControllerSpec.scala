@@ -43,11 +43,11 @@ import utils.SuccessfulAuthAction
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenPropertyChecks with ScalaFutures  with MockitoSugar with GuiceOneAppPerSuite {
+class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenPropertyChecks with ScalaFutures with MockitoSugar with GuiceOneAppPerSuite {
 
   trait Fixture {
 
-   val mockViewNotificationConnector = mock[ViewNotificationConnector]
+    val mockViewNotificationConnector = mock[ViewNotificationConnector]
     val mockAuditConnector =  mock[AuditConnector]
     val mockCC: ControllerComponents = app.injector.instanceOf[ControllerComponents]
     val mockNotificationMongoRepository =  mock[NotificationMongoRepository]
@@ -128,7 +128,6 @@ class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenProper
 
       when(viewNotificationController.notificationRepository.markAsRead("NOTIFICATIONID"))
         .thenReturn(Future.successful(true))
-
 
       val result = viewNotificationController.viewNotification("accountType", "ref", amlsRegistrationNumber, "NOTIFICATIONID")(request)
 
