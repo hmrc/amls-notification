@@ -27,7 +27,7 @@ import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.Status._
@@ -40,10 +40,8 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ViewNotificationConnectorSpec extends PlaySpec
-  with MockitoSugar
-  with ScalaFutures
-  with IntegrationPatience with GuiceOneAppPerSuite with BeforeAndAfterAll {
+class ViewNotificationConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures
+                                    with IntegrationPatience with GuiceOneAppPerSuite with BeforeAndAfterAll {
 
   override def beforeAll {
     DateTimeUtils.setCurrentMillisFixed(1000)
@@ -166,5 +164,4 @@ class ViewNotificationConnectorSpec extends PlaySpec
       }
     }
   }
-
 }

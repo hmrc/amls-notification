@@ -17,7 +17,7 @@
 package utils
 
 import models._
-import org.joda.time.{LocalDateTime, DateTime}
+import org.joda.time.{DateTime, LocalDateTime}
 import org.scalacheck.Gen
 
 object DataGen {

@@ -17,7 +17,7 @@
 package controllers
 
 
-import connectors.{DESConnector, ViewNotificationConnector}
+import connectors.ViewNotificationConnector
 import exceptions.HttpStatusException
 import models._
 import models.fe.NotificationDetails
@@ -26,10 +26,9 @@ import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
+import org.scalatestplus.mockito.MockitoSugar
+import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
 import play.api.libs.json.Json
 import play.api.mvc.ControllerComponents
 import play.api.test.FakeRequest
@@ -43,7 +42,7 @@ import utils.SuccessfulAuthAction
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ViewNotificationControllerSpec extends PlaySpec with GeneratorDrivenPropertyChecks with ScalaFutures with MockitoSugar with GuiceOneAppPerSuite {
+class ViewNotificationControllerSpec extends PlaySpec with ScalaFutures with MockitoSugar with GuiceOneAppPerSuite {
 
   trait Fixture {
 

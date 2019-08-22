@@ -16,9 +16,10 @@
 
 package utils
 
-import scala.concurrent.{ExecutionContext, Future}
 import play.api.mvc._
 import play.api.test.Helpers
+
+import scala.concurrent.{ExecutionContext, Future}
 
 object SuccessfulAuthAction extends AuthAction {
   override protected def filter[A](request: Request[A]): Future[Option[Result]] =

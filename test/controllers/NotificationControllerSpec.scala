@@ -26,7 +26,7 @@ import org.mockito.ArgumentMatchers.{any, eq => eqTo}
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfter
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.libs.json.{JsNull, JsValue, Json}
@@ -42,9 +42,9 @@ import scala.concurrent.Future
 
 class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFutures with GuiceOneAppPerSuite with BeforeAndAfter {
 
-  val mockCC: ControllerComponents = app.injector.instanceOf[ControllerComponents]
-  val mockEmailConnector: EmailConnector = mock[EmailConnector]
-  val mockAuditConnector: AuditConnector = mock[AuditConnector]
+  val mockCC = app.injector.instanceOf[ControllerComponents]
+  val mockEmailConnector = mock[EmailConnector]
+  val mockAuditConnector = mock[AuditConnector]
   val mockConfig = app.injector.instanceOf[ApplicationConfig]
   val mockNotificationRepository = mock[NotificationMongoRepository]
 
