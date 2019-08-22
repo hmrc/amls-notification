@@ -21,7 +21,7 @@ import com.codahale.metrics.{Counter, MetricRegistry, Timer}
 import com.google.inject.Inject
 
 class Metrics @Inject()(metrics: com.kenshoo.play.metrics.Metrics) {
-
+  // $COVERAGE-OFF$
   val registry: MetricRegistry = metrics.defaultRegistry
   val timers = Map[APITypes, Timer](
     API11 -> registry.timer(s"${API11.key}-timer")

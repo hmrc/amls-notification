@@ -37,21 +37,16 @@ class EmailConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures wi
 
     implicit val hc = HeaderCarrier()
 
-    val mockHttp = mock[CorePost]
     val sendTo = "e@mail.com"
     val mockAppConfig = mock[ApplicationConfig]
     val mockHttpClient = mock[HttpClient]
 
-    val emailConnector = new EmailConnector(mockAppConfig, mockHttpClient) {
-      override def httpPost = mockHttpClient
-      override def url = "test-email-url"
-    }
+    val emailConnector = new EmailConnector(mockAppConfig, mockHttpClient)
   }
 
   "The Email connector" must {
-
     "send a details of the email template and content and report a positive response" in new Fixture {
-      when(emailConnector.httpPost.POST[SendTemplatedEmailRequest, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+      when(emailConnector.http.POST[SendTemplatedEmailRequest, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
         .thenReturn(Future.successful(HttpResponse(202)))
 
       val result = await(emailConnector.sendNotificationReceivedTemplatedEmail(List(sendTo)))
@@ -62,7 +57,7 @@ class EmailConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures wi
     "send a details of the email template and content and report a negative response" in new Fixture {
       val requestCaptor = ArgumentCaptor.forClass(classOf[SendTemplatedEmailRequest])
 
-      when(emailConnector.httpPost.POST[SendTemplatedEmailRequest, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+      when(emailConnector.http.POST[SendTemplatedEmailRequest, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
         .thenReturn(Future.successful(HttpResponse(400)))
 
       val result = await(emailConnector.sendNotificationReceivedTemplatedEmail(List(sendTo)))

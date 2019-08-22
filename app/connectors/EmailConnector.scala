@@ -32,8 +32,7 @@ object SendTemplatedEmailRequest {
   implicit val format = Json.format[SendTemplatedEmailRequest]
 }
 
-class EmailConnector @Inject()(amlsConfig: ApplicationConfig, http: HttpClient) {
-  def httpPost: CorePost = http
+class EmailConnector @Inject()(amlsConfig: ApplicationConfig, val http: HttpClient) {
   def url = s"${amlsConfig.emailUrl}/send-templated-email"
 
   def sendNotificationReceivedTemplatedEmail(to: List[String])(implicit hc: HeaderCarrier): Future[Boolean] = {
@@ -45,7 +44,7 @@ class EmailConnector @Inject()(amlsConfig: ApplicationConfig, http: HttpClient) 
 
     Logger.debug(s"[EmailConnector] Sending email to ${request.to.mkString(", ")}")
 
-    httpPost.POST[SendTemplatedEmailRequest, HttpResponse](url, request, Seq(("Content-Type", "application/json"))) map {
+    http.POST[SendTemplatedEmailRequest, HttpResponse](url, request, Seq(("Content-Type", "application/json"))) map {
       response =>
         response.status match {
           case 202 => Logger.debug(s"[EmailConnector] Email sent: ${response.body}"); true
