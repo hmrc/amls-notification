@@ -16,66 +16,53 @@
 
 package connectors
 
-import config.{AmlsConfig, WSHttp}
+import config.ApplicationConfig
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers._
-import org.mockito.Mockito._
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
+import org.scalatestplus.mockito.MockitoSugar
+import org.scalatestplus.play.PlaySpec
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.test.Helpers._
-import uk.gov.hmrc.http.{CorePost, HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.Future
 
-class EmailConnectorSpec
-  extends PlaySpec
-  with MockitoSugar
-  with ScalaFutures
-  with IntegrationPatience
-  with OneServerPerSuite
-  with BeforeAndAfterAll {
+class EmailConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with IntegrationPatience with GuiceOneAppPerSuite with BeforeAndAfterAll {
 
   trait Fixture {
 
     implicit val hc = HeaderCarrier()
 
-    val mockHttp = mock[CorePost]
     val sendTo = "e@mail.com"
+    val mockAppConfig = mock[ApplicationConfig]
+    val mockHttpClient = mock[HttpClient]
 
-    object TestEmailConnector extends EmailConnector(
-      app,
-      app.injector.instanceOf(classOf[AmlsConfig]),
-      app.injector.instanceOf(classOf[WSHttp])) {
-
-      override def httpPost = mockHttp
-      override def url = "test-email-url"
-    }
+    val emailConnector = new EmailConnector(mockAppConfig, mockHttpClient)
   }
 
   "The Email connector" must {
-
     "send a details of the email template and content and report a positive response" in new Fixture {
-      when(mockHttp.POST[SendTemplatedEmailRequest, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+      when(emailConnector.http.POST[SendTemplatedEmailRequest, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
         .thenReturn(Future.successful(HttpResponse(202)))
 
-      val result = await(TestEmailConnector.sendNotificationReceivedTemplatedEmail(List(sendTo)))
+      val result = await(emailConnector.sendNotificationReceivedTemplatedEmail(List(sendTo)))
 
       result must be(true)
     }
 
     "send a details of the email template and content and report a negative response" in new Fixture {
-
       val requestCaptor = ArgumentCaptor.forClass(classOf[SendTemplatedEmailRequest])
 
-      when(mockHttp.POST[SendTemplatedEmailRequest, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+      when(emailConnector.http.POST[SendTemplatedEmailRequest, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
         .thenReturn(Future.successful(HttpResponse(400)))
 
-      val result = await(TestEmailConnector.sendNotificationReceivedTemplatedEmail(List(sendTo)))
+      val result = await(emailConnector.sendNotificationReceivedTemplatedEmail(List(sendTo)))
 
       result must be(false)
-
     }
   }
 }

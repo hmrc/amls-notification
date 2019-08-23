@@ -16,26 +16,24 @@
 
 package connectors
 
-import config.{AmlsConfig, MicroserviceAuditConnector, WSHttp}
+import config.ApplicationConfig
 import javax.inject.Inject
 import metrics.Metrics
 import play.mvc.Http.HeaderNames
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.logging.Authorization
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.Audit
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import utils.{AuditHelper, HttpResponseHelper}
 
-class DESConnector @Inject()(amlsConfig: AmlsConfig, wsHttp: WSHttp, msAuditConnector: MicroserviceAuditConnector)
-  extends HttpResponseHelper {
-
+class DESConnector @Inject()(amlsConfig: ApplicationConfig, http: HttpClient, msAuditConnector: AuditConnector, metrics: Metrics) extends HttpResponseHelper {
 
   val requestUrl = "anti-money-laundering/secure-comms"
 
   private[connectors] lazy val baseUrl: String = amlsConfig.desUrl
   private[connectors] lazy val token: String = s"Bearer ${amlsConfig.desToken}"
   private[connectors] lazy val env: String = amlsConfig.desEnv
-  private[connectors] val http = wsHttp
-  private[connectors] val metrics: Metrics = Metrics
   private[connectors] val audit: Audit = new Audit(AuditHelper.appName, msAuditConnector)
   private[connectors] val fullUrl: String = s"$baseUrl/$requestUrl"
 

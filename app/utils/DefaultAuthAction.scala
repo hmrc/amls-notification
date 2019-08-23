@@ -26,7 +26,8 @@ import uk.gov.hmrc.play.HeaderCarrierConverter
 import scala.concurrent.{ExecutionContext, Future}
 
 class DefaultAuthAction @Inject()(
-                                   val authConnector: AuthConnector
+                                   val authConnector: AuthConnector,
+                                   val controllerComponents: ControllerComponents
                                  )(implicit ec: ExecutionContext) extends AuthAction with AuthorisedFunctions {
 
   override protected def filter[A](request: Request[A]): Future[Option[Result]] = {
@@ -44,7 +45,10 @@ class DefaultAuthAction @Inject()(
       }
     }
   }
+
+  override def parser: BodyParser[AnyContent] = controllerComponents.parsers.defaultBodyParser
+  override protected def executionContext: ExecutionContext = controllerComponents.executionContext
 }
 
 @com.google.inject.ImplementedBy(classOf[DefaultAuthAction])
-trait AuthAction extends ActionFilter[Request] with ActionBuilder[Request]
+trait AuthAction extends ActionFilter[Request] with ActionBuilder[Request, AnyContent]

@@ -16,7 +16,7 @@
 
 package audit
 
-import uk.gov.hmrc.play.audit.model.{Audit, DataEvent, ExtendedDataEvent}
+import uk.gov.hmrc.play.audit.model.{Audit, DataEvent}
 
 // This only exists because of the difficulty in mocking
 // the `sendDataEvent` method of the `Audit` class

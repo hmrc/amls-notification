@@ -19,7 +19,6 @@ package models
 import models.RejectedReason.FailedToRespond
 import models.StatusType.{Approved, DeRegistered, Rejected}
 import org.scalatestplus.play.PlaySpec
-import play.api.data.validation.ValidationError
 import play.api.libs.json._
 
 class NotificationPushRequestSpec extends PlaySpec {
@@ -59,7 +58,7 @@ class NotificationPushRequestSpec extends PlaySpec {
           "contact_number" -> "112345678251212",
           "variation" -> false)
 
-        NotificationPushRequest.jsonReads.reads(json) must be(JsError(List((JsPath \ "name", List(ValidationError(List("error.pattern")))))))
+        NotificationPushRequest.jsonReads.reads(json) must be(JsError(List((JsPath \ "name", List(JsonValidationError(List("error.pattern")))))))
       }
 
       "allow special characters in the name" in {
@@ -90,9 +89,9 @@ class NotificationPushRequestSpec extends PlaySpec {
           "contact_number" -> "112345678251212",
           "variation" -> false)
 
-        NotificationPushRequest.jsonReads.reads(json) must be(JsError(List((JsPath \ "email", List(ValidationError(List("error.maxLength"), maxEmail))),
-          (JsPath \ "status" \ "status_type", List(ValidationError(List("error.invalid")))),
-          (JsPath \ "name", List(ValidationError(List("error.pattern")))))))
+        NotificationPushRequest.jsonReads.reads(json) must be(JsError(List((JsPath \ "email", List(JsonValidationError(List("error.maxLength"), maxEmail))),
+          (JsPath \ "status" \ "status_type", List(JsonValidationError(List("error.invalid")))),
+          (JsPath \ "name", List(JsonValidationError(List("error.pattern")))))))
       }
 
       "fail when length of safeId exceed maxLength" in {
@@ -106,7 +105,7 @@ class NotificationPushRequestSpec extends PlaySpec {
           "contact_number" -> "112345678251212",
           "variation" -> false)
 
-        NotificationPushRequest.jsonReads.reads(json) must be(JsError(List((JsPath \ "safeId", List(ValidationError(List("error.pattern")))))))
+        NotificationPushRequest.jsonReads.reads(json) must be(JsError(List((JsPath \ "safeId", List(JsonValidationError(List("error.pattern")))))))
       }
 
       "fail when safeId has invalid character" in {
@@ -120,7 +119,7 @@ class NotificationPushRequestSpec extends PlaySpec {
           "contact_number" -> "112345678251212",
           "variation" -> false)
 
-        NotificationPushRequest.jsonReads.reads(json) must be(JsError(List((JsPath \ "safeId", List(ValidationError(List("error.pattern")))))))
+        NotificationPushRequest.jsonReads.reads(json) must be(JsError(List((JsPath \ "safeId", List(JsonValidationError(List("error.pattern")))))))
       }
 
       "fail when status type is valid Rejected type and status reason is invalid rejected reason" in {
@@ -136,7 +135,7 @@ class NotificationPushRequestSpec extends PlaySpec {
           "variation" -> false)
 
         NotificationPushRequest.jsonReads.reads(json) must be(JsError(List(
-          (JsPath \ "status" \ "status_reason", List(ValidationError(List("error.invalid")))))))
+          (JsPath \ "status" \ "status_reason", List(JsonValidationError(List("error.invalid")))))))
       }
 
       "fail when status type is valid Deregistered type and status reason is invalid Deregistered reason" in {
@@ -151,7 +150,7 @@ class NotificationPushRequestSpec extends PlaySpec {
           "variation" -> false)
 
         NotificationPushRequest.jsonReads.reads(json) must be(JsError(List(
-          (JsPath \ "status" \ "status_reason", List(ValidationError(List("error.invalid")))))))
+          (JsPath \ "status" \ "status_reason", List(JsonValidationError(List("error.invalid")))))))
       }
 
       "fail when status type is valid Revoked type and status reason is invalid Revoked reason" in {
@@ -166,7 +165,7 @@ class NotificationPushRequestSpec extends PlaySpec {
           "variation" -> false)
 
         NotificationPushRequest.jsonReads.reads(json) must be(JsError(List(
-          (JsPath \ "status" \ "status_reason", List(ValidationError(List("error.invalid")))))))
+          (JsPath \ "status" \ "status_reason", List(JsonValidationError(List("error.invalid")))))))
       }
 
       "fail when status type is invalid and status reason is invalid" in {
@@ -181,7 +180,7 @@ class NotificationPushRequestSpec extends PlaySpec {
           "variation" -> false)
 
         NotificationPushRequest.jsonReads.reads(json) must be(JsError(List(
-          (JsPath \ "status" \ "status_type", List(ValidationError(List("error.invalid")))))))
+          (JsPath \ "status" \ "status_type", List(JsonValidationError(List("error.invalid")))))))
       }
 
       "status and status reason is Revoked" in {
@@ -272,7 +271,7 @@ class NotificationPushRequestSpec extends PlaySpec {
           "contact_number" -> "112345678251212",
           "variation" -> false)
 
-        NotificationPushRequest.jsonReads.reads(json) must be(JsError(List((JsPath \ "status" \ "status_type", List(ValidationError(List("error.invalid")))))))
+        NotificationPushRequest.jsonReads.reads(json) must be(JsError(List((JsPath \ "status" \ "status_type", List(JsonValidationError(List("error.invalid")))))))
       }
     }
 

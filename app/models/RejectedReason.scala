@@ -16,7 +16,6 @@
 
 package models
 
-import play.api.data.validation.ValidationError
 import play.api.libs.json._
 
 sealed trait RejectedReason extends StatusReason
@@ -44,7 +43,7 @@ object RejectedReason {
       case "04" => Reads(_ => JsSuccess(FitAndProperFailure))
       case "98" => Reads(_ => JsSuccess(OtherFailed))
       case "99" => Reads(_ => JsSuccess(OtherRefused))
-      case _ => Reads(_ => JsError(JsPath \ "status_reason" -> ValidationError("error.invalid")))
+      case _ => Reads(_ => JsError(JsPath \ "status_reason" -> JsonValidationError("error.invalid")))
     }
   }
 

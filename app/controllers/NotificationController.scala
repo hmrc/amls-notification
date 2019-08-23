@@ -17,36 +17,36 @@
 package controllers
 
 import audit.{NotificationFailedEvent, NotificationReceivedEvent}
-import config.{AmlsConfig, MicroserviceAuditConnector}
+import com.google.inject.Singleton
+import config.ApplicationConfig
 import connectors.EmailConnector
 import exceptions.HttpStatusException
 import javax.inject.Inject
 import models.{NotificationPushRequest, NotificationRecord}
 import org.joda.time.{DateTime, DateTimeZone}
 import play.api.Logger
-import play.api.data.validation.ValidationError
 import play.api.libs.json._
-import play.api.mvc.Action
-import repositories.NotificationRepository
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import play.api.mvc.ControllerComponents
+import repositories.NotificationMongoRepository
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.Future
 
-class NotificationController @Inject()(
-  emailConnector: EmailConnector,
-  amlsConfig: AmlsConfig,
-  msAuditConnector: MicroserviceAuditConnector
-) extends BaseController {
+@Singleton
+class NotificationController @Inject()(private[controllers] val emailConnector: EmailConnector,
+                                       amlsConfig: ApplicationConfig,
+                                       private[controllers] val auditConnector: AuditConnector,
+                                       private[controllers] val cc: ControllerComponents,
+                                       private[controllers] val notificationRepository: NotificationMongoRepository) extends BackendController(cc) {
 
   val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
   val safeIdRegex = "^[A-Za-z0-9]{15}$".r
   val prefix = "[NotificationController]"
 
-  private[controllers] val notificationRepository = NotificationRepository()
-  private[controllers] val audit = msAuditConnector
-
-  private def toError(errors: Seq[(JsPath, Seq[ValidationError])]): JsObject =
+  private def toError(errors: Seq[(JsPath, Seq[JsonValidationError])]): JsObject =
     Json.obj(
       "errors" -> (errors map {
         case (path, error) =>
@@ -94,12 +94,12 @@ class NotificationController @Inject()(
                 notificationRepository.insertRecord(record) map {
                   case result if result.ok =>
                     emailConnector.sendNotificationReceivedTemplatedEmail(List(body.email))
-                    audit.sendExtendedEvent(NotificationReceivedEvent(amlsRegistrationNumber, body))
+                    auditConnector.sendExtendedEvent(NotificationReceivedEvent(amlsRegistrationNumber, body))
                     NoContent
                   case result =>
                     Logger.error(s"$prefix [saveNotification] - Could not save notification results")
 
-                    audit.sendExtendedEvent(NotificationFailedEvent(
+                    auditConnector.sendExtendedEvent(NotificationFailedEvent(
                       amlsRegistrationNumber,
                       body,
                       result.writeErrors map { e => s"${e.code}: ${e.errmsg}" }
@@ -110,7 +110,7 @@ class NotificationController @Inject()(
                   case e@HttpStatusException(status, Some(exceptionBody)) =>
                     Logger.warn(s"$prefix [saveNotification] - Status: $status, Message: $exceptionBody")
 
-                    audit.sendExtendedEvent(NotificationFailedEvent(
+                    auditConnector.sendExtendedEvent(NotificationFailedEvent(
                       amlsRegistrationNumber,
                       body,
                       Seq(e.getMessage)
@@ -151,8 +151,7 @@ class NotificationController @Inject()(
         }
     }
 
-  def fetchNotificationsBySafeId(accountType: String, ref: String, safeId: String) =
-    Action.async {
+  def fetchNotificationsBySafeId(accountType: String, ref: String, safeId: String) = Action.async {
       implicit request =>
         Logger.debug(s"$prefix [fetchNotificationsBySafeId] - safeId: $safeId")
         safeIdRegex.findFirstIn(safeId) match {

@@ -17,31 +17,27 @@
 package controllers
 
 import audit.NotificationReadEvent
-import config.MicroserviceAuditConnector
-import connectors.{DESConnector, ViewNotificationConnector}
+import connectors.ViewNotificationConnector
 import exceptions.HttpStatusException
 import javax.inject.Inject
 import models.NotificationRecord
 import models.fe.NotificationDetails
 import play.api.Logger
 import play.api.libs.json.{JsObject, Json}
-import repositories.NotificationRepository
-import uk.gov.hmrc.play.microservice.controller.BaseController
 import utils.AuthAction
+import play.api.mvc.ControllerComponents
+import repositories.NotificationMongoRepository
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ViewNotificationController @Inject()(
-  conn: DESConnector,
-  notificationConnector: ViewNotificationConnector,
-  msAuditConnector: MicroserviceAuditConnector,
-  authAction: AuthAction
-) extends BaseController {
-
-  private[controllers] val connector = notificationConnector
-  private[controllers] val audit = msAuditConnector
-  private[controllers] val notificationRepository = NotificationRepository()
+class ViewNotificationController @Inject()(private[controllers] val connector: ViewNotificationConnector,
+                                           private[controllers] val audit: AuditConnector,
+                                           cc: ControllerComponents,
+                                           authAction: AuthAction,
+                                           private[controllers] val notificationRepository: NotificationMongoRepository) extends BackendController(cc) {
 
   val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
   val prefix = "[ViewNotificationController]"
@@ -60,7 +56,7 @@ class ViewNotificationController @Inject()(
           case Some(_) => notificationRepository.findById(notificationId) flatMap {
             case Some(record@NotificationRecord(`amlsRegistrationNumber`, _,_,_,_,_,_,_,_,_,_,_)) => { record match {
               case record if record.contactNumber.isDefined => {
-                notificationConnector.getNotification(amlsRegistrationNumber, record.contactNumber.get) map { detail =>
+                connector.getNotification(amlsRegistrationNumber, record.contactNumber.get) map { detail =>
                   val notificationDetails = NotificationDetails(
                     record.contactType,
                     record.status,

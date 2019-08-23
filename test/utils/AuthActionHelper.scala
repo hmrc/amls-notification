@@ -16,15 +16,25 @@
 
 package utils
 
-import scala.concurrent.Future
 import play.api.mvc._
+import play.api.test.Helpers
+
+import scala.concurrent.{ExecutionContext, Future}
 
 object SuccessfulAuthAction extends AuthAction {
   override protected def filter[A](request: Request[A]): Future[Option[Result]] =
     Future.successful(None)
+
+  override def parser: BodyParser[AnyContent] = Helpers.stubControllerComponents().parsers.defaultBodyParser
+
+  override protected def executionContext: ExecutionContext = Helpers.stubControllerComponents().executionContext
 }
 
 object FailedAuthAction extends AuthAction {
   override protected def filter[A](request: Request[A]): Future[Option[Result]] =
     Future.successful(Some(Results.Unauthorized))
+
+  override def parser: BodyParser[AnyContent] = Helpers.stubControllerComponents().parsers.defaultBodyParser
+
+  override protected def executionContext: ExecutionContext = Helpers.stubControllerComponents().executionContext
 }

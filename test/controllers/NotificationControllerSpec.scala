@@ -16,50 +16,42 @@
 
 package controllers
 
-import config.{AmlsConfig, MicroserviceAuditConnector}
+import config.ApplicationConfig
 import connectors.EmailConnector
 import exceptions.HttpStatusException
 import models._
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.ArgumentMatchers.{any, eq => eqTo}
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfter
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.{OneServerPerSuite, PlaySpec}
+import org.scalatestplus.mockito.MockitoSugar
+import org.scalatestplus.play.PlaySpec
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.libs.json.{JsNull, JsValue, Json}
+import play.api.mvc.ControllerComponents
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import reactivemongo.api.commands.{WriteError, WriteResult}
 import repositories.NotificationMongoRepository
-import uk.gov.hmrc.play.audit.http.connector.AuditResult
+import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
-import utils.SuccessfulAuthAction
 
 import scala.concurrent.Future
 
-class NotificationControllerSpec extends PlaySpec
-  with MockitoSugar
-  with ScalaFutures
-  with OneServerPerSuite
-  with BeforeAndAfter {
+class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFutures with GuiceOneAppPerSuite with BeforeAndAfter {
 
+  val mockCC = app.injector.instanceOf[ControllerComponents]
+  val mockEmailConnector = mock[EmailConnector]
+  val mockAuditConnector = mock[AuditConnector]
+  val mockConfig = app.injector.instanceOf[ApplicationConfig]
+  val mockNotificationRepository = mock[NotificationMongoRepository]
 
-  val amlsConfig:AmlsConfig = app.injector.instanceOf(classOf[AmlsConfig])
-  val authAction = SuccessfulAuthAction
-  object TestNotificationController extends NotificationController(
-    app.injector.instanceOf(classOf[EmailConnector]),
-    amlsConfig,
-    app.injector.instanceOf(classOf[MicroserviceAuditConnector])
-  ) {
-    override private[controllers] val notificationRepository = mock[NotificationMongoRepository]
-    private[controllers] val emailConnector = mock[EmailConnector]
-    override private[controllers] val audit = mock[MicroserviceAuditConnector]
-  }
+  val notificationController = new NotificationController(mockEmailConnector, mockConfig, mockAuditConnector, mockCC, mockNotificationRepository)
 
   before {
-    reset(TestNotificationController.notificationRepository)
+    reset(notificationController.notificationRepository)
   }
 
   val body = NotificationPushRequest("AA1234567891234", "name", "hh@test.com",
@@ -85,7 +77,6 @@ class NotificationControllerSpec extends PlaySpec
   val getRequest = FakeRequest()
     .withHeaders(CONTENT_TYPE -> "application/json")
 
-
   "NotificationController" must {
 
     val amlsRegistrationNumber = "XAML00000567890"
@@ -97,32 +88,32 @@ class NotificationControllerSpec extends PlaySpec
       when(writeResult.ok) thenReturn true
 
       when {
-        TestNotificationController.notificationRepository.insertRecord(any())
+        notificationController.notificationRepository.insertRecord(any())
       } thenReturn Future.successful(writeResult)
 
       when {
-        TestNotificationController.audit.sendEvent(any())(any(), any())
+        notificationController.auditConnector.sendEvent(any())(any(), any())
       } thenReturn Future.successful(mock[AuditResult])
 
-      val result = TestNotificationController.saveNotification(amlsRegistrationNumber)(postRequest)
+      val result = notificationController.saveNotification(amlsRegistrationNumber)(postRequest)
       status(result) must be(NO_CONTENT)
       contentAsString(result) mustBe ""
 
       val captor = ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
-      verify(TestNotificationController.audit).sendExtendedEvent(captor.capture())(any(), any())
+      verify(notificationController.auditConnector).sendExtendedEvent(captor.capture())(any(), any())
 
-      captor.getValue.auditType mustBe "ServiceRequestReceived"
+      captor.getValue.auditType must be("ServiceRequestReceived")
     }
 
     "fail validation when json parse throws error" in {
 
-      val result = TestNotificationController.saveNotification(amlsRegistrationNumber)(postRequestWithError)
+      val result = notificationController.saveNotification(amlsRegistrationNumber)(postRequestWithError)
       status(result) must be(BAD_REQUEST)
       contentAsJson(result) must be(Json.obj("errors" -> Json.arr(Json.obj("path" -> "obj.status.status_reason", "error" -> "error.invalid"))))
     }
 
     "return BadRequest, if input request fails validation" in {
-      val result = TestNotificationController.saveNotification("hhhh")(postRequest)
+      val result = notificationController.saveNotification("hhhh")(postRequest)
       val failure = Json.obj("errors" -> Seq("Invalid AMLS Registration Number"))
 
       status(result) must be(BAD_REQUEST)
@@ -132,10 +123,10 @@ class NotificationControllerSpec extends PlaySpec
     "return an invalid response when mongo insertion fails" in {
 
       when {
-        TestNotificationController.notificationRepository.insertRecord(any())
+        notificationController.notificationRepository.insertRecord(any())
       } thenReturn Future.failed(HttpStatusException(INTERNAL_SERVER_ERROR, Some("message")))
 
-      whenReady(TestNotificationController.saveNotification(amlsRegistrationNumber)(postRequest).failed) {
+      whenReady(notificationController.saveNotification(amlsRegistrationNumber)(postRequest).failed) {
         case HttpStatusException(status, b) =>
           status mustBe INTERNAL_SERVER_ERROR
           b mustBe Some("message")
@@ -148,10 +139,10 @@ class NotificationControllerSpec extends PlaySpec
       when(writeResult.writeErrors) thenReturn Seq(WriteError(0, 1, "Some error"))
 
       when {
-        TestNotificationController.notificationRepository.insertRecord(any())
+        notificationController.notificationRepository.insertRecord(any())
       } thenReturn Future.successful(writeResult)
 
-      whenReady(TestNotificationController.saveNotification(amlsRegistrationNumber)(postRequest)) { r =>
+      whenReady(notificationController.saveNotification(amlsRegistrationNumber)(postRequest)) { r =>
         r.header.status mustBe INTERNAL_SERVER_ERROR
       }
     }
@@ -181,28 +172,27 @@ class NotificationControllerSpec extends PlaySpec
           )
         )
       )
-      val result = TestNotificationController.saveNotification(amlsRegistrationNumber)(request)
+      val result = notificationController.saveNotification(amlsRegistrationNumber)(request)
 
       status(result) mustEqual BAD_REQUEST
       contentAsJson(result) mustEqual response
     }
 
     "return BadRequest, if input request fails validation of mongo fetch" in {
-      val result = TestNotificationController.fetchNotifications("accountType", "ref", "hhhh")(getRequest)
+      val result = notificationController.fetchNotifications("accountType", "ref", "hhhh")(getRequest)
       val failure = Json.obj("errors" -> Seq("Invalid AMLS Registration Number"))
 
       status(result) must be(BAD_REQUEST)
       contentAsJson(result) must be(failure)
     }
 
-
     "return an invalid response when fetch query fails" in {
 
       when {
-        TestNotificationController.notificationRepository.findByAmlsReference(any())
+        notificationController.notificationRepository.findByAmlsReference(any())
       } thenReturn Future.failed(new HttpStatusException(INTERNAL_SERVER_ERROR, Some("message")))
 
-      whenReady(TestNotificationController.fetchNotifications("accountType", "ref", amlsRegistrationNumber)(getRequest).failed) {
+      whenReady(notificationController.fetchNotifications("accountType", "ref", amlsRegistrationNumber)(getRequest).failed) {
         case HttpStatusException(status, body) =>
           status mustEqual INTERNAL_SERVER_ERROR
           body mustEqual Some("message")
@@ -212,79 +202,80 @@ class NotificationControllerSpec extends PlaySpec
     "return all the matching notifications form repository" when {
 
       val notificationRecord = NotificationRow(
-        Some(Status(StatusType.Revoked, Some(RevokedReason.RevokedCeasedTrading))),
-        Some(ContactType.MindedToRevoke),
-        None,
-        false,
-        DateTime.now(DateTimeZone.UTC),
-        false,
-        amlsRegistrationNumber,
-        Some("1"),
-        new IDType("5832e38e01000001005ca3ff"))
+        status = Some(Status(StatusType.Revoked, Some(RevokedReason.RevokedCeasedTrading))),
+        contactType = Some(ContactType.MindedToRevoke),
+        contactNumber = None,
+        variation = false,
+        receivedAt = DateTime.now(DateTimeZone.UTC),
+        isRead = false,
+        amlsRegistrationNumber = amlsRegistrationNumber,
+        templatePackageVersion = Some("1"),
+        _id = new IDType("5832e38e01000001005ca3ff"))
 
       val notificationRows = Seq(notificationRecord)
 
       val notificationRecordWithoutVersion = NotificationRow(
-        Some(Status(StatusType.Revoked, Some(RevokedReason.RevokedCeasedTrading))),
-        Some(ContactType.MindedToRevoke),
-        None,
-        false,
-        DateTime.now(DateTimeZone.UTC),
-        false,
-        amlsRegistrationNumber,
-        None,
-        new IDType("5832e38e01000001005ca3ff"))
+        status = Some(Status(StatusType.Revoked, Some(RevokedReason.RevokedCeasedTrading))),
+        contactType = Some(ContactType.MindedToRevoke),
+        contactNumber = None,
+        variation = false,
+        receivedAt = DateTime.now(DateTimeZone.UTC),
+        isRead = false,
+        amlsRegistrationNumber = amlsRegistrationNumber,
+        templatePackageVersion = None,
+        _id = new IDType("5832e38e01000001005ca3ff"))
 
       val notificationRowsWithoutVersion = Seq(notificationRecordWithoutVersion)
 
       "valid amlsRegistration number is passed and a version number" in {
-        when(TestNotificationController.notificationRepository.findByAmlsReference(any())).thenReturn(Future.successful(notificationRows))
+        when(notificationController.notificationRepository.findByAmlsReference(any())).thenReturn(Future.successful(notificationRows))
 
-        val result = TestNotificationController.fetchNotifications("accountType", "ref", amlsRegistrationNumber)(getRequest)
+        val result = notificationController.fetchNotifications("accountType", "ref", amlsRegistrationNumber)(getRequest)
         status(result) must be(OK)
         contentAsJson(result) must be(Json.toJson(notificationRows))
 
-        verify(TestNotificationController.notificationRepository).findByAmlsReference(amlsRegistrationNumber)
+        verify(notificationController.notificationRepository).findByAmlsReference(amlsRegistrationNumber)
       }
 
       "valid amlsRegistration number is passed and no version number" in {
-        when(TestNotificationController.notificationRepository.findByAmlsReference(any())).thenReturn(Future.successful(notificationRowsWithoutVersion))
+        when(notificationController.notificationRepository.findByAmlsReference(any())).thenReturn(Future.successful(notificationRowsWithoutVersion))
 
-        val result = TestNotificationController.fetchNotifications("accountType", "ref", amlsRegistrationNumber)(getRequest)
+        val result = notificationController.fetchNotifications("accountType", "ref", amlsRegistrationNumber)(getRequest)
         status(result) must be(OK)
-        contentAsJson(result) must be(Json.toJson(Seq(notificationRecordWithoutVersion.copy(templatePackageVersion = Some(amlsConfig.defaultTemplatePackageVersion)))))
+        contentAsJson(result) must be(Json.toJson(Seq(notificationRecordWithoutVersion.copy(templatePackageVersion = Some("v1m0")))))
 
-        verify(TestNotificationController.notificationRepository).findByAmlsReference(amlsRegistrationNumber)
+        verify(notificationController.notificationRepository).findByAmlsReference(amlsRegistrationNumber)
       }
 
       "a valid safeId is passed and a version number" in {
         when {
-          TestNotificationController.notificationRepository.findBySafeId(eqTo(safeId))
+          notificationController.notificationRepository.findBySafeId(eqTo(safeId))
         } thenReturn Future.successful(notificationRows)
 
-        val result = TestNotificationController.fetchNotificationsBySafeId("accountType", "ref", safeId)(getRequest)
+        val result = notificationController.fetchNotificationsBySafeId("accountType", "ref", safeId)(getRequest)
         status(result) mustBe OK
         contentAsJson(result) mustBe Json.toJson(notificationRows)
 
-        verify(TestNotificationController.notificationRepository).findBySafeId(safeId)
+        verify(notificationController.notificationRepository).findBySafeId(safeId)
       }
 
       "a valid safeId is passed and no version number" in {
         when {
-          TestNotificationController.notificationRepository.findBySafeId(eqTo(safeId))
+          mockNotificationRepository.findBySafeId(eqTo(safeId))
         } thenReturn Future.successful(notificationRowsWithoutVersion)
 
-        val result = TestNotificationController.fetchNotificationsBySafeId("accountType", "ref", safeId)(getRequest)
+        val result = notificationController.fetchNotificationsBySafeId("accountType", "ref", safeId)(getRequest)
         status(result) mustBe OK
-        contentAsJson(result) mustBe Json.toJson(Seq(notificationRecordWithoutVersion.copy(templatePackageVersion = Some(amlsConfig.defaultTemplatePackageVersion))))
-        verify(TestNotificationController.notificationRepository).findBySafeId(safeId)
+
+        contentAsJson(result) mustBe Json.toJson(Seq(notificationRecordWithoutVersion.copy(templatePackageVersion = Some("v1m0"))))
+        verify(mockNotificationRepository).findBySafeId(safeId)
       }
 
     }
 
     "return a bad request" when {
       "an invalid safeId is passed" in {
-        val result = TestNotificationController.fetchNotificationsBySafeId("accountType", "ref", "an invalid safe ID")(getRequest)
+        val result = notificationController.fetchNotificationsBySafeId("accountType", "ref", "an invalid safe ID")(getRequest)
 
         status(result) mustBe BAD_REQUEST
       }
