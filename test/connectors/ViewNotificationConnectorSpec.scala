@@ -35,7 +35,7 @@ import play.api.libs.json.Json
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.DataEvent
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.play.bootstrap.http.{DefaultHttpClient, HttpClient}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -54,7 +54,7 @@ class ViewNotificationConnectorSpec extends PlaySpec with MockitoSugar with Scal
   trait Fixture {
 
     val mockAppConfig = mock[ApplicationConfig]
-    val mockHttpClient = mock[HttpClient]
+    val mockHttpClient = mock[DefaultHttpClient]
     val mockAuditConnector = mock[AuditConnector]
     val mockMetrics = mock[Metrics]
 

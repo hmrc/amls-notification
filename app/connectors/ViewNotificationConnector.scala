@@ -28,13 +28,13 @@ import play.api.http.Status._
 import play.api.libs.json.{JsSuccess, Json, Writes}
 import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 
 
 class ViewNotificationConnector @Inject()(amlsConfig: ApplicationConfig,
-                                          val http: HttpClient,
+                                          val http: DefaultHttpClient,
                                           auditConnector: AuditConnector,
                                           val metrics: Metrics) extends DESConnector(amlsConfig, http, auditConnector, metrics) {
 
