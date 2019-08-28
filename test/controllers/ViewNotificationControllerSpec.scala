@@ -55,7 +55,6 @@ class ViewNotificationControllerSpec extends PlaySpec with ScalaFutures with Moc
       mockViewNotificationConnector,
       mockAuditConnector,
       mockCC,
-      SuccessfulAuthAction,
       mockNotificationMongoRepository
     )
   }
