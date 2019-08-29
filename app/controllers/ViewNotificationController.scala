@@ -17,7 +17,6 @@
 package controllers
 
 import audit.NotificationReadEvent
-import com.google.inject.Singleton
 import connectors.ViewNotificationConnector
 import exceptions.HttpStatusException
 import javax.inject.Inject
@@ -34,7 +33,6 @@ import utils.AuthAction
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-@Singleton
 class ViewNotificationController @Inject()(private[controllers] val connector: ViewNotificationConnector,
                                            private[controllers] val audit: AuditConnector,
                                            cc: ControllerComponents,
