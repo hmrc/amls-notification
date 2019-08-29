@@ -28,7 +28,6 @@ import play.api.mvc.ControllerComponents
 import repositories.NotificationMongoRepository
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
-import utils.AuthAction
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -36,7 +35,6 @@ import scala.concurrent.Future
 class ViewNotificationController @Inject()(private[controllers] val connector: ViewNotificationConnector,
                                            private[controllers] val audit: AuditConnector,
                                            cc: ControllerComponents,
-                                           authAction: AuthAction,
                                            private[controllers] val notificationRepository: NotificationMongoRepository) extends BackendController(cc) {
 
   val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
@@ -48,7 +46,7 @@ class ViewNotificationController @Inject()(private[controllers] val connector: V
     )
 
   def viewNotification(accountType:String, ref:String, amlsRegistrationNumber: String, notificationId: String) =
-    authAction.async {
+    Action.async {
       implicit request =>
         Logger.debug(s"$prefix[viewNotification] - amlsRegNo: $amlsRegistrationNumber - notificationId: $notificationId")
 
