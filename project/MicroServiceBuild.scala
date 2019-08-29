@@ -21,7 +21,8 @@ private object AppDependencies {
     "uk.gov.hmrc" %% "simple-reactivemongo" % simpleReactivemongoVersion,
     ws,
     "uk.gov.hmrc" %% "bootstrap-play-26" % bootstrapVersion,
-    "uk.gov.hmrc" %% "domain" % domainVersion
+    "uk.gov.hmrc" %% "domain" % domainVersion,
+    "uk.gov.hmrc" %% "auth-client" % authVersion
   )
 
   private val scalatestPlusPlayVersion = "3.1.2"
