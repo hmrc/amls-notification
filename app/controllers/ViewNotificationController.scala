@@ -48,7 +48,7 @@ class ViewNotificationController @Inject()(private[controllers] val connector: V
     )
 
   def viewNotification(accountType:String, ref:String, amlsRegistrationNumber: String, notificationId: String) =
-    Action.async {
+    authAction.async {
       implicit request =>
         Logger.debug(s"$prefix[viewNotification] - amlsRegNo: $amlsRegistrationNumber - notificationId: $notificationId")
 
