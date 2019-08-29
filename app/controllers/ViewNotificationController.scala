@@ -24,6 +24,7 @@ import models.NotificationRecord
 import models.fe.NotificationDetails
 import play.api.Logger
 import play.api.libs.json.{JsObject, Json}
+import utils.AuthAction
 import play.api.mvc.ControllerComponents
 import repositories.NotificationMongoRepository
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -35,6 +36,7 @@ import scala.concurrent.Future
 class ViewNotificationController @Inject()(private[controllers] val connector: ViewNotificationConnector,
                                            private[controllers] val audit: AuditConnector,
                                            cc: ControllerComponents,
+                                           authAction: AuthAction,
                                            private[controllers] val notificationRepository: NotificationMongoRepository) extends BackendController(cc) {
 
   val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r

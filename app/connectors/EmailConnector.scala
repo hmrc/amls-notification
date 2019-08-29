@@ -20,8 +20,8 @@ import config.ApplicationConfig
 import javax.inject.Inject
 import play.api.Logger
 import play.api.libs.json.Json
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
+import uk.gov.hmrc.http.{CorePost, HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -32,7 +32,7 @@ object SendTemplatedEmailRequest {
   implicit val format = Json.format[SendTemplatedEmailRequest]
 }
 
-class EmailConnector @Inject()(amlsConfig: ApplicationConfig, val http: DefaultHttpClient) {
+class EmailConnector @Inject()(amlsConfig: ApplicationConfig, val http: HttpClient) {
   def url = s"${amlsConfig.emailUrl}/send-templated-email"
 
   def sendNotificationReceivedTemplatedEmail(to: List[String])(implicit hc: HeaderCarrier): Future[Boolean] = {
