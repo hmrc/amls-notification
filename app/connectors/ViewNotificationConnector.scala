@@ -44,9 +44,10 @@ class ViewNotificationConnector @Inject()(amlsConfig: ApplicationConfig,
     val prefix = "[DESConnector][getNotification]"
     val bodyParser = JsonParsed[NotificationResponse]
     val timer = metrics.timer(API11)
+    val notificationUrl = s"$fullUrl/reg-number/$amlsRegistrationNumber/contact-number/$contactNumber"
     Logger.debug(s"$prefix - reg no: $amlsRegistrationNumber - contactNumber: $contactNumber")
 
-    http.GET[HttpResponse](s"$fullUrl/reg-number/$amlsRegistrationNumber/contact-number/$contactNumber") map {
+    http.GET[HttpResponse](notificationUrl)(implicitly, hc, implicitly) map {
       response =>
         timer.stop()
         Logger.debug(s"$prefix - Base Response: ${response.status}")
