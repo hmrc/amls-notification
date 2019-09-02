@@ -34,10 +34,7 @@ class ApplicationConfig @Inject()(config: Configuration, environment: Environmen
 
   lazy val desToken = config.get[String]("microservice.services.des.auth-token")
 
-  lazy val desEnv = {
-    val env = config.get[String]("microservice.services.des.env")
-    s"Env $env"
-  }
+  lazy val desEnv = config.get[String]("microservice.services.des.env")
 
   lazy val emailUrl = baseUrl("email")
 
