@@ -32,10 +32,7 @@ class ApplicationConfig @Inject()(config: Configuration, environment: Environmen
 
   val desUrl = baseUrl("des")
 
-  lazy val desToken = {
-    val token = config.get[String]("microservice.services.des.auth-token")
-    s"Bearer $token"
-  }
+  lazy val desToken = config.get[String]("microservice.services.des.auth-token")
 
   lazy val desEnv = {
     val env = config.get[String]("microservice.services.des.env")
