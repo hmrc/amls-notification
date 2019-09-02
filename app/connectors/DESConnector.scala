@@ -27,21 +27,26 @@ import uk.gov.hmrc.play.audit.model.Audit
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import utils.{AuditHelper, HttpResponseHelper}
 
-class DESConnector @Inject()(amlsConfig: ApplicationConfig, http: HttpClient, msAuditConnector: AuditConnector, metrics: Metrics) extends HttpResponseHelper {
+trait DESConnector extends HttpResponseHelper {
 
   val requestUrl = "anti-money-laundering/secure-comms"
+
+  protected val amlsConfig: ApplicationConfig
+  protected val http: HttpClient
+  protected val auditConnector: AuditConnector
+  protected val metrics: Metrics
 
   private[connectors] lazy val baseUrl: String = amlsConfig.desUrl
   private[connectors] lazy val token: String = s"Bearer ${amlsConfig.desToken}"
   private[connectors] lazy val env: String = amlsConfig.desEnv
-  private[connectors] val audit: Audit = new Audit(AuditHelper.appName, msAuditConnector)
+  private[connectors] val audit: Audit = new Audit(AuditHelper.appName, auditConnector)
   private[connectors] val fullUrl: String = s"$baseUrl/$requestUrl"
 
   protected implicit val hc = HeaderCarrier(
     extraHeaders = Seq(
       "Environment" -> env,
-      HeaderNames.ACCEPT -> "application/json"
-    ),
-    authorization = Some(Authorization(token))
+      HeaderNames.ACCEPT -> "application/json",
+      "Authorization" -> token
+    )
   )
 }
