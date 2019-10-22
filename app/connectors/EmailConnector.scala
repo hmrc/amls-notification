@@ -16,12 +16,12 @@
 
 package connectors
 
-import config.ApplicationConfig
 import javax.inject.Inject
 import play.api.Logger
 import play.api.libs.json.Json
-import uk.gov.hmrc.http.{CorePost, HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -32,8 +32,9 @@ object SendTemplatedEmailRequest {
   implicit val format = Json.format[SendTemplatedEmailRequest]
 }
 
-class EmailConnector @Inject()(amlsConfig: ApplicationConfig, val http: HttpClient) {
-  def url = s"${amlsConfig.emailUrl}/send-templated-email"
+class EmailConnector @Inject()(val config: ServicesConfig, val http: DefaultHttpClient) {
+  lazy val serviceURL: String = config.baseUrl(serviceName = "email")
+  val sendEmailURI = "/hmrc/email"
 
   def sendNotificationReceivedTemplatedEmail(to: List[String])(implicit hc: HeaderCarrier): Future[Boolean] = {
     val request = SendTemplatedEmailRequest(to, "amls_notification_received_template", Map())
@@ -41,10 +42,11 @@ class EmailConnector @Inject()(amlsConfig: ApplicationConfig, val http: HttpClie
   }
 
   private def sendEmail(request: SendTemplatedEmailRequest)(implicit hc: HeaderCarrier): Future[Boolean] = {
+    val postUrl = s"""$serviceURL$sendEmailURI"""
 
     Logger.debug(s"[EmailConnector] Sending email to ${request.to.mkString(", ")}")
 
-    http.POST[SendTemplatedEmailRequest, HttpResponse](url, request, Seq(("Content-Type", "application/json"))) map {
+    http.POST(postUrl, request) map {
       response =>
         response.status match {
           case 202 => Logger.debug(s"[EmailConnector] Email sent: ${response.body}"); true
