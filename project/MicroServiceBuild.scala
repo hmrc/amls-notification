@@ -11,7 +11,7 @@ private object AppDependencies {
   import play.sbt.PlayImport._
   import play.core.PlayVersion
 
-  private val bootstrapVersion = "0.45.0"
+  private val bootstrapVersion = "1.4.0"
   private val domainVersion = "5.6.0-play-26"
   private val pegdownVersion = "1.6.0"
   private val authVersion = "2.27.0-play-26"
