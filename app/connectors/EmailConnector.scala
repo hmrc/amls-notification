@@ -44,7 +44,7 @@ class EmailConnector @Inject()(amlsConfig: ApplicationConfig, val http: HttpClie
 
     Logger.debug(s"[EmailConnector] Sending email to ${request.to.mkString(", ")}")
 
-    http.POST[SendTemplatedEmailRequest, HttpResponse](url, request, Seq(("Content-Type", "application/json"))) map {
+    http.POST(url, request) map {
       response =>
         response.status match {
           case 202 => Logger.debug(s"[EmailConnector] Email sent: ${response.body}"); true
