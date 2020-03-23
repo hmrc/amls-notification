@@ -1,1 +1,2 @@
+ + [AMLS-5703] - 'Libraries upgrade'
  + [AMLS-5777] - 'Updated notification versions for secure comms changes'
