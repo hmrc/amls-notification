@@ -15,7 +15,7 @@ private object AppDependencies {
   private val domainVersion = "5.9.0-play-26"
   private val pegdownVersion = "1.6.0"
   private val authVersion = "3.0.0-play-26"
-  private val simpleReactivemongoVersion = "7.20.0-play-26"
+  private val simpleReactivemongoVersion = "7.26.0-play-26"
 
   val compile = Seq(
     "uk.gov.hmrc" %% "simple-reactivemongo" % simpleReactivemongoVersion,
