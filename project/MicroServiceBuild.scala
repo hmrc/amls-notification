@@ -11,10 +11,10 @@ private object AppDependencies {
   import play.sbt.PlayImport._
   import play.core.PlayVersion
 
-  private val bootstrapVersion = "1.4.0"
-  private val domainVersion = "5.6.0-play-26"
+  private val bootstrapVersion = "1.8.0"
+  private val domainVersion = "5.9.0-play-26"
   private val pegdownVersion = "1.6.0"
-  private val authVersion = "2.27.0-play-26"
+  private val authVersion = "3.0.0-play-26"
   private val simpleReactivemongoVersion = "7.20.0-play-26"
 
   val compile = Seq(
