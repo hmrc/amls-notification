@@ -24,7 +24,6 @@ import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.logging.Authorization
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.Audit
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import utils.{AuditHelper, HttpResponseHelper}
 
 trait DESConnector extends HttpResponseHelper {
