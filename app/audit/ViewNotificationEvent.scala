@@ -46,7 +46,10 @@ object ViewNotificationEvent {
 object ViewNotificationEventFailed {
   def apply
   (amlsRegistrationNumber: String, contactNumber: String, ex: HttpStatusException)
-  (implicit hc: HeaderCarrier): DataEvent =
+  (implicit
+   hc: HeaderCarrier,
+   resW: Writes[NotificationResponse]
+  ): DataEvent =
     DataEvent(
       auditSource = AuditHelper.appName,
       auditType = "viewNotificationEventFailed",
