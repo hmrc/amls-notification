@@ -17,7 +17,6 @@
 package connectors
 
 import config.ApplicationConfig
-import javax.inject.Inject
 import metrics.Metrics
 import play.mvc.Http.HeaderNames
 import uk.gov.hmrc.http._

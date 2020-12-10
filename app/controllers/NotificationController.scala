@@ -130,7 +130,6 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
 
   def fetchNotifications(accountType: String, ref: String, amlsRegistrationNumber: String) =
     Action.async {
-      implicit request =>
         Logger.debug(s"$prefix [fetchNotifications] - amlsRegNo: $amlsRegistrationNumber")
         amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
           case Some(_) =>
@@ -152,7 +151,6 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
     }
 
   def fetchNotificationsBySafeId(accountType: String, ref: String, safeId: String) = Action.async {
-      implicit request =>
         Logger.debug(s"$prefix [fetchNotificationsBySafeId] - safeId: $safeId")
         safeIdRegex.findFirstIn(safeId) match {
           case Some(_) =>

@@ -19,13 +19,11 @@ package models
 import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.{Json, JsSuccess}
-import reactivemongo.bson.BSONObjectID
 
 class NotificationRowSpec extends PlaySpec {
 
   "NotificationRow" must {
     "read and write json successfully" in {
-      val id = BSONObjectID.generate
       val amlsRegistrationNumber = "XAML00000567890"
 
       val model = NotificationRow(

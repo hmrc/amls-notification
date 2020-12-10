@@ -16,8 +16,6 @@
 
 package connectors
 
-import config.ApplicationConfig
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterAll
@@ -28,7 +26,7 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.play.bootstrap.http.{DefaultHttpClient, HttpClient}
+import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
 
 import scala.concurrent.Future
 
@@ -48,7 +46,7 @@ class EmailConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures wi
   "The Email connector" must {
     "send a details of the email template and content and report a positive response" in new Fixture {
       when(emailConnector.http.POST[SendTemplatedEmailRequest, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
-        .thenReturn(Future.successful(HttpResponse(202)))
+        .thenReturn(Future.successful(HttpResponse(202, "")))
 
       val result = await(emailConnector.sendNotificationReceivedTemplatedEmail(List(sendTo)))
 
@@ -56,10 +54,8 @@ class EmailConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures wi
     }
 
     "send a details of the email template and content and report a negative response" in new Fixture {
-      val requestCaptor = ArgumentCaptor.forClass(classOf[SendTemplatedEmailRequest])
-
       when(emailConnector.http.POST[SendTemplatedEmailRequest, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
-        .thenReturn(Future.successful(HttpResponse(400)))
+        .thenReturn(Future.successful(HttpResponse(400, "")))
 
       val result = await(emailConnector.sendNotificationReceivedTemplatedEmail(List(sendTo)))
 
