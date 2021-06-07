@@ -5,9 +5,7 @@ import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
 import uk.gov.hmrc._
 import DefaultBuildSettings.{addTestReportOption, defaultSettings, scalaSettings}
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
-import uk.gov.hmrc.versioning.SbtGitVersioning
 import uk.gov.hmrc.versioning.SbtGitVersioning.autoImport.majorVersion
-import uk.gov.hmrc.{SbtArtifactory, SbtAutoBuildPlugin}
 
 val appName: String = "amls-notification"
 
@@ -22,35 +20,32 @@ lazy val scoverageSettings = {
     ScoverageKeys.coverageMinimum := 100,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true,
-    parallelExecution in Test := false
+    Test / parallelExecution := false
   )
 }
 
 lazy val microservice = Project(appName, file("."))
-  .enablePlugins(Seq(play.sbt.PlayScala,SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory) ++ plugins : _*)
+  .enablePlugins(Seq(play.sbt.PlayScala, SbtDistributablesPlugin) ++ plugins : _*)
   .settings(majorVersion := 1)
   .settings(playSettings ++ scoverageSettings: _*)
   .settings(scalaSettings: _*)
   .settings(defaultSettings(): _*)
-  .settings(scalaVersion := "2.12.11")
+  .settings(scalaVersion := "2.12.12")
   .settings(
     libraryDependencies ++= appDependencies,
     PlayKeys.playDefaultPort := 8942,
     retrieveManaged := true,
-    evictionWarningOptions in update := EvictionWarningOptions.default.withWarnScalaVersionEviction(false)
+    update / evictionWarningOptions := EvictionWarningOptions.default.withWarnScalaVersionEviction(false)
   )
   .configs(IntegrationTest)
   .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)
   .settings(
-    Keys.fork in IntegrationTest := false,
-    unmanagedSourceDirectories in IntegrationTest := (baseDirectory in IntegrationTest)(base => Seq(base / "it")).value,
+    IntegrationTest / Keys.fork := false,
+    IntegrationTest / unmanagedSourceDirectories := (IntegrationTest / baseDirectory)(base => Seq(base / "it")).value,
     addTestReportOption(IntegrationTest, "int-test-reports"),
-    testGrouping in IntegrationTest := oneForkedJvmPerTest((definedTests in IntegrationTest).value),
-    parallelExecution in IntegrationTest := false)
-  .settings(resolvers ++= Seq(
-    Resolver.bintrayRepo("hmrc", "releases"),
-    Resolver.jcenterRepo
-  ))
+    IntegrationTest / testGrouping := oneForkedJvmPerTest((IntegrationTest / definedTests).value),
+    IntegrationTest / parallelExecution := false)
+  .settings(scalacOptions += "-P:silencer:pathFilters=routes")
   .disablePlugins(JUnitXmlReportPlugin)
 
 def oneForkedJvmPerTest(tests: Seq[TestDefinition]) =

@@ -91,7 +91,7 @@ class ViewNotificationConnectorSpec extends PlaySpec with MockitoSugar with Scal
       } thenReturn ((f: DataEvent) => dataEvent = f)
 
       when {
-        viewNotificationConnector.http.GET[HttpResponse](eqTo(url))(any(), any(), any())
+        viewNotificationConnector.http.GET[HttpResponse](any())(any(), any(), any())
       } thenReturn Future.successful(response)
 
       whenReady(viewNotificationConnector.getNotification(amlsRegistrationNumber, contactNumber)) {
@@ -109,7 +109,7 @@ class ViewNotificationConnectorSpec extends PlaySpec with MockitoSugar with Scal
         responseHeaders = Map.empty
       )
       when {
-        viewNotificationConnector.http.GET[HttpResponse](eqTo(url))(any(), any(), any())
+        viewNotificationConnector.http.GET[HttpResponse](any())(any(), any(), any())
       } thenReturn Future.successful(response)
 
       when {
@@ -153,7 +153,7 @@ class ViewNotificationConnectorSpec extends PlaySpec with MockitoSugar with Scal
     "return a failed future containing an exception message" in new Fixture {
 
       when {
-        viewNotificationConnector.http.GET[HttpResponse](eqTo(url))(any(), any(), any())
+        viewNotificationConnector.http.GET[HttpResponse](any())(any(), any(), any())
       } thenReturn Future.failed(new Exception("message"))
 
       whenReady(viewNotificationConnector.getNotification(amlsRegistrationNumber, contactNumber).failed) {

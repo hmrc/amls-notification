@@ -21,7 +21,7 @@ import play.api.Logger
 import play.api.mvc._
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.HeaderCarrierConverter
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -31,7 +31,7 @@ class DefaultAuthAction @Inject()(
                                  )(implicit ec: ExecutionContext) extends AuthAction with AuthorisedFunctions {
 
   override protected def filter[A](request: Request[A]): Future[Option[Result]] = {
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers)
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
 
     Logger.debug(s"DefaultAuthAction calling authorised(ConfidenceLevel.L50)")
 
