@@ -23,7 +23,7 @@ import exceptions.HttpStatusException
 import metrics.{API11, Metrics}
 import models.des.NotificationResponse
 import org.joda.time.{DateTimeUtils, LocalDateTime}
-import org.mockito.ArgumentMatchers.{any, eq => eqTo, _}
+import org.mockito.ArgumentMatchers.{any, eq => eqTo}
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
@@ -81,9 +81,9 @@ class ViewNotificationConnectorSpec extends PlaySpec with MockitoSugar with Scal
     "return a successful future containing the Notification response" in new Fixture {
 
       val response = HttpResponse(
-        responseStatus = OK,
-        responseHeaders = Map.empty,
-        responseJson = Some(Json.toJson(successModel))
+        status = OK,
+        json = Json.toJson(successModel),
+        headers = Map.empty
       )
 
       when {
@@ -105,8 +105,9 @@ class ViewNotificationConnectorSpec extends PlaySpec with MockitoSugar with Scal
     "return a failed future when the response contains a BAD_REQUEST and no response body" in new Fixture {
 
       val response = HttpResponse(
-        responseStatus = BAD_REQUEST,
-        responseHeaders = Map.empty
+        status = BAD_REQUEST,
+        headers = Map.empty,
+        body = null
       )
       when {
         viewNotificationConnector.http.GET[HttpResponse](any(), any(), any())(any(), any(), any())
@@ -128,9 +129,9 @@ class ViewNotificationConnectorSpec extends PlaySpec with MockitoSugar with Scal
     "return a failed future containing json validation message" in new Fixture {
 
       val response = HttpResponse(
-        responseStatus = OK,
-        responseHeaders = Map.empty,
-        responseString = Some("message")
+        status = OK,
+        headers= Map.empty,
+        body = "{\"message\": \"none\"}"
       )
 
       when {
@@ -144,7 +145,7 @@ class ViewNotificationConnectorSpec extends PlaySpec with MockitoSugar with Scal
       whenReady(viewNotificationConnector.getNotification(amlsRegistrationNumber, contactNumber).failed) {
         case HttpStatusException(status, body) =>
           status mustEqual OK
-          body mustEqual Some("message")
+          body mustEqual Some("{\"message\": \"none\"}")
           dataEvent.auditSource mustEqual "amls-notification"
           dataEvent.auditType mustEqual "viewNotificationEventFailed"
       }
