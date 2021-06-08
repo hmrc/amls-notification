@@ -46,6 +46,7 @@ lazy val microservice = Project(appName, file("."))
     IntegrationTest / testGrouping := oneForkedJvmPerTest((IntegrationTest / definedTests).value),
     IntegrationTest / parallelExecution := false)
   .settings(scalacOptions += "-P:silencer:pathFilters=routes")
+  .settings(Global / lintUnusedKeysOnLoad := false)
   .disablePlugins(JUnitXmlReportPlugin)
 
 def oneForkedJvmPerTest(tests: Seq[TestDefinition]) =
