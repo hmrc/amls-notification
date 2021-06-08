@@ -159,7 +159,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
             "error" -> "error.path.missing"
           ),
           Json.obj(
-            "path" -> "obj.variation",
+            "path" -> "obj.name",
             "error" -> "error.path.missing"
           ),
           Json.obj(
@@ -167,7 +167,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
             "error" -> "error.path.missing"
           ),
           Json.obj(
-            "path" -> "obj.name",
+            "path" -> "obj.variation",
             "error" -> "error.path.missing"
           )
         )
