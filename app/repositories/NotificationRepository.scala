@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package repositories
 import com.google.inject.{Inject, Singleton}
 import models.{NotificationRecord, NotificationRow}
 import play.api.Logger
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.Cursor
 import reactivemongo.api.commands.WriteResult
@@ -76,11 +76,11 @@ class NotificationMongoRepository @Inject()(component: ReactiveMongoComponent)
    def findByAmlsReference(amlsReferenceNumber: String) = {
      val query = Json.obj("amlsRegistrationNumber" -> amlsReferenceNumber)
 
-    collection.find(query).
+    collection.find(query, Option.empty[JsObject]).
       sort(Json.obj("receivedAt" -> -1)).cursor[NotificationRow]().collect[Seq](100, Cursor.FailOnError())
   }
 
-   def findBySafeId(safeId: String) = collection.find {
-    Json.obj("safeId" -> safeId)
-  }.sort(Json.obj("receivedAt" -> -1)).cursor[NotificationRow]().collect[Seq](100, Cursor.FailOnError())
+   def findBySafeId(safeId: String) = collection.find (
+    Json.obj("safeId" -> safeId), Option.empty[JsObject]
+   ).sort(Json.obj("receivedAt" -> -1)).cursor[NotificationRow]().collect[Seq](100, Cursor.FailOnError())
 }

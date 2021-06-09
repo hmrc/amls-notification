@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import models.des.NotificationResponse
 import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.{JsSuccess, Json, Writes}
+import play.mvc.Http.HeaderNames
 import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.http.HttpClient
@@ -47,7 +48,11 @@ class ViewNotificationConnector @Inject()(val amlsConfig: ApplicationConfig,
     val notificationUrl = s"$fullUrl/reg-number/$amlsRegistrationNumber/contact-number/$contactNumber"
     Logger.debug(s"$prefix - reg no: $amlsRegistrationNumber - contactNumber: $contactNumber")
 
-    http.GET[HttpResponse](notificationUrl)(implicitly, hc, implicitly) map {
+    http.GET[HttpResponse](notificationUrl, headers = Seq("Environment" -> env,
+      HeaderNames.ACCEPT -> "application/json",
+      "Authorization" -> token
+    )
+    )(implicitly, hc, implicitly) map {
       response =>
         timer.stop()
         Logger.debug(s"$prefix - Base Response: ${response.status}")

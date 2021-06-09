@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -159,7 +159,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
             "error" -> "error.path.missing"
           ),
           Json.obj(
-            "path" -> "obj.variation",
+            "path" -> "obj.name",
             "error" -> "error.path.missing"
           ),
           Json.obj(
@@ -167,7 +167,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
             "error" -> "error.path.missing"
           ),
           Json.obj(
-            "path" -> "obj.name",
+            "path" -> "obj.variation",
             "error" -> "error.path.missing"
           )
         )

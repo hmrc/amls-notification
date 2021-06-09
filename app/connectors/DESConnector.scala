@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,7 @@ package connectors
 
 import config.ApplicationConfig
 import metrics.Metrics
-import play.mvc.Http.HeaderNames
 import uk.gov.hmrc.http._
-import uk.gov.hmrc.http.logging.Authorization
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.Audit
 import utils.{AuditHelper, HttpResponseHelper}
@@ -40,11 +38,5 @@ trait DESConnector extends HttpResponseHelper {
   private[connectors] val audit: Audit = new Audit(AuditHelper.appName, auditConnector)
   private[connectors] val fullUrl: String = s"$baseUrl/$requestUrl"
 
-  protected implicit val hc = HeaderCarrier(
-    extraHeaders = Seq(
-      "Environment" -> env,
-      HeaderNames.ACCEPT -> "application/json"
-    ),
-    authorization = Some(Authorization(token))
-  )
+  protected implicit val hc = HeaderCarrier()
 }
