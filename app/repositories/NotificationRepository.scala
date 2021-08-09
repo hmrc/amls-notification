@@ -35,13 +35,14 @@ import scala.concurrent.Future
 class NotificationMongoRepository @Inject()(component: ReactiveMongoComponent)
   extends ReactiveRepository[NotificationRecord, BSONObjectID]("notification", component.mongoConnector.db, NotificationRecord.format) {
 
+  lazy val logging: Logger = Logger(this.getClass)
   override def indexes: Seq[Index] = {
     Seq(Index(Seq("receivedAt" -> IndexType.Ascending)))
   }
 
    def insertRecord(notificationRequest: NotificationRecord): Future[WriteResult] = {
     collection.insert(ordered = false).one(notificationRequest) map { writeResult =>
-      Logger.debug(s"[NotificationMongoRepository][insert] : { NotificationRequest : $notificationRequest" +
+      logging.debug(s"[NotificationMongoRepository][insert] : { NotificationRequest : $notificationRequest" +
         s" , result: ${writeResult.ok}, errors: ${WriteResult.lastError(writeResult)} }")
       writeResult
     }
@@ -54,7 +55,7 @@ class NotificationMongoRepository @Inject()(component: ReactiveMongoComponent)
      BSONObjectID.parse(id).map { objId: BSONObjectID =>
        collection.update(ordered = false).one(Json.obj("_id" -> Json.toJsFieldJsValueWrapper(objId)(idFormatImplicit)), modifier).
          map { lastError =>
-           Logger.debug(s"[NotificationMongoRepository][update] : { ID : $id" +
+           logger.debug(s"[NotificationMongoRepository][update] : { ID : $id" +
              s" , result: ${lastError.ok}, errors: ${lastError.errmsg} }")
            lastError.ok
          }

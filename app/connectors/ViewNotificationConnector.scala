@@ -23,7 +23,6 @@ import exceptions.HttpStatusException
 import javax.inject.Inject
 import metrics.{API11, Metrics}
 import models.des.NotificationResponse
-import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.{JsSuccess, Json, Writes}
 import play.mvc.Http.HeaderNames
@@ -46,7 +45,7 @@ class ViewNotificationConnector @Inject()(val amlsConfig: ApplicationConfig,
     val bodyParser = JsonParsed[NotificationResponse]
     val timer = metrics.timer(API11)
     val notificationUrl = s"$fullUrl/reg-number/$amlsRegistrationNumber/contact-number/$contactNumber"
-    Logger.debug(s"$prefix - reg no: $amlsRegistrationNumber - contactNumber: $contactNumber")
+    logger.debug(s"$prefix - reg no: $amlsRegistrationNumber - contactNumber: $contactNumber")
 
     http.GET[HttpResponse](notificationUrl, headers = Seq("Environment" -> env,
       HeaderNames.ACCEPT -> "application/json",
@@ -55,31 +54,31 @@ class ViewNotificationConnector @Inject()(val amlsConfig: ApplicationConfig,
     )(implicitly, hc, implicitly) map {
       response =>
         timer.stop()
-        Logger.debug(s"$prefix - Base Response: ${response.status}")
-        Logger.debug(s"$prefix - Response Body: ${response.body}")
+        logger.debug(s"$prefix - Base Response: ${response.status}")
+        logger.debug(s"$prefix - Response Body: ${response.body}")
         response
     } flatMap {
       case _@status(OK) & bodyParser(JsSuccess(body: NotificationResponse, _)) =>
         metrics.success(API11)
         audit.sendDataEvent(ViewNotificationEvent(amlsRegistrationNumber, contactNumber, body))
-        Logger.debug(s"$prefix - Success response")
-        Logger.debug(s"$prefix - Response body: ${Json.toJson(body)}")
+        logger.debug(s"$prefix - Success response")
+        logger.debug(s"$prefix - Response body: ${Json.toJson(body)}")
         Future.successful(body)
       case r@status(s) =>
         metrics.failed(API11)
-        Logger.warn(s"$prefix - Failure response: $s")
+        logger.warn(s"$prefix - Failure response: $s")
         val httpEx: HttpStatusException = HttpStatusException(s, Option(r.body))
         audit.sendDataEvent(ViewNotificationEventFailed(amlsRegistrationNumber, contactNumber, httpEx))
         Future.failed(HttpStatusException(s, Option(r.body)))
     } recoverWith {
       case e: HttpStatusException =>
-        Logger.warn(s"$prefix - Failure: Exception", e)
+        logger.warn(s"$prefix - Failure: Exception", e)
         audit.sendDataEvent(ViewNotificationEventFailed(amlsRegistrationNumber, contactNumber, e))
         Future.failed(e)
       case e =>
         timer.stop()
         metrics.failed(API11)
-        Logger.warn(s"$prefix - Failure: Exception", e)
+        logger.warn(s"$prefix - Failure: Exception", e)
         Future.failed(HttpStatusException(INTERNAL_SERVER_ERROR, Some(e.getMessage)))
     }
   }

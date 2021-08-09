@@ -16,7 +16,7 @@
 
 package utils
 
-import org.scalatest.MustMatchers
+import org.scalatest.matchers.must.Matchers
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
@@ -32,7 +32,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
-class DefaultAuthActionSpec extends PlaySpec with MockitoSugar with ScalaFutures with MustMatchers with IntegrationPatience with GuiceOneAppPerSuite {
+class DefaultAuthActionSpec extends PlaySpec with MockitoSugar with ScalaFutures with Matchers with IntegrationPatience with GuiceOneAppPerSuite {
 
   val mockAuthConnector = mock[AuthConnector]
   implicit val headCarrier = mock[HeaderCarrier]

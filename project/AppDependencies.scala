@@ -1,29 +1,25 @@
 import sbt._
+import play.sbt.PlayImport._
+import play.core.PlayVersion
 
 private object AppDependencies {
-  import play.sbt.PlayImport._
-  import play.core.PlayVersion
-
-  private val bootstrapVersion = "5.3.0"
-  private val domainVersion = "5.11.0-play-26"
-  private val pegdownVersion = "1.6.0"
-  private val simpleReactivemongoVersion = "8.0.0-play-26"
 
   val compile = Seq(
-    "uk.gov.hmrc" %% "simple-reactivemongo" % simpleReactivemongoVersion,
+    "uk.gov.hmrc" %% "simple-reactivemongo" % "8.0.0-play-28",
     ws,
-    "uk.gov.hmrc" %% "bootstrap-backend-play-26" % bootstrapVersion,
-    "uk.gov.hmrc" %% "domain" % domainVersion,
-    "com.github.ghik"     %  "silencer-lib"               % "1.7.1" % Provided cross CrossVersion.full,
-    compilerPlugin("com.github.ghik" % "silencer-plugin"  % "1.7.1" cross CrossVersion.full)
+    "uk.gov.hmrc" %% "bootstrap-backend-play-28" % "5.10.0",
+    "uk.gov.hmrc" %% "domain" % "6.2.0-play-28",
+    "com.github.ghik" % "silencer-lib" % "1.7.5" % Provided cross CrossVersion.full,
+    compilerPlugin("com.github.ghik" % "silencer-plugin" % "1.7.5" cross CrossVersion.full)
   )
 
-  private val scalatestPlusPlayVersion = "3.1.2"
-  private val scalaTestVersion = "3.0.9"
+  private val scalatestPlusPlayVersion = "5.1.0"
+  private val scalaTestVersion = "3.2.9"
+  private val pegdownVersion = "1.6.0"
 
   trait TestDependencies {
     lazy val scope: String = "test"
-    lazy val test : Seq[ModuleID] = ???
+    lazy val test: Seq[ModuleID] = ???
   }
 
   object Test {
@@ -33,8 +29,10 @@ private object AppDependencies {
         "org.scalatestplus.play" %% "scalatestplus-play" % scalatestPlusPlayVersion,
         "org.pegdown" % "pegdown" % pegdownVersion % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
-        "org.mockito" % "mockito-core" % "3.0.0" % scope,
-        "org.scalacheck" %% "scalacheck" % "1.14.0" % scope
+        "org.mockito" % "mockito-core" % "3.11.2" % scope,
+        "org.scalacheck" %% "scalacheck" % "1.15.4" % scope,
+        "org.scalatestplus" %% "mockito-3-4" % "3.2.9.0" % scope,
+        "com.vladsch.flexmark" %  "flexmark-all" % "0.36.8" % scope
       )
     }.test
   }
@@ -49,7 +47,7 @@ private object AppDependencies {
         "org.scalatestplus.play" %% "scalatestplus-play" % scalatestPlusPlayVersion,
         "org.pegdown" % "pegdown" % pegdownVersion % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
-        "org.mockito" % "mockito-core" % "3.9.0" % scope
+        "org.mockito" % "mockito-core" % "3.11.2" % scope
       )
     }.test
   }

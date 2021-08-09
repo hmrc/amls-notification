@@ -18,11 +18,11 @@ package models.fe
 
 import models._
 import org.joda.time.{DateTime, DateTimeZone}
-import org.scalatest.WordSpec
-import org.scalatest.MustMatchers
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
 
-class NotificationDetailsSpec extends WordSpec with MustMatchers {
+class NotificationDetailsSpec extends AnyWordSpec with Matchers {
 
   "NotificationDetails serialisation" must {
 

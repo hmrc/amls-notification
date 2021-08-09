@@ -19,10 +19,11 @@ package controllers
 import audit.NotificationReadEvent
 import connectors.ViewNotificationConnector
 import exceptions.HttpStatusException
+
 import javax.inject.Inject
 import models.NotificationRecord
 import models.fe.NotificationDetails
-import play.api.Logger
+import play.api.Logging
 import play.api.libs.json.{JsObject, Json}
 import utils.AuthAction
 import play.api.mvc.ControllerComponents
@@ -37,7 +38,7 @@ class ViewNotificationController @Inject()(private[controllers] val connector: V
                                            private[controllers] val audit: AuditConnector,
                                            cc: ControllerComponents,
                                            authAction: AuthAction,
-                                           private[controllers] val notificationRepository: NotificationMongoRepository) extends BackendController(cc) {
+                                           private[controllers] val notificationRepository: NotificationMongoRepository) extends BackendController(cc) with Logging {
 
   val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
   val prefix = "[ViewNotificationController]"
@@ -50,7 +51,7 @@ class ViewNotificationController @Inject()(private[controllers] val connector: V
   def viewNotification(accountType:String, ref:String, amlsRegistrationNumber: String, notificationId: String) =
     authAction.async {
       implicit request =>
-        Logger.debug(s"$prefix[viewNotification] - amlsRegNo: $amlsRegistrationNumber - notificationId: $notificationId")
+        logger.debug(s"$prefix[viewNotification] - amlsRegNo: $amlsRegistrationNumber - notificationId: $notificationId")
 
         amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
           case Some(_) => notificationRepository.findById(notificationId) flatMap {
@@ -65,7 +66,7 @@ class ViewNotificationController @Inject()(private[controllers] val connector: V
                     record.receivedAt
                   )
 
-                  Logger.debug(s"$prefix[viewNotification] - sending: $notificationDetails")
+                  logger.debug(s"$prefix[viewNotification] - sending: $notificationDetails")
                   audit.sendExtendedEvent(NotificationReadEvent(amlsRegistrationNumber,notificationDetails))
                   Ok(Json.toJson(notificationDetails))
               }
@@ -91,7 +92,7 @@ class ViewNotificationController @Inject()(private[controllers] val connector: V
         Ok(Json.toJson(response))
     } recoverWith {
       case e@HttpStatusException(status, _) =>
-        Logger.warn(s"$prefix - Failed to mark notification as read. Status: ${status}")
+        logger.warn(s"$prefix - Failed to mark notification as read. Status: ${status}")
         Future.failed(e)
     }
   }
