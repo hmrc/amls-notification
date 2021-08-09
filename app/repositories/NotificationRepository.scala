@@ -55,7 +55,7 @@ class NotificationMongoRepository @Inject()(component: ReactiveMongoComponent)
      BSONObjectID.parse(id).map { objId: BSONObjectID =>
        collection.update(ordered = false).one(Json.obj("_id" -> Json.toJsFieldJsValueWrapper(objId)(idFormatImplicit)), modifier).
          map { lastError =>
-           logger.debug(s"[NotificationMongoRepository][update] : { ID : $id" +
+           logging.debug(s"[NotificationMongoRepository][update] : { ID : $id" +
              s" , result: ${lastError.ok}, errors: ${lastError.errmsg} }")
            lastError.ok
          }
