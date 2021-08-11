@@ -17,7 +17,7 @@
 package connectors
 
 import javax.inject.Inject
-import play.api.Logger
+import play.api.Logging
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
@@ -33,7 +33,7 @@ object SendTemplatedEmailRequest {
   implicit val format = Json.format[SendTemplatedEmailRequest]
 }
 
-class EmailConnector @Inject()(val config: ServicesConfig, val http: DefaultHttpClient) {
+class EmailConnector @Inject()(val config: ServicesConfig, val http: DefaultHttpClient) extends Logging {
   lazy val serviceURL: String = config.baseUrl(serviceName = "email")
   val sendEmailURI = "/hmrc/email"
 
@@ -45,13 +45,13 @@ class EmailConnector @Inject()(val config: ServicesConfig, val http: DefaultHttp
   private def sendEmail(request: SendTemplatedEmailRequest)(implicit hc: HeaderCarrier): Future[Boolean] = {
     val postUrl = s"""$serviceURL$sendEmailURI"""
 
-    Logger.debug(s"[EmailConnector] Sending email to ${request.to.mkString(", ")}")
+    logger.debug(s"[EmailConnector] Sending email to ${request.to.mkString(", ")}")
 
     http.POST(postUrl, request) map {
       response =>
         response.status match {
-          case 202 => Logger.debug(s"[EmailConnector] Email sent: ${response.body}"); true
-          case _ => Logger.error(s"[EmailConnector] Email not sent: ${response.body}"); false
+          case 202 => logger.debug(s"[EmailConnector] Email sent: ${response.body}"); true
+          case _ => logger.error(s"[EmailConnector] Email not sent: ${response.body}"); false
         }
     }
   }

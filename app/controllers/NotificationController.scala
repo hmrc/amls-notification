@@ -21,10 +21,11 @@ import com.google.inject.Singleton
 import config.ApplicationConfig
 import connectors.EmailConnector
 import exceptions.HttpStatusException
+
 import javax.inject.Inject
 import models.{NotificationPushRequest, NotificationRecord}
 import org.joda.time.{DateTime, DateTimeZone}
-import play.api.Logger
+import play.api.Logging
 import play.api.libs.json._
 import play.api.mvc.ControllerComponents
 import repositories.NotificationMongoRepository
@@ -32,7 +33,6 @@ import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
-
 import scala.concurrent.Future
 
 @Singleton
@@ -40,7 +40,7 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
                                        amlsConfig: ApplicationConfig,
                                        private[controllers] val auditConnector: AuditConnector,
                                        private[controllers] val cc: ControllerComponents,
-                                       private[controllers] val notificationRepository: NotificationMongoRepository) extends BackendController(cc) {
+                                       private[controllers] val notificationRepository: NotificationMongoRepository) extends BackendController(cc) with Logging {
 
   val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
   val safeIdRegex = "^[A-Za-z0-9]{15}$".r
@@ -66,7 +66,7 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
   def saveNotification(amlsRegistrationNumber: String) =
     Action.async(parse.json) {
       implicit request =>
-        Logger.debug(s"$prefix [saveNotification] - amlsRegNo: $amlsRegistrationNumber, body: ${request.body.toString}")
+        logger.debug(s"$prefix [saveNotification] - amlsRegNo: $amlsRegistrationNumber, body: ${request.body.toString}")
         amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
           case Some(_) =>
             Json.fromJson[NotificationPushRequest](request.body) match {
@@ -87,7 +87,7 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
 
                 if (!body.isSane) {
                   // $COVERAGE-OFF$
-                  Logger.warn(s"$prefix [saveNotification] - $amlsRegistrationNumber - malformed API 12 message received")
+                  logger.warn(s"$prefix [saveNotification] - $amlsRegistrationNumber - malformed API 12 message received")
                   // $COVERAGE-ON$
                 }
 
@@ -97,7 +97,7 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
                     auditConnector.sendExtendedEvent(NotificationReceivedEvent(amlsRegistrationNumber, body))
                     NoContent
                   case result =>
-                    Logger.error(s"$prefix [saveNotification] - Could not save notification results")
+                    logger.error(s"$prefix [saveNotification] - Could not save notification results")
 
                     auditConnector.sendExtendedEvent(NotificationFailedEvent(
                       amlsRegistrationNumber,
@@ -108,7 +108,7 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
                     InternalServerError
                 } recoverWith {
                   case e@HttpStatusException(status, Some(exceptionBody)) =>
-                    Logger.warn(s"$prefix [saveNotification] - Status: $status, Message: $exceptionBody")
+                    logger.warn(s"$prefix [saveNotification] - Status: $status, Message: $exceptionBody")
 
                     auditConnector.sendExtendedEvent(NotificationFailedEvent(
                       amlsRegistrationNumber,
@@ -130,17 +130,17 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
 
   def fetchNotifications(accountType: String, ref: String, amlsRegistrationNumber: String) =
     Action.async {
-        Logger.debug(s"$prefix [fetchNotifications] - amlsRegNo: $amlsRegistrationNumber")
+        logger.debug(s"$prefix [fetchNotifications] - amlsRegNo: $amlsRegistrationNumber")
         amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
           case Some(_) =>
             notificationRepository.findByAmlsReference(amlsRegistrationNumber) map {
               response =>
                 val newResponse = response.map(x => x.copy(templatePackageVersion = x.templatePackageVersion orElse Some(amlsConfig.defaultTemplatePackageVersion)) )
-                Logger.debug(s"$prefix [fetchNotifications] - Response: ${Json.toJson(newResponse)}")
+                logger.debug(s"$prefix [fetchNotifications] - Response: ${Json.toJson(newResponse)}")
                 Ok(Json.toJson(newResponse))
             } recoverWith {
               case e@HttpStatusException(status, Some(body)) =>
-                Logger.warn(s"$prefix [fetchNotifications] - Status: ${status}, Message: $body")
+                logger.warn(s"$prefix [fetchNotifications] - Status: ${status}, Message: $body")
                 Future.failed(e)
             }
           case _ =>
@@ -151,18 +151,18 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
     }
 
   def fetchNotificationsBySafeId(accountType: String, ref: String, safeId: String) = Action.async {
-        Logger.debug(s"$prefix [fetchNotificationsBySafeId] - safeId: $safeId")
+        logger.debug(s"$prefix [fetchNotificationsBySafeId] - safeId: $safeId")
         safeIdRegex.findFirstIn(safeId) match {
           case Some(_) =>
             notificationRepository.findBySafeId(safeId) map {
               response =>
               val newResponse = response.map(x => x.copy(templatePackageVersion = x.templatePackageVersion orElse Some(amlsConfig.defaultTemplatePackageVersion)) )
-              Logger.debug(s"$prefix [fetchNotificationsBySafeId] - Response: ${Json.toJson(newResponse)}")
+              logger.debug(s"$prefix [fetchNotificationsBySafeId] - Response: ${Json.toJson(newResponse)}")
               Ok(Json.toJson(newResponse))
             } recoverWith {
               case e@HttpStatusException(status, Some(body)) =>
                 // $COVERAGE-OFF$
-                Logger.warn(s"$prefix [fetchNotificationsBySafeId] - Status: ${status}, Message: $body")
+                logger.warn(s"$prefix [fetchNotificationsBySafeId] - Status: ${status}, Message: $body")
                 Future.failed(e)
               // $COVERAGE-ON$
             }

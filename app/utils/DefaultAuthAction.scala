@@ -17,7 +17,7 @@
 package utils
 
 import javax.inject.Inject
-import play.api.Logger
+import play.api.Logging
 import play.api.mvc._
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -28,19 +28,19 @@ import scala.concurrent.{ExecutionContext, Future}
 class DefaultAuthAction @Inject()(
                                    val authConnector: AuthConnector,
                                    val controllerComponents: ControllerComponents
-                                 )(implicit ec: ExecutionContext) extends AuthAction with AuthorisedFunctions {
+                                 )(implicit ec: ExecutionContext) extends AuthAction with AuthorisedFunctions with Logging {
 
   override protected def filter[A](request: Request[A]): Future[Option[Result]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
 
-    Logger.debug(s"DefaultAuthAction calling authorised(ConfidenceLevel.L50)")
+    logger.debug(s"DefaultAuthAction calling authorised(ConfidenceLevel.L50)")
 
     authorised(ConfidenceLevel.L50) {
-      Logger.debug(s"DefaultAuthAction calling authorised(ConfidenceLevel.L50) - success")
+      logger.debug(s"DefaultAuthAction calling authorised(ConfidenceLevel.L50) - success")
       Future.successful(None)
     }.recover[Option[Result]] {
       case e: AuthorisationException => {
-        Logger.debug(s"DefaultAuthAction calling authorised(ConfidenceLevel.L50 - fail: " + e)
+        logger.debug(s"DefaultAuthAction calling authorised(ConfidenceLevel.L50 - fail: " + e)
         Some(Results.Unauthorized)
       }
     }
