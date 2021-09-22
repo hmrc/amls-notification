@@ -16,11 +16,12 @@
 
 package connectors
 
+import config.ApplicationConfig
+
 import javax.inject.Inject
 import play.api.Logging
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 
@@ -30,11 +31,11 @@ import scala.concurrent.Future
 case class SendTemplatedEmailRequest(to: List[String], templateId: String, parameters: Map[String, String])
 
 object SendTemplatedEmailRequest {
-  implicit val format = Json.format[SendTemplatedEmailRequest]
+  implicit val format: OFormat[SendTemplatedEmailRequest] = Json.format[SendTemplatedEmailRequest]
 }
 
-class EmailConnector @Inject()(val config: ServicesConfig, val http: DefaultHttpClient) extends Logging {
-  lazy val serviceURL: String = config.baseUrl(serviceName = "email")
+class EmailConnector @Inject()(val config: ApplicationConfig, val http: DefaultHttpClient) extends Logging {
+  lazy val serviceURL: String = config.emailUrl
   val sendEmailURI = "/hmrc/email"
 
   def sendNotificationReceivedTemplatedEmail(to: List[String])(implicit hc: HeaderCarrier): Future[Boolean] = {

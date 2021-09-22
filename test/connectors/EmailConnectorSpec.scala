@@ -16,6 +16,7 @@
 
 package connectors
 
+import config.ApplicationConfig
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterAll
@@ -25,7 +26,6 @@ import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
 
 import scala.concurrent.Future
@@ -37,10 +37,10 @@ class EmailConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures wi
     implicit val hc = HeaderCarrier()
 
     val sendTo = "e@mail.com"
-    val mockAppConfig = mock[ServicesConfig]
     val mockHttpClient = mock[DefaultHttpClient]
+    val config = app.injector.instanceOf[ApplicationConfig]
 
-    val emailConnector = new EmailConnector(mockAppConfig, mockHttpClient)
+    val emailConnector = new EmailConnector(config, mockHttpClient)
   }
 
   "The Email connector" must {

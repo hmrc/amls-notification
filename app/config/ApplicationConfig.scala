@@ -17,34 +17,27 @@
 package config
 
 import com.google.inject.Singleton
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+
 import javax.inject.Inject
-import play.api.{Configuration, Environment}
 
 @Singleton
-class ApplicationConfig @Inject()(config: Configuration, environment: Environment) {
+class ApplicationConfig @Inject()(servicesConfig: ServicesConfig) {
 
-  private def baseUrl(serviceName: String) = {
-    val protocol = config.getOptional[String](s"microservice.services.protocol").getOrElse("https")
-    val host = config.get[String](s"microservice.services.$serviceName.host")
-    val port = config.get[String](s"microservice.services.$serviceName.port")
-    s"$protocol://$host:$port"
-  }
+  private def getBaseUrl(service: String) = servicesConfig.baseUrl(service)
 
-  val desUrl = baseUrl("des")
+  private def getConfString(key: String): String =
+    servicesConfig.getConfString(key, throw new RuntimeException(s"config $key not found"))
 
-  lazy val desToken = config.get[String]("microservice.services.des.auth-token")
+  val desUrl: String = getBaseUrl("des")
 
-  lazy val desEnv = config.get[String]("microservice.services.des.env")
+  val desToken: String = getConfString("des.auth-token")
 
-  lazy val emailUrl = baseUrl("email")
+  val desEnv: String = getConfString("des.env")
 
-  def currentTemplatePackageVersion = {
-    val currentTemplate = config.get[String]("microservice.services.current-template-package-version")
-    currentTemplate
-  }
+  val emailUrl: String = getBaseUrl("email")
 
-  def defaultTemplatePackageVersion = {
-    val defaultTemplate = config.get[String]("microservice.services.default-template-package-version" )
-    defaultTemplate
-  }
+  val currentTemplatePackageVersion: String = getConfString("current-template-package-version")
+
+  val defaultTemplatePackageVersion: String = getConfString("default-template-package-version")
 }
