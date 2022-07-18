@@ -57,6 +57,7 @@ object DataGen {
     ContactType.RenewalApproval,
     ContactType.AutoExpiryOfRegistration,
     ContactType.RenewalReminder,
+    ContactType.NewRenewalReminder,
     ContactType.ReminderToPayForApplication,
     ContactType.ReminderToPayForRenewal,
     ContactType.ReminderToPayForVariation,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -156,17 +156,20 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
           case Some(_) =>
             notificationRepository.findBySafeId(safeId) map {
               response =>
+                println(" inside response::"+response)
               val newResponse = response.map(x => x.copy(templatePackageVersion = x.templatePackageVersion orElse Some(amlsConfig.defaultTemplatePackageVersion)) )
               logger.debug(s"$prefix [fetchNotificationsBySafeId] - Response: ${Json.toJson(newResponse)}")
               Ok(Json.toJson(newResponse))
             } recoverWith {
               case e@HttpStatusException(status, Some(body)) =>
+                println(" inside HttpStatusException::")
                 // $COVERAGE-OFF$
                 logger.warn(s"$prefix [fetchNotificationsBySafeId] - Status: ${status}, Message: $body")
                 Future.failed(e)
               // $COVERAGE-ON$
             }
           case _ =>
+            println(" inside case _ notification::")
             Future.successful {
               BadRequest(toError("Invalid SafeID"))
             }
