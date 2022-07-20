@@ -35,6 +35,7 @@ class ContactTypeSpec extends PlaySpec {
       ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.NewRenewalReminder)) must be(JsSuccess(ContactType.NewRenewalReminder))
       ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.AutoExpiryOfRegistration)) must be(JsSuccess(ContactType.AutoExpiryOfRegistration))
       ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.RenewalReminder)) must be(JsSuccess(ContactType.RenewalReminder))
+      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.NewRenewalReminder)) must be(JsSuccess(ContactType.NewRenewalReminder))
       ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.ReminderToPayForApplication)) must be(JsSuccess(ContactType.ReminderToPayForApplication))
       ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.ReminderToPayForRenewal)) must be(JsSuccess(ContactType.ReminderToPayForRenewal))
       ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.ReminderToPayForVariation)) must be(JsSuccess(ContactType.ReminderToPayForVariation))

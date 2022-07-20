@@ -21,9 +21,10 @@ import com.google.inject.Singleton
 import config.ApplicationConfig
 import connectors.EmailConnector
 import exceptions.HttpStatusException
+import models.ContactType.{NewRenewalReminder, RenewalReminder}
 
 import javax.inject.Inject
-import models.{NotificationPushRequest, NotificationRecord}
+import models.{ContactType, NotificationPushRequest, NotificationRecord}
 import org.joda.time.{DateTime, DateTimeZone}
 import play.api.Logging
 import play.api.libs.json._
@@ -32,6 +33,7 @@ import repositories.NotificationMongoRepository
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -156,7 +158,14 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
           case Some(_) =>
             notificationRepository.findBySafeId(safeId) map {
               response =>
-              val newResponse = response.map(x => x.copy(templatePackageVersion = x.templatePackageVersion orElse Some(amlsConfig.defaultTemplatePackageVersion)) )
+              val newResponse = response.map(x =>
+                if(x.receivedAt.isBeforeNow)
+
+                x.copy(templatePackageVersion = x.templatePackageVersion orElse Some(amlsConfig.defaultTemplatePackageVersion),
+                contactType = x.contactType match {
+                  case Some(RenewalReminder) => Some(reminderContactType)
+                  case _ => x.contactType
+                }))
               logger.debug(s"$prefix [fetchNotificationsBySafeId] - Response: ${Json.toJson(newResponse)}")
               Ok(Json.toJson(newResponse))
             } recoverWith {
@@ -172,5 +181,17 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
             }
         }
     }
+
+  private def reminderContactType: ContactType = {
+    List(14: Int, 7: Int).fold(28: Int)((a, b) => if (
+      Math.abs(LocalDate.now().getDayOfMonth() - (LocalDate.now().lengthOfMonth() - a))
+      < Math.abs(LocalDate.now().getDayOfMonth() - (LocalDate.now().lengthOfMonth() - b)))
+      a else b)
+    match {
+      case 28 => RenewalReminder
+      case 14 => NewRenewalReminder
+      case 7 => NewRenewalReminder
+    }
+  }
 }
 
