@@ -273,6 +273,28 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
 
     }
 
+    "return correct Content Type" when {
+
+      val notificationRecord = NotificationRow(
+        status = Some(Status(StatusType.Revoked, Some(RevokedReason.RevokedCeasedTrading))),
+        contactType = Some(ContactType.NewRenewalReminder),
+        contactNumber = None,
+        variation = false,
+        receivedAt = DateTime.now(DateTimeZone.UTC),
+        isRead = false,
+        amlsRegistrationNumber = amlsRegistrationNumber,
+        templatePackageVersion = Some("1"),
+        _id = new IDType("5832e38e01000001005ca3ff"))
+
+      val notificationRows = Seq(notificationRecord)
+
+      val result = notificationController.fetchNotificationsBySafeId("accountType", "ref", safeId)(getRequest)
+
+      "28 days" in{ contentAsJson(result) mustBe Json.toJson(notificationRows)}
+      "14 days"in{}
+      "7 days "in{}
+    }
+
     "return a bad request" when {
       "an invalid safeId is passed" in {
         val result = notificationController.fetchNotificationsBySafeId("accountType", "ref", "an invalid safe ID")(getRequest)
