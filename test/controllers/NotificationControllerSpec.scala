@@ -288,11 +288,9 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
 
       val notificationRows = Seq(notificationRecord)
 
-      val result = notificationController.fetchNotificationsBySafeId("accountType", "ref", safeId)(getRequest)
 
-      "28 days" in{ contentAsJson(result) mustBe Json.toJson(notificationRows)}
-      "14 days"in{}
-      "7 days "in{}
+      "28 days" in{ notificationController.saveNotification(amlsRegistrationNumber)(postRequest)}
+
     }
 
     "return a bad request" when {
