@@ -72,16 +72,7 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
           case Some(_) =>
             Json.fromJson[NotificationPushRequest](request.body) match {
               case JsSuccess(body, _) =>
-
-                val contactType = reminderContactTypeChecker(body.contactType,DateTime.now(DateTimeZone.UTC))
-
-                val templateVersion = {contactType.fold(amlsConfig.currentTemplatePackageVersion)(contactType =>
-                  contactType match {
-                  case AutoExpiryOfRegistration | RenewalReminder | NewRenewalReminder | ReminderToPayForRenewal
-                  => amlsConfig.newTemplatePackageVersions
-                  case _ => amlsConfig.currentTemplatePackageVersion
-                })}
-
+                val (contactType, templateVersion) = reminderContactTypeChecker(body.contactType,DateTime.now(DateTimeZone.UTC))
                 val record = NotificationRecord(amlsRegistrationNumber,
                   body.safeId,
                   body.name,
@@ -183,7 +174,23 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
         }
     }
 
-  private def reminderContactTypeChecker(contactType: Option[ContactType], date: DateTime): Option[ContactType] ={
+//  def reminderContactTypeChecker(contactType: Option[ContactType], date: DateTime): Option[ContactType] ={
+//    contactType match {
+//      case Some(RenewalReminder) =>
+//        List(7: Int, 14: Int).fold(28: Int)((daysFromEndOfMonth1, daysFromEndOfMonth2) => if (
+//          Math.abs(date.getDayOfMonth() - (date.dayOfMonth().getMaximumValue - daysFromEndOfMonth1))
+//            < Math.abs(date.getDayOfMonth() - (date.dayOfMonth().getMaximumValue - daysFromEndOfMonth2)))
+//          daysFromEndOfMonth1 else daysFromEndOfMonth2)
+//        match {
+//          case 28 => Some(RenewalReminder)
+//          case 14 => Some(NewRenewalReminder)
+//          case 7 => Some(NewRenewalReminder)
+//        }
+//      case _ => contactType
+//    }
+//  }
+
+  def reminderContactTypeChecker(contactType: Option[ContactType], date: DateTime): (Option[ContactType], String) ={
     contactType match {
       case Some(RenewalReminder) =>
         List(7: Int, 14: Int).fold(28: Int)((daysFromEndOfMonth1, daysFromEndOfMonth2) => if (
@@ -191,13 +198,13 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
             < Math.abs(date.getDayOfMonth() - (date.dayOfMonth().getMaximumValue - daysFromEndOfMonth2)))
           daysFromEndOfMonth1 else daysFromEndOfMonth2)
         match {
-          case 28 => Some(RenewalReminder)
-          case 14 => Some(NewRenewalReminder)
-          case 7 => Some(NewRenewalReminder)
+          case 28 => (Some(RenewalReminder), amlsConfig.newTemplatePackageVersions)
+          case 14 => (Some(NewRenewalReminder), amlsConfig.newTemplatePackageVersions)
+          case 7 => (Some(NewRenewalReminder), amlsConfig.newTemplatePackageVersions)
         }
-      case _ => contactType
+      case Some(AutoExpiryOfRegistration) |  Some(ReminderToPayForRenewal) => (contactType, amlsConfig.newTemplatePackageVersions)
+      case _ => (contactType, amlsConfig.currentTemplatePackageVersion)
     }
-
   }
 }
 
