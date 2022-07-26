@@ -19,6 +19,7 @@ package controllers
 import config.ApplicationConfig
 import connectors.EmailConnector
 import exceptions.HttpStatusException
+import models.ContactType.{NewRenewalReminder, RenewalReminder}
 import models._
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.ArgumentCaptor
@@ -275,21 +276,55 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
 
     "return correct Content Type" when {
 
-      val notificationRecord = NotificationRow(
-        status = Some(Status(StatusType.Revoked, Some(RevokedReason.RevokedCeasedTrading))),
-        contactType = Some(ContactType.NewRenewalReminder),
-        contactNumber = None,
-        variation = false,
-        receivedAt = DateTime.now(DateTimeZone.UTC),
-        isRead = false,
-        amlsRegistrationNumber = amlsRegistrationNumber,
-        templatePackageVersion = Some("1"),
-        _id = new IDType("5832e38e01000001005ca3ff"))
+      "contact Type is RenewalReminder" when {
+        "28 days " in{
+          val result = notificationController.reminderContactTypeChecker(Some(RenewalReminder), DateTime.parse("2022-07-03T10:49:17.727Z"))
+          result must be((Some(RenewalReminder), "v5m0"))
+        }
 
-      val notificationRows = Seq(notificationRecord)
+        "14 days" in{
+          val result = notificationController.reminderContactTypeChecker(Some(RenewalReminder), DateTime.parse("2022-07-16T10:49:17.727Z"))
+          result must be((Some(NewRenewalReminder),"v5m0"))
+        }
 
+        "7 days" in{
+          val result = notificationController.reminderContactTypeChecker(Some(RenewalReminder), DateTime.parse("2022-07-28T10:49:17.727Z"))
+          result must be((Some(NewRenewalReminder),"v5m0"))
+        }
 
-      "28 days" in{ notificationController.saveNotification(amlsRegistrationNumber)(postRequest)}
+      }
+
+      "contact Type is not renewal Reminder but new template needed" in {
+        List(ContactType.AutoExpiryOfRegistration, ContactType.ReminderToPayForRenewal).foreach { cTYpe =>
+          withClue(s"For Contact Type [$cTYpe]") {
+            val result = notificationController
+              .reminderContactTypeChecker(Some(cTYpe), DateTime.parse("2022-07-22T10:49:17.727Z"))
+            result must be((Some(cTYpe), "v5m0"))
+          }
+        }
+      }
+
+      "contact Type is not renewal Reminder but old template needed" in {
+        List(ContactType.RejectionReasons,
+          ContactType.RevocationReasons,
+          ContactType.MindedToReject,
+          ContactType.NoLongerMindedToReject,
+          ContactType.MindedToRevoke,
+          ContactType.NoLongerMindedToRevoke,
+          ContactType.Others,
+          ContactType.ApplicationApproval,
+          ContactType.RenewalApproval,
+          ContactType.ReminderToPayForApplication,
+          ContactType.ReminderToPayForVariation,
+          ContactType.ReminderToPayForManualCharges).foreach { cTYpe =>
+          withClue(s"For Contact Type [$cTYpe]") {
+            val result = notificationController
+              .reminderContactTypeChecker(Some(cTYpe), DateTime.parse("2022-07-22T10:49:17.727Z"))
+            result must be((Some(cTYpe), "v4m0"))
+          }
+        }
+      }
+
 
     }
 
