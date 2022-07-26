@@ -77,8 +77,8 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
 
                 val templateVersion = {contactType.fold(amlsConfig.currentTemplatePackageVersion)(contactType =>
                   contactType match {
-                  case AutoExpiryOfRegistration || RenewalReminder || NewRenewalReminder || ReminderToPayForRenewal
-                    => amlsConfig.newTemplatePackageVersions
+                  case AutoExpiryOfRegistration | RenewalReminder | NewRenewalReminder | ReminderToPayForRenewal
+                  => amlsConfig.newTemplatePackageVersions
                   case _ => amlsConfig.currentTemplatePackageVersion
                 })}
 
