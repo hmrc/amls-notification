@@ -33,7 +33,6 @@ import repositories.NotificationMongoRepository
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -74,12 +73,14 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
             Json.fromJson[NotificationPushRequest](request.body) match {
               case JsSuccess(body, _) =>
 
+                val contactType = reminderContactTypeChecker(body.contactType,DateTime.now(DateTimeZone.UTC))
+
                 val record = NotificationRecord(amlsRegistrationNumber,
                   body.safeId,
                   body.name,
                   body.email,
                   body.status,
-                  body.contactType,
+                  contactType,
                   body.contactNumber,
                   body.variation,
                   DateTime.now(DateTimeZone.UTC),
@@ -158,14 +159,7 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
           case Some(_) =>
             notificationRepository.findBySafeId(safeId) map {
               response =>
-              val newResponse = response.map(x =>
-                if(x.receivedAt.isBeforeNow)
-
-                x.copy(templatePackageVersion = x.templatePackageVersion orElse Some(amlsConfig.defaultTemplatePackageVersion),
-                contactType = x.contactType match {
-                  case Some(RenewalReminder) => Some(reminderContactType)
-                  case _ => x.contactType
-                }))
+                val newResponse = response.map(x => x.copy(templatePackageVersion = x.templatePackageVersion orElse Some(amlsConfig.defaultTemplatePackageVersion)) )
               logger.debug(s"$prefix [fetchNotificationsBySafeId] - Response: ${Json.toJson(newResponse)}")
               Ok(Json.toJson(newResponse))
             } recoverWith {
@@ -182,16 +176,21 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
         }
     }
 
-  private def reminderContactType: ContactType = {
-    List(14: Int, 7: Int).fold(28: Int)((a, b) => if (
-      Math.abs(LocalDate.now().getDayOfMonth() - (LocalDate.now().lengthOfMonth() - a))
-      < Math.abs(LocalDate.now().getDayOfMonth() - (LocalDate.now().lengthOfMonth() - b)))
-      a else b)
-    match {
-      case 28 => RenewalReminder
-      case 14 => NewRenewalReminder
-      case 7 => NewRenewalReminder
+  private def reminderContactTypeChecker(contactType: Option[ContactType], date: DateTime): Option[ContactType] ={
+    contactType match {
+      case Some(RenewalReminder) =>
+        List(14: Int, 7: Int).fold(28: Int)((a, b) => if (
+          Math.abs(date.getDayOfMonth() - (date.dayOfMonth().getMaximumValue - a))
+            < Math.abs(date.getDayOfMonth() - (date.dayOfMonth().getMaximumValue - b)))
+          a else b)
+        match {
+          case 28 => Some(RenewalReminder)
+          case 14 => Some(NewRenewalReminder)
+          case 7 => Some(NewRenewalReminder)
+        }
+      case _ => contactType
     }
+
   }
 }
 
