@@ -80,6 +80,7 @@ class ViewNotificationConnector @Inject()(val amlsConfig: ApplicationConfig,
         metrics.failed(API11)
         logger.warn(s"$prefix - Failure: Exception", e)
         Future.failed(HttpStatusException(INTERNAL_SERVER_ERROR, Some(e.getMessage)))
+
     }
   }
 }
