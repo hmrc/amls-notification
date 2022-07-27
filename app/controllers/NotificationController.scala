@@ -72,7 +72,7 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
           case Some(_) =>
             Json.fromJson[NotificationPushRequest](request.body) match {
               case JsSuccess(body, _) =>
-                val (contactType, templateVersion) = checkReminderType(body.contactType,DateTime.now(DateTimeZone.UTC))
+                val (contactType, templateVersion) = getContactTypeAndTemplateVersion(body.contactType,DateTime.now(DateTimeZone.UTC))
                 val record = NotificationRecord(amlsRegistrationNumber,
                   body.safeId,
                   body.name,
@@ -174,7 +174,7 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
         }
     }
 
-  def checkReminderType(contactType: Option[ContactType], date: DateTime): (Option[ContactType], String) ={
+  def getContactTypeAndTemplateVersion(contactType: Option[ContactType], date: DateTime): (Option[ContactType], String) ={
     contactType match {
       case Some(RenewalReminder) =>
         List(7: Int, 14: Int).fold(28: Int)((daysFromEndOfMonth1, daysFromEndOfMonth2) => if (
