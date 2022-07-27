@@ -22,6 +22,7 @@ import config.ApplicationConfig
 import connectors.EmailConnector
 import exceptions.HttpStatusException
 import models.ContactType.{AutoExpiryOfRegistration, NewRenewalReminder, ReminderToPayForRenewal, RenewalReminder}
+
 import javax.inject.Inject
 import models.{ContactType, NotificationPushRequest, NotificationRecord}
 import org.joda.time.{DateTime, DateTimeZone}
