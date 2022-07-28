@@ -21,7 +21,7 @@ import com.google.inject.Singleton
 import config.ApplicationConfig
 import connectors.EmailConnector
 import exceptions.HttpStatusException
-import models.ContactType.{AutoExpiryOfRegistration, NewRenewalReminder, ReminderToPayForRenewal, RenewalReminder}
+import models.ContactType.{ NewRenewalReminder, RenewalReminder}
 
 import javax.inject.Inject
 import models.{ContactType, NotificationPushRequest, NotificationRecord}
@@ -72,7 +72,7 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
           case Some(_) =>
             Json.fromJson[NotificationPushRequest](request.body) match {
               case JsSuccess(body, _) =>
-                val (contactType, templateVersion) = getContactTypeAndTemplateVersion(body.contactType,DateTime.now(DateTimeZone.UTC))
+                val contactType = getContactTypeAndTemplateVersion(body.contactType,DateTime.now(DateTimeZone.UTC))
                 val record = NotificationRecord(amlsRegistrationNumber,
                   body.safeId,
                   body.name,
@@ -83,7 +83,7 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
                   body.variation,
                   DateTime.now(DateTimeZone.UTC),
                   isRead = false,
-                  Some(templateVersion)
+                  Some(amlsConfig.currentTemplatePackageVersion)
                 )
 
                 if (!body.isSane) {
@@ -174,7 +174,7 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
         }
     }
 
-  def getContactTypeAndTemplateVersion(contactType: Option[ContactType], date: DateTime): (Option[ContactType], String) ={
+  def getContactTypeAndTemplateVersion(contactType: Option[ContactType], date: DateTime): Option[ContactType] ={
     contactType match {
       case Some(RenewalReminder) =>
         List(7: Int, 14: Int).fold(28: Int)((daysFromEndOfMonth1, daysFromEndOfMonth2) => if (
@@ -182,12 +182,11 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
             < Math.abs(date.getDayOfMonth() - (date.dayOfMonth().getMaximumValue - daysFromEndOfMonth2)))
           daysFromEndOfMonth1 else daysFromEndOfMonth2)
         match {
-          case 28 => (Some(RenewalReminder), amlsConfig.newTemplatePackageVersions)
-          case 14 => (Some(NewRenewalReminder), amlsConfig.newTemplatePackageVersions)
-          case 7 => (Some(NewRenewalReminder), amlsConfig.newTemplatePackageVersions)
+          case 28 => Some(RenewalReminder)
+          case 14 => Some(NewRenewalReminder)
+          case 7 => Some(NewRenewalReminder)
         }
-      case Some(AutoExpiryOfRegistration) |  Some(ReminderToPayForRenewal) => (contactType, amlsConfig.newTemplatePackageVersions)
-      case _ => (contactType, amlsConfig.currentTemplatePackageVersion)
+      case _ => contactType
     }
   }
 }

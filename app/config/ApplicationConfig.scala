@@ -40,6 +40,4 @@ class ApplicationConfig @Inject()(servicesConfig: ServicesConfig) {
   val currentTemplatePackageVersion: String = getConfString("current-template-package-version")
 
   val defaultTemplatePackageVersion: String = getConfString("default-template-package-version")
-
-  val newTemplatePackageVersions: String = getConfString("new-template-package-version")
 }
