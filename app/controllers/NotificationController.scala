@@ -72,7 +72,7 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
           case Some(_) =>
             Json.fromJson[NotificationPushRequest](request.body) match {
               case JsSuccess(body, _) =>
-                val contactType = getContactTypeAndTemplateVersion(body.contactType,DateTime.now(DateTimeZone.UTC))
+                val contactType = getContactType(body.contactType,DateTime.now(DateTimeZone.UTC))
                 val record = NotificationRecord(amlsRegistrationNumber,
                   body.safeId,
                   body.name,
@@ -174,18 +174,11 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
         }
     }
 
-  def getContactTypeAndTemplateVersion(contactType: Option[ContactType], date: DateTime): Option[ContactType] ={
+  def getContactType(contactType: Option[ContactType], date: DateTime): Option[ContactType] ={
+    val boundaryDay = date.dayOfMonth().getMaximumValue - (28+14)/2
     contactType match {
-      case Some(RenewalReminder) =>
-        List(7: Int, 14: Int).fold(28: Int)((daysFromEndOfMonth1, daysFromEndOfMonth2) => if (
-          Math.abs(date.getDayOfMonth() - (date.dayOfMonth().getMaximumValue - daysFromEndOfMonth1))
-            < Math.abs(date.getDayOfMonth() - (date.dayOfMonth().getMaximumValue - daysFromEndOfMonth2)))
-          daysFromEndOfMonth1 else daysFromEndOfMonth2)
-        match {
-          case 28 => Some(RenewalReminder)
-          case 14 => Some(NewRenewalReminder)
-          case 7 => Some(NewRenewalReminder)
-        }
+      case Some(RenewalReminder) if date.getDayOfMonth () >= boundaryDay =>
+        Some(NewRenewalReminder)
       case _ => contactType
     }
   }

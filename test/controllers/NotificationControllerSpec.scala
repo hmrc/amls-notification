@@ -278,17 +278,17 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
 
       "contact Type is RenewalReminder" when {
         "28 days " in{
-          val result = notificationController.getContactTypeAndTemplateVersion(Some(RenewalReminder), DateTime.parse("2022-07-03T10:49:17.727Z"))
+          val result = notificationController.getContactType(Some(RenewalReminder), DateTime.parse("2022-07-03T10:49:17.727Z"))
           result must be(Some(RenewalReminder))
         }
 
         "14 days" in{
-          val result = notificationController.getContactTypeAndTemplateVersion(Some(RenewalReminder), DateTime.parse("2022-07-16T10:49:17.727Z"))
+          val result = notificationController.getContactType(Some(RenewalReminder), DateTime.parse("2022-07-16T10:49:17.727Z"))
           result must be(Some(NewRenewalReminder))
         }
 
         "7 days" in{
-          val result = notificationController.getContactTypeAndTemplateVersion(Some(RenewalReminder), DateTime.parse("2022-07-28T10:49:17.727Z"))
+          val result = notificationController.getContactType(Some(RenewalReminder), DateTime.parse("2022-07-28T10:49:17.727Z"))
           result must be (Some(NewRenewalReminder))
         }
 
@@ -298,7 +298,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
         List(ContactType.AutoExpiryOfRegistration, ContactType.ReminderToPayForRenewal).foreach { cTYpe =>
           withClue(s"For Contact Type [$cTYpe]") {
             val result = notificationController
-              .getContactTypeAndTemplateVersion(Some(cTYpe), DateTime.parse("2022-07-22T10:49:17.727Z"))
+              .getContactType(Some(cTYpe), DateTime.parse("2022-07-22T10:49:17.727Z"))
             result must be(Some(cTYpe))
           }
         }
@@ -319,7 +319,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
           ContactType.ReminderToPayForManualCharges).foreach { cTYpe =>
           withClue(s"For Contact Type [$cTYpe]") {
             val result = notificationController
-              .getContactTypeAndTemplateVersion(Some(cTYpe), DateTime.parse("2022-07-22T10:49:17.727Z"))
+              .getContactType(Some(cTYpe), DateTime.parse("2022-07-22T10:49:17.727Z"))
             result must be(Some(cTYpe))
           }
         }
