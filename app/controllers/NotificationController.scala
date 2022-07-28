@@ -175,21 +175,10 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
     }
 
   def getContactTypeAndTemplateVersion(contactType: Option[ContactType], date: DateTime): (Option[ContactType], String) ={
+    val boundaryDay = date.dayOfMonth().getMaximumValue - (28+14)/2
     val newContactType = contactType match {
-
-      case Some(RenewalReminder) => {
-        val maximumDay : Int = date.dayOfMonth().getMaximumValue
-        List(7: Int, 14: Int).fold(28: Int)((accumulator, candidate) => if (
-          Math.abs(date.getDayOfMonth() - (maximumDay - accumulator))
-            < Math.abs(date.getDayOfMonth() - (maximumDay - candidate)))
-          accumulator else candidate)
-        match {
-          case 28 => Some(RenewalReminder)
-          case 14 => Some(NewRenewalReminder)
-          case 7 => Some(NewRenewalReminder)
-        }
-      }
-      case Some(AutoExpiryOfRegistration) |  Some(ReminderToPayForRenewal) => contactType
+      case Some(RenewalReminder) if date.getDayOfMonth () >= boundaryDay =>
+        Some(NewRenewalReminder)
       case _ => contactType
     }
     (newContactType, amlsConfig.currentTemplatePackageVersion)
