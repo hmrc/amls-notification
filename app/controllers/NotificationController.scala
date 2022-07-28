@@ -21,9 +21,10 @@ import com.google.inject.Singleton
 import config.ApplicationConfig
 import connectors.EmailConnector
 import exceptions.HttpStatusException
+import models.ContactType.{ NewRenewalReminder, RenewalReminder}
 
 import javax.inject.Inject
-import models.{NotificationPushRequest, NotificationRecord}
+import models.{ContactType, NotificationPushRequest, NotificationRecord}
 import org.joda.time.{DateTime, DateTimeZone}
 import play.api.Logging
 import play.api.libs.json._
@@ -71,13 +72,13 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
           case Some(_) =>
             Json.fromJson[NotificationPushRequest](request.body) match {
               case JsSuccess(body, _) =>
-
+                val contactType = getContactType(body.contactType,DateTime.now(DateTimeZone.UTC))
                 val record = NotificationRecord(amlsRegistrationNumber,
                   body.safeId,
                   body.name,
                   body.email,
                   body.status,
-                  body.contactType,
+                  contactType,
                   body.contactNumber,
                   body.variation,
                   DateTime.now(DateTimeZone.UTC),
@@ -156,7 +157,7 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
           case Some(_) =>
             notificationRepository.findBySafeId(safeId) map {
               response =>
-              val newResponse = response.map(x => x.copy(templatePackageVersion = x.templatePackageVersion orElse Some(amlsConfig.defaultTemplatePackageVersion)) )
+                val newResponse = response.map(x => x.copy(templatePackageVersion = x.templatePackageVersion orElse Some(amlsConfig.defaultTemplatePackageVersion)) )
               logger.debug(s"$prefix [fetchNotificationsBySafeId] - Response: ${Json.toJson(newResponse)}")
               Ok(Json.toJson(newResponse))
             } recoverWith {
@@ -172,5 +173,14 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
             }
         }
     }
+
+  def getContactType(contactType: Option[ContactType], date: DateTime): Option[ContactType] ={
+    val boundaryDay = date.dayOfMonth().getMaximumValue - (28+14)/2
+    contactType match {
+      case Some(RenewalReminder) if date.getDayOfMonth () >= boundaryDay =>
+        Some(NewRenewalReminder)
+      case _ => contactType
+    }
+  }
 }
 

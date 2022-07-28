@@ -33,6 +33,7 @@ object ContactType {
   case object RenewalApproval extends ContactType
   case object AutoExpiryOfRegistration extends ContactType
   case object RenewalReminder extends ContactType
+  case object NewRenewalReminder extends ContactType
   case object ReminderToPayForApplication extends ContactType
   case object ReminderToPayForRenewal extends ContactType
   case object ReminderToPayForVariation extends ContactType
@@ -51,6 +52,7 @@ object ContactType {
       case JsString("APR1") => JsSuccess(RenewalApproval)
       case JsString("EXPR") => JsSuccess(AutoExpiryOfRegistration)
       case JsString("RREM") => JsSuccess(RenewalReminder)
+      case JsString("RREM2") => JsSuccess(NewRenewalReminder)
       case JsString("RPA1") => JsSuccess(ReminderToPayForApplication)
       case JsString("RPR1") => JsSuccess(ReminderToPayForRenewal)
       case JsString("RPV1") => JsSuccess(ReminderToPayForVariation)
@@ -72,6 +74,7 @@ object ContactType {
       case RenewalApproval => JsString("APR1")
       case AutoExpiryOfRegistration => JsString("EXPR")
       case RenewalReminder => JsString("RREM")
+      case NewRenewalReminder => JsString("RREM2")
       case ReminderToPayForApplication => JsString("RPA1")
       case ReminderToPayForRenewal => JsString("RPR1")
       case ReminderToPayForVariation => JsString("RPV1")
