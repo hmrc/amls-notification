@@ -17,71 +17,69 @@
 package repositories
 
 import com.google.inject.{Inject, Singleton}
+import com.mongodb.ErrorCategory
 import models.{NotificationRecord, NotificationRow}
-import play.api.Logger
-import play.api.libs.json.{JsObject, Json}
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.Cursor
-import reactivemongo.api.commands.WriteResult
-import reactivemongo.api.indexes.{Index, IndexType}
-import reactivemongo.bson.BSONObjectID
-import reactivemongo.play.json.ImplicitBSONHandlers._
-import uk.gov.hmrc.mongo.ReactiveRepository
+import org.mongodb.scala.MongoWriteException
+import org.mongodb.scala.model.Indexes.ascending
+import org.mongodb.scala.model.{Filters, FindOneAndUpdateOptions, IndexModel, IndexOptions, ReturnDocument, Sorts, Updates}
+import play.api.Logging
+import play.api.libs.json.{JsObject, JsValue, Json, Writes}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class NotificationMongoRepository @Inject()(component: ReactiveMongoComponent)
-  extends ReactiveRepository[NotificationRecord, BSONObjectID]("notification", component.mongoConnector.db, NotificationRecord.format) {
+class NotificationMongoRepository @Inject()(mongo: MongoComponent)
+  extends PlayMongoRepository[NotificationRecord](
+    mongoComponent = mongo,
+    collectionName ="notification",
+    domainFormat =NotificationRecord.format,
+    indexes = Seq(IndexModel(ascending("receivedAt"), IndexOptions()
+      .name("receivedAt")
+    ),
+  ))with Logging
+{
 
-  lazy val logging: Logger = Logger(this.getClass)
-  override def indexes: Seq[Index] = {
-    Seq(Index(Seq("receivedAt" -> IndexType.Ascending)))
+   def insertRecord(notificationRequest: NotificationRecord): Future[Boolean] = {
+    collection
+      .insertOne(notificationRequest)
+      .toFuture()
+      .map(_.wasAcknowledged)
+      .recoverWith {
+        case e: MongoWriteException if e.getError.getCategory == ErrorCategory.DUPLICATE_KEY =>
+          Future.failed(new IllegalArgumentException("NINO and UTR must both be unique"))
+      }
   }
 
-   def insertRecord(notificationRequest: NotificationRecord): Future[WriteResult] = {
-    collection.insert(ordered = false).one(notificationRequest) map { writeResult =>
-      logging.debug(s"[NotificationMongoRepository][insert] : { NotificationRequest : $notificationRequest" +
-        s" , result: ${writeResult.ok}, errors: ${WriteResult.lastError(writeResult)} }")
-      writeResult
+  def markAsRead(id: String): Future[Boolean] = {
+    collection
+      .findOneAndUpdate(
+        filter = Filters.eq("_id",id),
+        update = Updates.set("isRead", true),
+        options = FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)
+      ).toFuture().map{ result =>
+      if(result.isRead == true){
+        true
+      }else false
     }
   }
 
-   def markAsRead(id: String): Future[Boolean] = {
-
-    val modifier = Json.obj("$set" -> Json.obj("isRead" -> true))
-
-     BSONObjectID.parse(id).map { objId: BSONObjectID =>
-       collection.update(ordered = false).one(Json.obj("_id" -> Json.toJsFieldJsValueWrapper(objId)(idFormatImplicit)), modifier).
-         map { lastError =>
-           logging.debug(s"[NotificationMongoRepository][update] : { ID : $id" +
-             s" , result: ${lastError.ok}, errors: ${lastError.errmsg} }")
-           lastError.ok
-         }
-     } .recover {
-       case _: IllegalArgumentException => Future.successful(false)
-     } .get
-  }
-
   def findById(idString: String): Future[Option[NotificationRecord]] = {
-
-    BSONObjectID.parse(idString).map { objId: BSONObjectID =>
-      findById(objId)
-    } .recover {
-      case _: IllegalArgumentException => Future.successful(None)
-    } .get
-
+    collection.find(Filters.eq("objId",idString)).toFuture().map(_.headOption)
   }
 
    def findByAmlsReference(amlsReferenceNumber: String) = {
-     val query = Json.obj("amlsRegistrationNumber" -> amlsReferenceNumber)
 
-    collection.find(query, Option.empty[JsObject]).
-      sort(Json.obj("receivedAt" -> -1)).cursor[NotificationRow]().collect[Seq](100, Cursor.FailOnError())
+     collection.find(Filters.eq("amlsRegistrationNumber",amlsReferenceNumber)).sort(Sorts.descending("receivedAt"))
+       .collect()
+       .toFuture()
+       .map(result => result)
   }
 
-   def findBySafeId(safeId: String) = collection.find (
-    Json.obj("safeId" -> safeId), Option.empty[JsObject]
-   ).sort(Json.obj("receivedAt" -> -1)).cursor[NotificationRow]().collect[Seq](100, Cursor.FailOnError())
+  def findBySafeId(safeId: String) = collection.find (Filters.eq("safeId",safeId)).sort(Sorts.descending("receivedAt"))
+    .collect()
+    .toFuture()
+    .map(result => result)
 }

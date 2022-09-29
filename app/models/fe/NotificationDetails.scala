@@ -19,7 +19,7 @@ package models.fe
 import models.{ContactType, Status}
 import org.joda.time.DateTime
 import play.api.libs.json.Json
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats
 
 case class NotificationDetails(contactType : Option[ContactType],
                                status : Option[Status],
@@ -30,7 +30,7 @@ case class NotificationDetails(contactType : Option[ContactType],
 
 object NotificationDetails {
 
-  implicit val dateFormat = ReactiveMongoFormats.dateTimeFormats
+  implicit val dateFormat = MongoJodaFormats.dateTimeFormat
 
   implicit val writes = Json.writes[NotificationDetails]
 }

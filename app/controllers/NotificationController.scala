@@ -93,20 +93,10 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
                 }
 
                 notificationRepository.insertRecord(record) map {
-                  case result if result.ok =>
+                  case result if result == true =>
                     emailConnector.sendNotificationReceivedTemplatedEmail(List(body.email))
                     auditConnector.sendExtendedEvent(NotificationReceivedEvent(amlsRegistrationNumber, body))
                     NoContent
-                  case result =>
-                    logger.error(s"$prefix [saveNotification] - Could not save notification results")
-
-                    auditConnector.sendExtendedEvent(NotificationFailedEvent(
-                      amlsRegistrationNumber,
-                      body,
-                      result.writeErrors map { e => s"${e.code}: ${e.errmsg}" }
-                    ))
-
-                    InternalServerError
                 } recoverWith {
                   case e@HttpStatusException(status, Some(exceptionBody)) =>
                     logger.warn(s"$prefix [saveNotification] - Status: $status, Message: $exceptionBody")

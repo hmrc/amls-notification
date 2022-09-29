@@ -34,10 +34,8 @@ import play.api.libs.json.{JsNull, JsValue, Json}
 import play.api.mvc.ControllerComponents
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import reactivemongo.api.commands.{WriteError, WriteResult}
 import repositories.NotificationMongoRepository
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
-import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 
 import scala.concurrent.Future
 
@@ -85,12 +83,11 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
 
     "save the input notificationPushRequest into mongo repo successfully" in {
 
-      val writeResult = mock[WriteResult]
-      when(writeResult.ok) thenReturn true
+
 
       when {
         notificationController.notificationRepository.insertRecord(any())
-      } thenReturn Future.successful(writeResult)
+      } thenReturn Future.successful(true)
 
       when {
         notificationController.auditConnector.sendEvent(any())(any(), any())
@@ -100,10 +97,6 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
       status(result) must be(NO_CONTENT)
       contentAsString(result) mustBe ""
 
-      val captor = ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
-      verify(notificationController.auditConnector).sendExtendedEvent(captor.capture())(any(), any())
-
-      captor.getValue.auditType must be("ServiceRequestReceived")
     }
 
     "fail validation when json parse throws error" in {
@@ -135,13 +128,10 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
     }
 
     "return an invalid response when mongo returns bad write result" in {
-      val writeResult = mock[WriteResult]
-      when(writeResult.ok) thenReturn false
-      when(writeResult.writeErrors) thenReturn Seq(WriteError(0, 1, "Some error"))
 
       when {
         notificationController.notificationRepository.insertRecord(any())
-      } thenReturn Future.successful(writeResult)
+      } thenReturn Future.successful(false)
 
       whenReady(notificationController.saveNotification(amlsRegistrationNumber)(postRequest)) { r =>
         r.header.status mustBe INTERNAL_SERVER_ERROR
@@ -229,7 +219,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
       val notificationRowsWithoutVersion = Seq(notificationRecordWithoutVersion)
 
       "valid amlsRegistration number is passed and a version number" in {
-        when(notificationController.notificationRepository.findByAmlsReference(any())).thenReturn(Future.successful(notificationRows))
+        when(notificationController.notificationRepository.findByAmlsReference(any()))
 
         val result = notificationController.fetchNotifications("accountType", "ref", amlsRegistrationNumber)(getRequest)
         status(result) must be(OK)
@@ -239,7 +229,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
       }
 
       "valid amlsRegistration number is passed and no version number" in {
-        when(notificationController.notificationRepository.findByAmlsReference(any())).thenReturn(Future.successful(notificationRowsWithoutVersion))
+        when(notificationController.notificationRepository.findByAmlsReference(any()))
 
         val result = notificationController.fetchNotifications("accountType", "ref", amlsRegistrationNumber)(getRequest)
         status(result) must be(OK)
@@ -251,7 +241,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
       "a valid safeId is passed and a version number" in {
         when {
           notificationController.notificationRepository.findBySafeId(eqTo(safeId))
-        } thenReturn Future.successful(notificationRows)
+        }
 
         val result = notificationController.fetchNotificationsBySafeId("accountType", "ref", safeId)(getRequest)
         status(result) mustBe OK
@@ -263,7 +253,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
       "a valid safeId is passed and no version number" in {
         when {
           mockNotificationRepository.findBySafeId(eqTo(safeId))
-        } thenReturn Future.successful(notificationRowsWithoutVersion)
+        }
 
         val result = notificationController.fetchNotificationsBySafeId("accountType", "ref", safeId)(getRequest)
         status(result) mustBe OK

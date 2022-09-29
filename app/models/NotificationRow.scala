@@ -18,7 +18,7 @@ package models
 
 import org.joda.time.DateTime
 import play.api.libs.json._
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats
 
 case class NotificationRow (
                              status: Option[Status],
@@ -34,7 +34,7 @@ case class NotificationRow (
 
 object NotificationRow {
 
-  implicit val dateFormat = ReactiveMongoFormats.dateTimeFormats
+  implicit val dateFormat = MongoJodaFormats.dateTimeFormat
   implicit val format = Json.format[NotificationRow]
 }
 
