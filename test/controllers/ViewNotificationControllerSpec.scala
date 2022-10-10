@@ -207,7 +207,7 @@ class ViewNotificationControllerSpec extends PlaySpec with ScalaFutures with Moc
                 "status" -> Json.obj("status_type"->"04", "status_reason" -> "02"),
                 "messageText" -> "THIS IS THE MESSAGE TEXT 00001",
                 "variation" -> true,
-                "receivedAt" -> Json.parse("""{"$date":1479730062573}""")
+                "receivedAt" -> Json.parse("""{"$date":{"$numberLong":"1479730062573"}}""")
               ))
             }
           }
@@ -233,7 +233,7 @@ class ViewNotificationControllerSpec extends PlaySpec with ScalaFutures with Moc
                 "contactType" -> "RPM1",
                 "status" -> Json.obj("status_type" -> "04", "status_reason" -> "02"),
                 "variation" -> true,
-                "receivedAt" -> Json.parse("""{"$date":1479730062573}""")
+                "receivedAt" -> Json.parse("""{"$date":{"$numberLong":"1479730062573"}}""")
               ))
             }
           }

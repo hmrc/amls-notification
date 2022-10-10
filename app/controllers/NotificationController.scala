@@ -21,7 +21,7 @@ import com.google.inject.Singleton
 import config.ApplicationConfig
 import connectors.EmailConnector
 import exceptions.HttpStatusException
-import models.ContactType.{ NewRenewalReminder, RenewalReminder}
+import models.ContactType.{NewRenewalReminder, RenewalReminder}
 
 import javax.inject.Inject
 import models.{ContactType, NotificationPushRequest, NotificationRecord}
@@ -33,6 +33,7 @@ import repositories.NotificationMongoRepository
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import java.time.{LocalDateTime, ZoneId, ZoneOffset, ZonedDateTime}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 

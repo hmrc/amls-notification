@@ -35,7 +35,7 @@ case class NotificationRow (
 object NotificationRow {
 
   implicit val dateFormat = MongoJodaFormats.dateTimeFormat
-  implicit val format = Json.format[NotificationRow]
+  implicit val format: Format[NotificationRow] = Json.format[NotificationRow]
 }
 
 case class IDType(id: String)

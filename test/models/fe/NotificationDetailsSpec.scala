@@ -42,7 +42,7 @@ class NotificationDetailsSpec extends AnyWordSpec with Matchers {
         "status" -> Json.obj("status_type" -> "04", "status_reason" -> "02"),
         "messageText" -> "THIS IS THE TEST TEXT",
         "variation" -> false,
-        "receivedAt" -> Json.parse("""{"$date":1479730062573}""")
+        "receivedAt" -> Json.parse("""{"$date":{"$numberLong":"1479730062573"}}""")
       ))
     }
 
@@ -52,7 +52,7 @@ class NotificationDetailsSpec extends AnyWordSpec with Matchers {
       ) must be (Json.obj(
         "messageText" -> "THIS IS THE TEST TEXT",
         "variation" -> false,
-        "receivedAt" -> Json.parse("""{"$date":1479730062573}""")
+        "receivedAt" -> Json.parse("""{"$date":{"$numberLong":"1479730062573"}}""")
       ))
     }
   }

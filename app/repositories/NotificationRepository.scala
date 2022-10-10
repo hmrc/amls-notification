@@ -47,10 +47,6 @@ class NotificationMongoRepository @Inject()(mongo: MongoComponent)
       .insertOne(notificationRequest)
       .toFuture()
       .map(_.wasAcknowledged)
-      .recoverWith {
-        case e: MongoWriteException if e.getError.getCategory == ErrorCategory.DUPLICATE_KEY =>
-          Future.failed(new IllegalArgumentException("NINO and UTR must both be unique"))
-      }
   }
 
   def markAsRead(id: String): Future[Boolean] = {

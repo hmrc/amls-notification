@@ -17,9 +17,12 @@
 package models.fe
 
 import models.{ContactType, Status}
-import org.joda.time.DateTime
-import play.api.libs.json.Json
-import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats
+import org.joda.time.{DateTime, DateTimeZone}
+import play.api.libs.json.JsPath.\
+import play.api.libs.json.{Format, JsValue, Json, Reads, Writes}
+import org.joda.time.{DateTime, DateTimeZone, LocalDate, LocalDateTime}
+import play.api.libs.json._
+import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.dateTimeWrites
 
 case class NotificationDetails(contactType : Option[ContactType],
                                status : Option[Status],
@@ -30,7 +33,16 @@ case class NotificationDetails(contactType : Option[ContactType],
 
 object NotificationDetails {
 
-  implicit val dateFormat = MongoJodaFormats.dateTimeFormat
+  final val dateTimeReads: Reads[DateTime] =
+    Reads.at[String](__ \ "$date" )
+      .map(dateTime => new DateTime(dateTime.toLong, DateTimeZone.UTC))
 
-  implicit val writes = Json.writes[NotificationDetails]
+
+
+  implicit val dateFormat: Format[DateTime] =  Format(dateTimeReads, dateTimeWrites)
+
+  implicit val writes: Writes[NotificationDetails] = Json.writes[NotificationDetails]
+  implicit val Writes: Writes[DateTime] = new Writes[DateTime] {
+    override def writes(o: DateTime): JsValue = Json.obj("$date" -> o.getMillis)
+  }
 }
