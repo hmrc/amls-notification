@@ -66,16 +66,16 @@ class NotificationMongoRepository @Inject()(mongo: MongoComponent)
     collection.find(Filters.eq("objId",idString)).toFuture().map(_.headOption)
   }
 
-   def findByAmlsReference(amlsReferenceNumber: String) = {
+   def findByAmlsReference(amlsReferenceNumber: String): Future[Seq[NotificationRow]] = {
 
-     collection.find(Filters.eq("amlsRegistrationNumber",amlsReferenceNumber)).sort(Sorts.descending("receivedAt"))
+     collection.find[NotificationRow](Filters.eq("amlsRegistrationNumber",amlsReferenceNumber)).sort(Sorts.descending("receivedAt"))
        .collect()
        .toFuture()
        .map(result => result)
   }
 
-  def findBySafeId(safeId: String) = collection.find (Filters.eq("safeId",safeId)).sort(Sorts.descending("receivedAt"))
-    .collect()
+  def findBySafeId(safeId: String): Future[Seq[NotificationRow]] = collection.find[NotificationRow] (Filters.eq("safeId",safeId)).sort(Sorts.descending("receivedAt"))
+    .collect[Seq[NotificationRow]]
     .toFuture()
     .map(result => result)
 }
