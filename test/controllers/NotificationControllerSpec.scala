@@ -31,11 +31,12 @@ import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.libs.json.{JsNull, JsValue, Json}
-import play.api.mvc.ControllerComponents
+import play.api.mvc.{ControllerComponents, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repositories.NotificationMongoRepository
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
+import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 
 import scala.concurrent.Future
 
@@ -97,6 +98,10 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
       status(result) must be(NO_CONTENT)
       contentAsString(result) mustBe ""
 
+      val captor = ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
+      verify(notificationController.auditConnector).sendExtendedEvent(captor.capture())(any(), any())
+
+      captor.getValue.auditType must be("ServiceRequestReceived")
     }
 
     "fail validation when json parse throws error" in {
@@ -131,7 +136,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
 
       when {
         notificationController.notificationRepository.insertRecord(any())
-      } thenReturn Future.successful(false)
+      }.thenReturn(Future.successful(false))
 
       whenReady(notificationController.saveNotification(amlsRegistrationNumber)(postRequest)) { r =>
         r.header.status mustBe INTERNAL_SERVER_ERROR
@@ -219,7 +224,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
       val notificationRowsWithoutVersion = Seq(notificationRecordWithoutVersion)
 
       "valid amlsRegistration number is passed and a version number" in {
-        when(notificationController.notificationRepository.findByAmlsReference(any()))
+        when(notificationController.notificationRepository.findByAmlsReference(any())).thenReturn(Future.successful(notificationRows))
 
         val result = notificationController.fetchNotifications("accountType", "ref", amlsRegistrationNumber)(getRequest)
         status(result) must be(OK)
@@ -229,7 +234,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
       }
 
       "valid amlsRegistration number is passed and no version number" in {
-        when(notificationController.notificationRepository.findByAmlsReference(any()))
+        when(notificationController.notificationRepository.findByAmlsReference(any())).thenReturn(Future.successful(notificationRowsWithoutVersion))
 
         val result = notificationController.fetchNotifications("accountType", "ref", amlsRegistrationNumber)(getRequest)
         status(result) must be(OK)
@@ -241,7 +246,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
       "a valid safeId is passed and a version number" in {
         when {
           notificationController.notificationRepository.findBySafeId(eqTo(safeId))
-        }
+        } thenReturn Future.successful(notificationRows)
 
         val result = notificationController.fetchNotificationsBySafeId("accountType", "ref", safeId)(getRequest)
         status(result) mustBe OK
@@ -253,7 +258,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
       "a valid safeId is passed and no version number" in {
         when {
           mockNotificationRepository.findBySafeId(eqTo(safeId))
-        }
+        } thenReturn Future.successful(notificationRowsWithoutVersion)
 
         val result = notificationController.fetchNotificationsBySafeId("accountType", "ref", safeId)(getRequest)
         status(result) mustBe OK
