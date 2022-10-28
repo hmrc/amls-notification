@@ -18,7 +18,7 @@ package repositories
 
 import com.google.inject.{Inject, Singleton}
 import com.mongodb.ErrorCategory
-import models.{NotificationRecord, NotificationRow}
+import models.{IDType, NotificationRecord, NotificationRow}
 import org.mongodb.scala.MongoWriteException
 import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.{Filters, FindOneAndUpdateOptions, IndexModel, IndexOptions, ReturnDocument, Sorts, Updates}
@@ -66,16 +66,34 @@ class NotificationMongoRepository @Inject()(mongo: MongoComponent)
     collection.find(Filters.eq("objId",idString)).toFuture().map(_.headOption)
   }
 
-   def findByAmlsReference(amlsReferenceNumber: String): Future[Seq[NotificationRow]] = {
-
-     collection.find[NotificationRow](Filters.eq("amlsRegistrationNumber",amlsReferenceNumber)).sort(Sorts.descending("receivedAt"))
-       .collect()
+  def findByAmlsReference(amlsReferenceNumber: String): Future[Seq[NotificationRow]] = {
+     collection.find(Filters.eq("amlsRegistrationNumber",amlsReferenceNumber))
+       .sort(Sorts.descending("receivedAt"))
        .toFuture()
-       .map(result => result)
+       .map(_.map(result => NotificationRow(
+         result.status,
+         result.contactType,
+         result.contactNumber,
+         result.variation,
+         result.receivedAt,
+         result.isRead,
+         result.amlsRegistrationNumber,
+         result.templatePackageVersion,
+         IDType(result._id.toString))))
   }
 
-  def findBySafeId(safeId: String): Future[Seq[NotificationRow]] = collection.find[NotificationRow] (Filters.eq("safeId",safeId)).sort(Sorts.descending("receivedAt"))
-    .collect[Seq[NotificationRow]]
+  def findBySafeId(safeId: String): Future[Seq[NotificationRow]] =
+    collection.find(Filters.eq("safeId",safeId))
+    .sort(Sorts.descending("receivedAt"))
     .toFuture()
-    .map(result => result)
+      .map(_.map(result => NotificationRow(
+        result.status,
+        result.contactType,
+        result.contactNumber,
+        result.variation,
+        result.receivedAt,
+        result.isRead,
+        result.amlsRegistrationNumber,
+        result.templatePackageVersion,
+        IDType(result._id.toString))))
 }
