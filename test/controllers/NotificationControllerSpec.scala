@@ -83,9 +83,6 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
     val safeId = "XA8743294823094"
 
     "save the input notificationPushRequest into mongo repo successfully" in {
-
-
-
       when {
         notificationController.notificationRepository.insertRecord(any())
       } thenReturn Future.successful(true)
@@ -129,17 +126,6 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
         case HttpStatusException(status, b) =>
           status mustBe INTERNAL_SERVER_ERROR
           b mustBe Some("message")
-      }
-    }
-
-    "return an invalid response when mongo returns bad write result" in {
-
-      when {
-        notificationController.notificationRepository.insertRecord(any())
-      }.thenReturn(Future.successful(false))
-
-      whenReady(notificationController.saveNotification(amlsRegistrationNumber)(postRequest)) { r =>
-        r.header.status mustBe INTERNAL_SERVER_ERROR
       }
     }
 
