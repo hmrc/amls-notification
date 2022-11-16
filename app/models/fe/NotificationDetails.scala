@@ -22,6 +22,7 @@ import play.api.libs.json.JsPath.\
 import play.api.libs.json.{Format, JsValue, Json, Reads, Writes}
 import org.joda.time.{DateTime, DateTimeZone, LocalDate, LocalDateTime}
 import play.api.libs.json._
+import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats
 import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.dateTimeWrites
 
 case class NotificationDetails(contactType : Option[ContactType],
@@ -39,7 +40,7 @@ object NotificationDetails {
 
 
 
-  implicit val dateFormat: Format[DateTime] =  Format(dateTimeReads, dateTimeWrites)
+  implicit val dateFormat: Format[DateTime] =  MongoJodaFormats.dateTimeFormat
 
   implicit val writes: Writes[NotificationDetails] = Json.writes[NotificationDetails]
   implicit val Writes: Writes[DateTime] = new Writes[DateTime] {
