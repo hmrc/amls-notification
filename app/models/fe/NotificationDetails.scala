@@ -22,6 +22,8 @@ import play.api.libs.json.JsPath.\
 import play.api.libs.json.{Format, JsValue, Json, Reads, Writes}
 import play.api.libs.json._
 import uk.gov.hmrc.mongo.play.json.formats.{MongoJavatimeFormats, MongoJodaFormats}
+import play.api.libs.functional.syntax._
+import play.api.libs.json.Format.GenericFormat
 import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.dateTimeWrites
 
 import java.time.LocalDateTime
@@ -30,18 +32,27 @@ case class NotificationDetails(contactType : Option[ContactType],
                                status : Option[Status],
                                messageText : Option[String],
                                variation : Boolean,
-                               receivedAt: LocalDateTime
+                               receivedAt: DateTime
                               )
 
 object NotificationDetails {
+ val reads: Reads[NotificationDetails ] =
+    (
+      (JsPath \ "contactType").readNullable[ContactType] and
+      (JsPath \ "status").readNullable[Status] and
+      (JsPath \ "messageText").readNullable[String] and
+      (JsPath \ "variation").read[Boolean] and
+      (JsPath \ "receivedAt").read[DateTime]((MongoJodaFormats.dateTimeFormat))
+    )(NotificationDetails.apply _)
 
-//  final val dateTimeReads: Reads[DateTime] =
-//    Reads.at[String](__ \ "$date" )
-//      .map(dateTime => new DateTime(dateTime.toLong, DateTimeZone.UTC))
+   val writes : OWrites[NotificationDetails ] =
+    (
+      (JsPath \ "contactType").writeNullable[ContactType] and
+        (JsPath \ "status").writeNullable[Status] and
+        (JsPath \ "messageText").writeNullable[String] and
+        (JsPath \ "variation").write[Boolean] and
+        (JsPath \ "receivedAt").write[DateTime]((MongoJodaFormats.dateTimeFormat))
+      )(unlift(NotificationDetails.unapply))
 
-
-  implicit val dateFormat: Format[LocalDateTime] = MongoJavatimeFormats.localDateTimeFormat
-  //implicit val dateFormat: Format[DateTime] =  MongoJodaFormats.dateTimeFormat
-
-  implicit val writes: Writes[NotificationDetails] = Json.writes[NotificationDetails]
+  implicit val format: OFormat[NotificationDetails] = OFormat(reads, writes)
 }
