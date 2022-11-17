@@ -63,8 +63,15 @@ class NotificationMongoRepository @Inject()(mongo: MongoComponent)
   }
 
   def findById(idString: String): Future[Option[NotificationRecord]] = {
-    collection.find(Filters.eq("objId",idString)).toFuture().map(_.headOption)
+    val modifier = Json.obj("$set" -> Json.obj("isRead" -> true))
+    val query = Filters.eq("_id",idString)
+    collection.findOneAndUpdate(
+      filter = query,
+      update = Updates.set("isRead" , true) ,
+        options = FindOneAndUpdateOptions().upsert(true).returnDocument(ReturnDocument.AFTER)
+    ).toFutureOption()
   }
+
 
   def findByAmlsReference(amlsReferenceNumber: String): Future[Seq[NotificationRow]] = {
      collection.find(Filters.eq("amlsRegistrationNumber",amlsReferenceNumber))

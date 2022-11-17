@@ -82,7 +82,7 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
                   contactType,
                   body.contactNumber,
                   body.variation,
-                  DateTime.now(DateTimeZone.UTC),
+                  ZonedDateTime.now(ZoneId.of("UTC")).toLocalDateTime,
                   isRead = false,
                   Some(amlsConfig.currentTemplatePackageVersion)
                 )

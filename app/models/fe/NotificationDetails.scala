@@ -20,30 +20,28 @@ import models.{ContactType, Status}
 import org.joda.time.{DateTime, DateTimeZone}
 import play.api.libs.json.JsPath.\
 import play.api.libs.json.{Format, JsValue, Json, Reads, Writes}
-import org.joda.time.{DateTime, DateTimeZone, LocalDate, LocalDateTime}
 import play.api.libs.json._
-import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats
+import uk.gov.hmrc.mongo.play.json.formats.{MongoJavatimeFormats, MongoJodaFormats}
 import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.dateTimeWrites
+
+import java.time.LocalDateTime
 
 case class NotificationDetails(contactType : Option[ContactType],
                                status : Option[Status],
                                messageText : Option[String],
                                variation : Boolean,
-                               receivedAt: DateTime
+                               receivedAt: LocalDateTime
                               )
 
 object NotificationDetails {
 
-  final val dateTimeReads: Reads[DateTime] =
-    Reads.at[String](__ \ "$date" )
-      .map(dateTime => new DateTime(dateTime.toLong, DateTimeZone.UTC))
+//  final val dateTimeReads: Reads[DateTime] =
+//    Reads.at[String](__ \ "$date" )
+//      .map(dateTime => new DateTime(dateTime.toLong, DateTimeZone.UTC))
 
 
-
-  implicit val dateFormat: Format[DateTime] =  MongoJodaFormats.dateTimeFormat
+  implicit val dateFormat: Format[LocalDateTime] = MongoJavatimeFormats.localDateTimeFormat
+  //implicit val dateFormat: Format[DateTime] =  MongoJodaFormats.dateTimeFormat
 
   implicit val writes: Writes[NotificationDetails] = Json.writes[NotificationDetails]
-  implicit val Writes: Writes[DateTime] = new Writes[DateTime] {
-    override def writes(o: DateTime): JsValue = Json.obj("$date" -> o.getMillis)
-  }
 }

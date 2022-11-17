@@ -18,14 +18,16 @@ package models
 
 import org.joda.time.DateTime
 import play.api.libs.json._
-import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats
+import uk.gov.hmrc.mongo.play.json.formats.{MongoJavatimeFormats, MongoJodaFormats}
+
+import java.time.LocalDateTime
 
 case class NotificationRow (
                              status: Option[Status],
                              contactType: Option[ContactType],
                              contactNumber: Option[String],
                              variation: Boolean,
-                             receivedAt: DateTime,
+                             receivedAt: LocalDateTime,
                              isRead: Boolean,
                              amlsRegistrationNumber: String,
                              templatePackageVersion: Option[String],
@@ -33,8 +35,8 @@ case class NotificationRow (
                            )
 
 object NotificationRow {
-
-  implicit val dateFormat = MongoJodaFormats.dateTimeFormat
+  implicit val dateFormat: Format[LocalDateTime] = MongoJavatimeFormats.localDateTimeFormat
+  //implicit val dateFormat = MongoJodaFormats.dateTimeFormat
   implicit val format: Format[NotificationRow] = Json.format[NotificationRow]
 }
 
