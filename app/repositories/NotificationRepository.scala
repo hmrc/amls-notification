@@ -19,13 +19,14 @@ package repositories
 import com.google.inject.{Inject, Singleton}
 import com.mongodb.ErrorCategory
 import models.{IDType, NotificationRecord, NotificationRow}
+import org.bson.types.ObjectId
 import org.mongodb.scala.MongoWriteException
 import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.{Filters, FindOneAndUpdateOptions, IndexModel, IndexOptions, ReturnDocument, Sorts, Updates}
 import play.api.Logging
 import play.api.libs.json.{JsObject, JsValue, Json, Writes}
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -39,10 +40,10 @@ class NotificationMongoRepository @Inject()(mongo: MongoComponent)
     indexes = Seq(IndexModel(ascending("receivedAt"), IndexOptions()
       .name("receivedAt")
     ),
-  ))with Logging
+    ))with Logging
 {
 
-   def insertRecord(notificationRequest: NotificationRecord): Future[Boolean] = {
+  def insertRecord(notificationRequest: NotificationRecord): Future[Boolean] = {
     collection
       .insertOne(notificationRequest)
       .toFuture()
@@ -50,49 +51,47 @@ class NotificationMongoRepository @Inject()(mongo: MongoComponent)
   }
 
   def markAsRead(id: String): Future[Boolean] = {
+    import models.NotificationRecord.objectIdFormat
+    val query = Filters.eq("_id", Codecs.toBson(new ObjectId(id)))
     collection
-      .findOneAndUpdate(
-        filter = Filters.eq("_id",id),
-        update = Updates.set("isRead", true),
-        options = FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)
-      ).toFuture().map{ result =>
-      if(result.isRead == true){
-        true
-      }else false
-    }
+      .updateOne(
+        filter = query,
+        update = Updates.set("isRead", true)
+      ).toFuture()
+      .map { _.wasAcknowledged()}
   }
 
   def findById(idString: String): Future[Option[NotificationRecord]] = {
-    val modifier = Json.obj("$set" -> Json.obj("isRead" -> true))
-    val query = Filters.eq("_id",idString)
+    import models.NotificationRecord.objectIdFormat
+    val query = Filters.eq("_id", Codecs.toBson(new ObjectId(idString)))
     collection.findOneAndUpdate(
       filter = query,
       update = Updates.set("isRead" , true) ,
-        options = FindOneAndUpdateOptions().upsert(true).returnDocument(ReturnDocument.AFTER)
+      options = FindOneAndUpdateOptions().upsert(true).returnDocument(ReturnDocument.AFTER)
     ).toFutureOption()
   }
 
 
   def findByAmlsReference(amlsReferenceNumber: String): Future[Seq[NotificationRow]] = {
-     collection.find(Filters.eq("amlsRegistrationNumber",amlsReferenceNumber))
-       .sort(Sorts.descending("receivedAt"))
-       .toFuture()
-       .map(_.map(result => NotificationRow(
-         result.status,
-         result.contactType,
-         result.contactNumber,
-         result.variation,
-         result.receivedAt,
-         result.isRead,
-         result.amlsRegistrationNumber,
-         result.templatePackageVersion,
-         IDType(result._id.toString))))
+    collection.find(Filters.eq("amlsRegistrationNumber",amlsReferenceNumber))
+      .sort(Sorts.descending("receivedAt"))
+      .toFuture()
+      .map(_.map(result => NotificationRow(
+        result.status,
+        result.contactType,
+        result.contactNumber,
+        result.variation,
+        result.receivedAt,
+        result.isRead,
+        result.amlsRegistrationNumber,
+        result.templatePackageVersion,
+        IDType(result._id.toString))))
   }
 
   def findBySafeId(safeId: String): Future[Seq[NotificationRow]] =
     collection.find(Filters.eq("safeId",safeId))
-    .sort(Sorts.descending("receivedAt"))
-    .toFuture()
+      .sort(Sorts.descending("receivedAt"))
+      .toFuture()
       .map(_.map(result => NotificationRow(
         result.status,
         result.contactType,

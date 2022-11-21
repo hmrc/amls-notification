@@ -15,12 +15,13 @@
  */
 
 package models
-import play.api.libs.functional.syntax._
-import play.api.libs.json.Format.GenericFormat
 import play.api.libs.json._
 import org.bson.types.ObjectId
-import uk.gov.hmrc.mongo.play.json.formats.{MongoFormats, MongoJavatimeFormats, MongoJodaFormats}
-import org.joda.time.DateTime
+import uk.gov.hmrc.mongo.play.json.formats.{MongoFormats, MongoJodaFormats}
+import org.joda.time.{DateTime}
+
+
+
 
 case class NotificationRecord (amlsRegistrationNumber: String,
                                safeId: String,
@@ -33,40 +34,11 @@ case class NotificationRecord (amlsRegistrationNumber: String,
                                receivedAt: DateTime,
                                isRead: Boolean,
                                templatePackageVersion: Option[String],
-                                 _id:ObjectId = ObjectId.get()
+                               _id:ObjectId = ObjectId.get()
                               )
 object NotificationRecord {
- val reads: Reads[NotificationRecord] =
-    (
-      (JsPath \ "amlsRegistrationNumber").read[String] and
-      (JsPath \ "safeId").read[String] and
-        (JsPath \ "name").read[String] and
-        (JsPath \ "email").read[String] and
-        (JsPath \ "status").readNullable[Status] and
-        (JsPath \ "contactType").readNullable[ContactType] and
-        (JsPath \ "contactNumber").readNullable[String] and
-        (JsPath \ "variation").read[Boolean] and
-        (JsPath \ "receivedAt").read[DateTime](MongoJodaFormats.dateTimeFormat) and
-        (JsPath \ "isRead").read[Boolean] and
-        (JsPath \ "templatePackageVersion").readNullable[String] and
-        (JsPath \ "_id").read[ObjectId](MongoFormats.objectIdFormat)
-      )(NotificationRecord.apply _)
 
- val writes : OWrites[NotificationRecord] =
-    (
-      (JsPath \ "amlsRegistrationNumber").write[String] and
-        (JsPath \ "safeId").write[String] and
-        (JsPath \ "name").write[String] and
-        (JsPath \ "email").write[String] and
-        (JsPath \ "status").writeNullable[Status] and
-        (JsPath \ "contactType").writeNullable[ContactType] and
-        (JsPath \ "contactNumber").writeNullable[String] and
-        (JsPath \ "variation").write[Boolean] and
-        (JsPath \ "receivedAt").write[DateTime] (MongoJodaFormats.dateTimeFormat)  and
-        (JsPath \ "isRead").write[Boolean] and
-        (JsPath \ "templatePackageVersion").writeNullable[String] and
-          (JsPath \ "_id").write[ObjectId] (MongoFormats.objectIdFormat)
-      )(unlift(NotificationRecord.unapply))
-
-  implicit val format: OFormat[NotificationRecord] = OFormat(reads, writes)
+  implicit val objectIdFormat: Format[ObjectId] = MongoFormats.objectIdFormat
+  implicit val dtf: Format[DateTime] = MongoJodaFormats.dateTimeFormat
+  implicit val format: Format[NotificationRecord] = Json.format[NotificationRecord]
 }
