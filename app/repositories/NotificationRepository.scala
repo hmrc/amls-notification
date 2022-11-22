@@ -39,8 +39,7 @@ class NotificationMongoRepository @Inject()(mongo: MongoComponent)
     domainFormat =NotificationRecord.format,
     indexes = Seq(IndexModel(ascending("receivedAt"), IndexOptions()
       .name("receivedAt")
-    ),
-    ))with Logging
+    )))with Logging
 {
 
   def insertRecord(notificationRequest: NotificationRecord): Future[Boolean] = {
