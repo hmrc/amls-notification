@@ -31,10 +31,9 @@ import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.libs.json.{JsNull, JsValue, Json}
-import play.api.mvc.ControllerComponents
+import play.api.mvc.{ControllerComponents, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import reactivemongo.api.commands.{WriteError, WriteResult}
 import repositories.NotificationMongoRepository
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
@@ -84,13 +83,9 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
     val safeId = "XA8743294823094"
 
     "save the input notificationPushRequest into mongo repo successfully" in {
-
-      val writeResult = mock[WriteResult]
-      when(writeResult.ok) thenReturn true
-
       when {
         notificationController.notificationRepository.insertRecord(any())
-      } thenReturn Future.successful(writeResult)
+      } thenReturn Future.successful(true)
 
       when {
         notificationController.auditConnector.sendEvent(any())(any(), any())
@@ -131,20 +126,6 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
         case HttpStatusException(status, b) =>
           status mustBe INTERNAL_SERVER_ERROR
           b mustBe Some("message")
-      }
-    }
-
-    "return an invalid response when mongo returns bad write result" in {
-      val writeResult = mock[WriteResult]
-      when(writeResult.ok) thenReturn false
-      when(writeResult.writeErrors) thenReturn Seq(WriteError(0, 1, "Some error"))
-
-      when {
-        notificationController.notificationRepository.insertRecord(any())
-      } thenReturn Future.successful(writeResult)
-
-      whenReady(notificationController.saveNotification(amlsRegistrationNumber)(postRequest)) { r =>
-        r.header.status mustBe INTERNAL_SERVER_ERROR
       }
     }
 

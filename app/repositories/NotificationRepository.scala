@@ -17,71 +17,88 @@
 package repositories
 
 import com.google.inject.{Inject, Singleton}
-import models.{NotificationRecord, NotificationRow}
-import play.api.Logger
-import play.api.libs.json.{JsObject, Json}
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.Cursor
-import reactivemongo.api.commands.WriteResult
-import reactivemongo.api.indexes.{Index, IndexType}
-import reactivemongo.bson.BSONObjectID
-import reactivemongo.play.json.ImplicitBSONHandlers._
-import uk.gov.hmrc.mongo.ReactiveRepository
+import com.mongodb.ErrorCategory
+import models.{IDType, NotificationRecord, NotificationRow}
+import org.bson.types.ObjectId
+import org.mongodb.scala.MongoWriteException
+import org.mongodb.scala.model.Indexes.ascending
+import org.mongodb.scala.model.{Filters, FindOneAndUpdateOptions, IndexModel, IndexOptions, ReturnDocument, Sorts, Updates}
+import play.api.Logging
+import play.api.libs.json.{JsObject, JsValue, Json, Writes}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class NotificationMongoRepository @Inject()(component: ReactiveMongoComponent)
-  extends ReactiveRepository[NotificationRecord, BSONObjectID]("notification", component.mongoConnector.db, NotificationRecord.format) {
+class NotificationMongoRepository @Inject()(mongo: MongoComponent)
+  extends PlayMongoRepository[NotificationRecord](
+    mongoComponent = mongo,
+    collectionName ="notification",
+    domainFormat =NotificationRecord.format,
+    indexes = Seq(IndexModel(ascending("receivedAt"), IndexOptions()
+      .name("receivedAt")
+    )))with Logging
+{
 
-  lazy val logging: Logger = Logger(this.getClass)
-  override def indexes: Seq[Index] = {
-    Seq(Index(Seq("receivedAt" -> IndexType.Ascending)))
+  def insertRecord(notificationRequest: NotificationRecord): Future[Boolean] = {
+    collection
+      .insertOne(notificationRequest)
+      .toFuture()
+      .map(_.wasAcknowledged)
   }
 
-   def insertRecord(notificationRequest: NotificationRecord): Future[WriteResult] = {
-    collection.insert(ordered = false).one(notificationRequest) map { writeResult =>
-      logging.debug(s"[NotificationMongoRepository][insert] : { NotificationRequest : $notificationRequest" +
-        s" , result: ${writeResult.ok}, errors: ${WriteResult.lastError(writeResult)} }")
-      writeResult
-    }
-  }
-
-   def markAsRead(id: String): Future[Boolean] = {
-
-    val modifier = Json.obj("$set" -> Json.obj("isRead" -> true))
-
-     BSONObjectID.parse(id).map { objId: BSONObjectID =>
-       collection.update(ordered = false).one(Json.obj("_id" -> Json.toJsFieldJsValueWrapper(objId)(idFormatImplicit)), modifier).
-         map { lastError =>
-           logging.debug(s"[NotificationMongoRepository][update] : { ID : $id" +
-             s" , result: ${lastError.ok}, errors: ${lastError.errmsg} }")
-           lastError.ok
-         }
-     } .recover {
-       case _: IllegalArgumentException => Future.successful(false)
-     } .get
+  def markAsRead(id: String): Future[Boolean] = {
+    import models.NotificationRecord.objectIdFormat
+    val query = Filters.eq("_id", Codecs.toBson(new ObjectId(id)))
+    collection
+      .updateOne(
+        filter = query,
+        update = Updates.set("isRead", true)
+      ).toFuture()
+      .map { _.wasAcknowledged()}
   }
 
   def findById(idString: String): Future[Option[NotificationRecord]] = {
-
-    BSONObjectID.parse(idString).map { objId: BSONObjectID =>
-      findById(objId)
-    } .recover {
-      case _: IllegalArgumentException => Future.successful(None)
-    } .get
-
+    import models.NotificationRecord.objectIdFormat
+    val query = Filters.eq("_id", Codecs.toBson(new ObjectId(idString)))
+    collection.findOneAndUpdate(
+      filter = query,
+      update = Updates.set("isRead" , true) ,
+      options = FindOneAndUpdateOptions().upsert(true).returnDocument(ReturnDocument.AFTER)
+    ).toFutureOption()
   }
 
-   def findByAmlsReference(amlsReferenceNumber: String) = {
-     val query = Json.obj("amlsRegistrationNumber" -> amlsReferenceNumber)
 
-    collection.find(query, Option.empty[JsObject]).
-      sort(Json.obj("receivedAt" -> -1)).cursor[NotificationRow]().collect[Seq](100, Cursor.FailOnError())
+  def findByAmlsReference(amlsReferenceNumber: String): Future[Seq[NotificationRow]] = {
+    collection.find(Filters.eq("amlsRegistrationNumber",amlsReferenceNumber))
+      .sort(Sorts.descending("receivedAt"))
+      .toFuture()
+      .map(_.map(result => NotificationRow(
+        result.status,
+        result.contactType,
+        result.contactNumber,
+        result.variation,
+        result.receivedAt,
+        result.isRead,
+        result.amlsRegistrationNumber,
+        result.templatePackageVersion,
+        IDType(result._id.toString))))
   }
 
-   def findBySafeId(safeId: String) = collection.find (
-    Json.obj("safeId" -> safeId), Option.empty[JsObject]
-   ).sort(Json.obj("receivedAt" -> -1)).cursor[NotificationRow]().collect[Seq](100, Cursor.FailOnError())
+  def findBySafeId(safeId: String): Future[Seq[NotificationRow]] =
+    collection.find(Filters.eq("safeId",safeId))
+      .sort(Sorts.descending("receivedAt"))
+      .toFuture()
+      .map(_.map(result => NotificationRow(
+        result.status,
+        result.contactType,
+        result.contactNumber,
+        result.variation,
+        result.receivedAt,
+        result.isRead,
+        result.amlsRegistrationNumber,
+        result.templatePackageVersion,
+        IDType(result._id.toString))))
 }

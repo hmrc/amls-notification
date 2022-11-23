@@ -15,10 +15,13 @@
  */
 
 package models
-import org.joda.time.DateTime
-import play.api.libs.json.Json
-import reactivemongo.bson.BSONObjectID
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import play.api.libs.json._
+import org.bson.types.ObjectId
+import uk.gov.hmrc.mongo.play.json.formats.{MongoFormats, MongoJodaFormats}
+import org.joda.time.{DateTime}
+
+
+
 
 case class NotificationRecord (amlsRegistrationNumber: String,
                                safeId: String,
@@ -31,13 +34,11 @@ case class NotificationRecord (amlsRegistrationNumber: String,
                                receivedAt: DateTime,
                                isRead: Boolean,
                                templatePackageVersion: Option[String],
-                               _id: BSONObjectID = BSONObjectID.generate
+                               _id:ObjectId = ObjectId.get()
                               )
-
 object NotificationRecord {
 
-  implicit val dateFormat = ReactiveMongoFormats.dateTimeFormats
-  implicit val bsonFormat = ReactiveMongoFormats.objectIdFormats
-
-  implicit val format = Json.format[NotificationRecord]
+  implicit val objectIdFormat: Format[ObjectId] = MongoFormats.objectIdFormat
+  implicit val dtf: Format[DateTime] = MongoJodaFormats.dateTimeFormat
+  implicit val format: Format[NotificationRecord] = Json.format[NotificationRecord]
 }

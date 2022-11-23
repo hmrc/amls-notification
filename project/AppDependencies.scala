@@ -5,7 +5,7 @@ import play.core.PlayVersion
 private object AppDependencies {
 
   val compile = Seq(
-    "uk.gov.hmrc" %% "simple-reactivemongo" % "8.0.0-play-28",
+    "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28" %  "0.70.0",
     ws,
     "uk.gov.hmrc" %% "bootstrap-backend-play-28" % "5.10.0",
     "uk.gov.hmrc" %% "domain" % "6.2.0-play-28",

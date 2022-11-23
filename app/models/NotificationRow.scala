@@ -16,9 +16,14 @@
 
 package models
 
-import org.joda.time.DateTime
+
+import play.api.libs.functional.syntax._
+import play.api.libs.json.Format.GenericFormat
 import play.api.libs.json._
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import org.joda.time.DateTime
+import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats
+
+
 
 case class NotificationRow (
                              status: Option[Status],
@@ -33,9 +38,33 @@ case class NotificationRow (
                            )
 
 object NotificationRow {
+  val reads: Reads[NotificationRow] =
+    (
+      (JsPath \ "status").readNullable[Status] and
+        (JsPath \ "contactType").readNullable[ContactType] and
+        (JsPath \ "contactNumber").readNullable[String] and
+        (JsPath \ "variation").read[Boolean] and
+        (JsPath \ "receivedAt").read[DateTime](MongoJodaFormats.dateTimeReads)and
+        (JsPath \ "isRead").read[Boolean] and
+        (JsPath \ "amlsRegistrationNumber").read[String] and
+        (JsPath \ "templatePackageVersion").readNullable[String] and
+        (JsPath \ "_id").read[IDType]
+      )(NotificationRow.apply _)
 
-  implicit val dateFormat = ReactiveMongoFormats.dateTimeFormats
-  implicit val format = Json.format[NotificationRow]
+  val writes : OWrites[NotificationRow] =
+    (
+      (JsPath \ "status").writeNullable[Status] and
+        (JsPath \ "contactType").writeNullable[ContactType] and
+        (JsPath \ "contactNumber").writeNullable[String] and
+        (JsPath \ "variation").write[Boolean] and
+        (JsPath \ "receivedAt").write[DateTime](MongoJodaFormats.dateTimeWrites) and
+        (JsPath \ "isRead").write[Boolean] and
+        (JsPath \ "amlsRegistrationNumber").write[String] and
+        (JsPath \ "templatePackageVersion").writeNullable[String] and
+        (JsPath \ "_id").write[IDType]
+      )(unlift(NotificationRow.unapply))
+
+  implicit val format: OFormat[NotificationRow] = OFormat(reads, writes)
 }
 
 case class IDType(id: String)

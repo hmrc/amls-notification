@@ -47,7 +47,9 @@ class NotificationRowSpec extends PlaySpec {
           |   "contactType":"MTRV",
           |   "variation":false,
           |   "receivedAt":{
-          |     "$date":1479730062573
+          |     "$date":{
+          |     "$numberLong":"1479730062573"
+          |     }
           |   },
           |   "isRead":false,
           |   "amlsRegistrationNumber":"XAML00000567890",

@@ -21,7 +21,7 @@ import com.google.inject.Singleton
 import config.ApplicationConfig
 import connectors.EmailConnector
 import exceptions.HttpStatusException
-import models.ContactType.{ NewRenewalReminder, RenewalReminder}
+import models.ContactType.{NewRenewalReminder, RenewalReminder}
 
 import javax.inject.Inject
 import models.{ContactType, NotificationPushRequest, NotificationRecord}
@@ -33,6 +33,7 @@ import repositories.NotificationMongoRepository
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import java.time.{LocalDateTime, ZoneId, ZoneOffset, ZonedDateTime}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -93,20 +94,10 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
                 }
 
                 notificationRepository.insertRecord(record) map {
-                  case result if result.ok =>
+                  case result if result == true =>
                     emailConnector.sendNotificationReceivedTemplatedEmail(List(body.email))
                     auditConnector.sendExtendedEvent(NotificationReceivedEvent(amlsRegistrationNumber, body))
                     NoContent
-                  case result =>
-                    logger.error(s"$prefix [saveNotification] - Could not save notification results")
-
-                    auditConnector.sendExtendedEvent(NotificationFailedEvent(
-                      amlsRegistrationNumber,
-                      body,
-                      result.writeErrors map { e => s"${e.code}: ${e.errmsg}" }
-                    ))
-
-                    InternalServerError
                 } recoverWith {
                   case e@HttpStatusException(status, Some(exceptionBody)) =>
                     logger.warn(s"$prefix [saveNotification] - Status: $status, Message: $exceptionBody")
