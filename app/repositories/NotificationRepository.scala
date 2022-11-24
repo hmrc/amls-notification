@@ -38,7 +38,7 @@ class NotificationMongoRepository @Inject()(mongo: MongoComponent)
     collectionName ="notification",
     domainFormat =NotificationRecord.format,
     indexes = Seq(IndexModel(ascending("receivedAt"), IndexOptions()
-      .name("receivedAt")
+      .name("receivedAt_1")
     )))with Logging
 {
 
