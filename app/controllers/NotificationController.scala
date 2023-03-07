@@ -22,8 +22,6 @@ import config.ApplicationConfig
 import connectors.EmailConnector
 import exceptions.HttpStatusException
 import models.ContactType.{NewRenewalReminder, RenewalReminder}
-
-import javax.inject.Inject
 import models.{ContactType, NotificationPushRequest, NotificationRecord}
 import org.joda.time.{DateTime, DateTimeZone}
 import play.api.Logging
@@ -33,7 +31,8 @@ import repositories.NotificationMongoRepository
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import java.time.{LocalDateTime, ZoneId, ZoneOffset, ZonedDateTime}
+import javax.inject.Inject
+import scala.collection.immutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -110,7 +109,7 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
 
                     Future.failed(e)
                 }
-              case JsError(errors) =>
+              case JsError(errors: immutable.Seq[(JsPath, immutable.Seq[JsonValidationError])]) =>
                 Future.successful(BadRequest(toError(errors)))
             }
           case _ =>

@@ -31,7 +31,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.libs.json.{JsNull, JsValue, Json}
-import play.api.mvc.{ControllerComponents, Result}
+import play.api.mvc.ControllerComponents
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repositories.NotificationMongoRepository
@@ -135,17 +135,17 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
         .withBody[JsValue](JsNull)
 
       val response = Json.obj(
-        "errors" -> Seq(
+        "errors" -> Seq (
           Json.obj(
             "path" -> "obj.safeId",
             "error" -> "error.path.missing"
           ),
           Json.obj(
-            "path" -> "obj.name",
+            "path" -> "obj.email",
             "error" -> "error.path.missing"
           ),
           Json.obj(
-            "path" -> "obj.email",
+            "path" -> "obj.name",
             "error" -> "error.path.missing"
           ),
           Json.obj(

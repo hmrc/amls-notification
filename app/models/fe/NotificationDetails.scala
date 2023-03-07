@@ -17,16 +17,11 @@
 package models.fe
 
 import models.{ContactType, Status}
-import org.joda.time.{DateTime, DateTimeZone}
-import play.api.libs.json.JsPath.\
-import play.api.libs.json.{Format, JsValue, Json, Reads, Writes}
-import play.api.libs.json._
-import uk.gov.hmrc.mongo.play.json.formats.{MongoJavatimeFormats, MongoJodaFormats}
+import org.joda.time.DateTime
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Format.GenericFormat
-import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.dateTimeWrites
-
-import java.time.LocalDateTime
+import play.api.libs.json._
+import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats
 
 case class NotificationDetails(contactType : Option[ContactType],
                                status : Option[Status],

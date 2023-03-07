@@ -42,11 +42,11 @@ import scala.concurrent.Future
 class ViewNotificationConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures
                                     with IntegrationPatience with GuiceOneAppPerSuite with BeforeAndAfterAll {
 
-  override def beforeAll {
+  override def beforeAll(): Unit = {
     DateTimeUtils.setCurrentMillisFixed(1000)
   }
 
-  override def afterAll: Unit = {
+  override def afterAll(): Unit = {
     DateTimeUtils.setCurrentMillisSystem()
   }
 
