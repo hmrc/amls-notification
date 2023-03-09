@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package audit
 
 import models.fe.NotificationDetails
-import models.{ContactType, Status}
+import models.{ContactType}
 import play.api.libs.json.{JsObject, Json, Writes}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.AuditExtensions._
@@ -27,7 +27,7 @@ import utils.AuditHelper
 object NotificationReadEvent {
 
   def apply(amlsRegNo: String, request: NotificationDetails)
-           (implicit hc: HeaderCarrier, contactW: Writes[ContactType], statusW: Writes[Status]) = {
+           (implicit hc: HeaderCarrier, contactW: Writes[ContactType]) = {
 
     val data = Json.toJson(hc.toAuditDetails()).as[JsObject] ++ Json.obj(
       "registrationNumber" -> amlsRegNo,

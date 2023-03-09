@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,11 @@
 package repositories
 
 import com.google.inject.{Inject, Singleton}
-import com.mongodb.ErrorCategory
 import models.{IDType, NotificationRecord, NotificationRow}
 import org.bson.types.ObjectId
-import org.mongodb.scala.MongoWriteException
 import org.mongodb.scala.model.Indexes.ascending
-import org.mongodb.scala.model.{Filters, FindOneAndUpdateOptions, IndexModel, IndexOptions, ReturnDocument, Sorts, Updates}
+import org.mongodb.scala.model._
 import play.api.Logging
-import play.api.libs.json.{JsObject, JsValue, Json, Writes}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,8 +89,8 @@ class NotificationPushRequestSpec extends PlaySpec {
           "contact_number" -> "112345678251212",
           "variation" -> false)
 
-        NotificationPushRequest.jsonReads.reads(json) must be (JsError(List((JsPath \ "name", List(JsonValidationError(List("error.pattern")))),
-          (JsPath \ "email", List(JsonValidationError(List("error.maxLength"), maxEmail))),
+        NotificationPushRequest.jsonReads.reads(json) must be (JsError(List((JsPath \ "email", List(JsonValidationError(List("error.maxLength"), maxEmail))),
+          (JsPath \ "name", List(JsonValidationError(List("error.pattern")))),
           ( JsPath \ "status" \ "status_type", List(JsonValidationError(List("error.invalid")))))))
       }
 

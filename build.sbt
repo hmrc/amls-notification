@@ -30,7 +30,11 @@ lazy val microservice = Project(appName, file("."))
   .settings(playSettings ++ scoverageSettings: _*)
   .settings(scalaSettings: _*)
   .settings(defaultSettings(): _*)
-  .settings(scalaVersion := "2.12.13")
+  .settings(scalaVersion := "2.13.8")
+  .settings(
+    // To resolve a bug with version 2.x.x of the scoverage plugin - https://github.com/sbt/sbt/issues/6997
+    libraryDependencySchemes ++= Seq("org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always)
+  )
   .settings(
     libraryDependencies ++= appDependencies,
     PlayKeys.playDefaultPort := 8942,
@@ -45,8 +49,8 @@ lazy val microservice = Project(appName, file("."))
     addTestReportOption(IntegrationTest, "int-test-reports"),
     IntegrationTest / testGrouping := oneForkedJvmPerTest((IntegrationTest / definedTests).value),
     IntegrationTest / parallelExecution := false)
-  .settings(scalacOptions += "-P:silencer:pathFilters=routes")
   .settings(Global / lintUnusedKeysOnLoad := false)
+  .settings(scalacOptions += "-Wconf:src=routes/.*:s")
   .disablePlugins(JUnitXmlReportPlugin)
 
 def oneForkedJvmPerTest(tests: Seq[TestDefinition]) =
