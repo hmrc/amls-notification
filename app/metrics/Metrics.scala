@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import com.codahale.metrics.Timer.Context
 import com.codahale.metrics.{Counter, MetricRegistry, Timer}
 import com.google.inject.Inject
 
-class Metrics @Inject()(metrics: com.kenshoo.play.metrics.Metrics) {
+class Metrics @Inject()(metrics: com.codahale.metrics.MetricRegistry) {
   // $COVERAGE-OFF$
-  val registry: MetricRegistry = metrics.defaultRegistry
+  val registry = new MetricRegistry
   val timers = Map[APITypes, Timer](
     API11 -> registry.timer(s"${API11.key}-timer")
   )

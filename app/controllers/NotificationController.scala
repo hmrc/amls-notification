@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,25 +26,26 @@ import models.{ContactType, NotificationPushRequest, NotificationRecord}
 import org.joda.time.{DateTime, DateTimeZone}
 import play.api.Logging
 import play.api.libs.json._
-import play.api.mvc.ControllerComponents
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import repositories.NotificationMongoRepository
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
 import scala.collection.immutable
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.matching.Regex
 
 @Singleton
 class NotificationController @Inject()(private[controllers] val emailConnector: EmailConnector,
                                        amlsConfig: ApplicationConfig,
                                        private[controllers] val auditConnector: AuditConnector,
                                        private[controllers] val cc: ControllerComponents,
-                                       private[controllers] val notificationRepository: NotificationMongoRepository) extends BackendController(cc) with Logging {
+                                       private[controllers] val notificationRepository: NotificationMongoRepository)
+                                      (implicit ec: ExecutionContext) extends BackendController(cc) with Logging {
 
-  val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
-  val safeIdRegex = "^[A-Za-z0-9]{15}$".r
+  val amlsRegNoRegex: Regex = "^X[A-Z]ML00000[0-9]{6}$".r
+  val safeIdRegex: Regex = "^[A-Za-z0-9]{15}$".r
   val prefix = "[NotificationController]"
 
   private def toError(errors: Seq[(JsPath, Seq[JsonValidationError])]): JsObject =
@@ -64,7 +65,7 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
     )
 
   //noinspection ScalaStyle
-  def saveNotification(amlsRegistrationNumber: String) =
+  def saveNotification(amlsRegistrationNumber: String): Action[JsValue] =
     Action.async(parse.json) {
       implicit request =>
         logger.debug(s"$prefix [saveNotification] - amlsRegNo: $amlsRegistrationNumber, body: ${request.body.toString}")
@@ -93,7 +94,7 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
                 }
 
                 notificationRepository.insertRecord(record) map {
-                  case result if result == true =>
+                  case result if result =>
                     emailConnector.sendNotificationReceivedTemplatedEmail(List(body.email))
                     auditConnector.sendExtendedEvent(NotificationReceivedEvent(amlsRegistrationNumber, body))
                     NoContent
@@ -119,14 +120,16 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
         }
     }
 
-  def fetchNotifications(accountType: String, ref: String, amlsRegistrationNumber: String) =
+  def fetchNotifications(accountType: String, ref: String, amlsRegistrationNumber: String): Action[AnyContent] =
     Action.async {
         logger.debug(s"$prefix [fetchNotifications] - amlsRegNo: $amlsRegistrationNumber")
         amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
           case Some(_) =>
             notificationRepository.findByAmlsReference(amlsRegistrationNumber) map {
               response =>
-                val newResponse = response.map(x => x.copy(templatePackageVersion = x.templatePackageVersion orElse Some(amlsConfig.defaultTemplatePackageVersion)) )
+                val newResponse = response.map(x => x.copy(
+                  templatePackageVersion = x.templatePackageVersion orElse Some(amlsConfig.defaultTemplatePackageVersion))
+                )
                 logger.debug(s"$prefix [fetchNotifications] - Response: ${Json.toJson(newResponse)}")
                 Ok(Json.toJson(newResponse))
             } recoverWith {
@@ -141,13 +144,15 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
         }
     }
 
-  def fetchNotificationsBySafeId(accountType: String, ref: String, safeId: String) = Action.async {
+  def fetchNotificationsBySafeId(accountType: String, ref: String, safeId: String): Action[AnyContent] = Action.async {
         logger.debug(s"$prefix [fetchNotificationsBySafeId] - safeId: $safeId")
         safeIdRegex.findFirstIn(safeId) match {
           case Some(_) =>
             notificationRepository.findBySafeId(safeId) map {
               response =>
-                val newResponse = response.map(x => x.copy(templatePackageVersion = x.templatePackageVersion orElse Some(amlsConfig.defaultTemplatePackageVersion)) )
+                val newResponse = response.map(
+                  x => x.copy(templatePackageVersion = x.templatePackageVersion orElse Some(amlsConfig.defaultTemplatePackageVersion))
+                )
               logger.debug(s"$prefix [fetchNotificationsBySafeId] - Response: ${Json.toJson(newResponse)}")
               Ok(Json.toJson(newResponse))
             } recoverWith {
@@ -165,10 +170,10 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
     }
 
   def getContactType(contactType: Option[ContactType], date: DateTime, templateVersion: String): Option[ContactType] ={
-    val boundaryDay = date.dayOfMonth().getMaximumValue - (28+14)/2
+    val boundaryDay = date.dayOfMonth().getMaximumValue - (28 + 14)/2
     templateVersion match {
       case "v5m0" => contactType match {
-        case Some(RenewalReminder) if date.getDayOfMonth () >= boundaryDay =>
+        case Some(RenewalReminder) if date.getDayOfMonth >= boundaryDay =>
           Some(NewRenewalReminder)
         case _ => contactType
       }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ object DeregisteredReason {
     }
   }
 
-  implicit val jsonWrites = Writes[DeregisteredReason] {
+  implicit val jsonWrites: Writes[DeregisteredReason] = Writes[DeregisteredReason] {
     case CeasedTrading => JsString("01")
     case HVDNoCashPayment => JsString("02")
     case OutOfScope => JsString("03")

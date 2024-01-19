@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,5 +39,5 @@ trait DESConnector extends HttpResponseHelper with Logging {
   private[connectors] val audit: Audit = new Audit(AuditHelper.appName, auditConnector)
   private[connectors] val fullUrl: String = s"$baseUrl/$requestUrl"
 
-  protected implicit val hc = HeaderCarrier()
+  protected implicit val hc: HeaderCarrier = HeaderCarrier()
 }

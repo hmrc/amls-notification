@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 case class SendTemplatedEmailRequest(to: List[String], templateId: String, parameters: Map[String, String])
 
@@ -34,7 +33,7 @@ object SendTemplatedEmailRequest {
   implicit val format: OFormat[SendTemplatedEmailRequest] = Json.format[SendTemplatedEmailRequest]
 }
 
-class EmailConnector @Inject()(val config: ApplicationConfig, val http: DefaultHttpClient) extends Logging {
+class EmailConnector @Inject()(val config: ApplicationConfig, val http: DefaultHttpClient)(implicit ec: ExecutionContext) extends Logging {
   lazy val serviceURL: String = config.emailUrl
   val sendEmailURI = "/hmrc/email"
 

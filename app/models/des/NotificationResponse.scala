@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package models.des
 
-import org.joda.time.{DateTimeZone, LocalDateTime}
+import org.joda.time.{DateTime, DateTimeZone, LocalDateTime}
 import org.joda.time.format.ISODateTimeFormat
 import play.api.libs.json._
 import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats
@@ -28,7 +28,7 @@ object NotificationResponse {
 
   val dateTimeFormat = ISODateTimeFormat.dateTimeNoMillis().withZoneUTC
 
-  implicit val readsJodaLocalDateTime = Reads[LocalDateTime](js =>
+  implicit val readsJodaLocalDateTime: Reads[LocalDateTime] = Reads[LocalDateTime](js =>
     js.validate[String].map[LocalDateTime](dtString =>
       LocalDateTime.parse(dtString, dateTimeFormat)
     )
@@ -38,7 +38,7 @@ object NotificationResponse {
     def writes(dateTime: LocalDateTime): JsValue = JsString(dateTimeFormat.print(dateTime.toDateTime(DateTimeZone.UTC)))
   }
 
-  implicit val format = Json.format[NotificationResponse]
+  implicit val format: OFormat[NotificationResponse] = Json.format[NotificationResponse]
 
-  implicit val dateFormat = MongoJodaFormats.dateTimeFormat
+  implicit val dateFormat: Format[DateTime] = MongoJodaFormats.dateTimeFormat
 }

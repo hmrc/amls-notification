@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ object ContactType {
       case _ => JsError((JsPath \ "contact_type") -> JsonValidationError("error.invalid"))
     }
 
-  implicit val jsonWrites =
+  implicit val jsonWrites: Writes[ContactType] =
     Writes[ContactType] {
       case RejectionReasons => JsString("REJR")
       case RevocationReasons => JsString("REVR")
