@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,19 +26,19 @@ import models.fe.NotificationDetails
 import play.api.Logging
 import play.api.libs.json.{JsObject, Json}
 import utils.AuthAction
-import play.api.mvc.ControllerComponents
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import repositories.NotificationMongoRepository
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class ViewNotificationController @Inject()(private[controllers] val connector: ViewNotificationConnector,
                                            private[controllers] val audit: AuditConnector,
                                            cc: ControllerComponents,
                                            authAction: AuthAction,
-                                           private[controllers] val notificationRepository: NotificationMongoRepository) extends BackendController(cc) with Logging {
+                                           private[controllers] val notificationRepository: NotificationMongoRepository)
+                                          (implicit ec: ExecutionContext) extends BackendController(cc) with Logging {
 
   val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
   val prefix = "[ViewNotificationController]"
@@ -48,7 +48,7 @@ class ViewNotificationController @Inject()(private[controllers] val connector: V
       "errors" -> Seq(message)
     )
 
-  def viewNotification(accountType:String, ref:String, amlsRegistrationNumber: String, notificationId: String) =
+  def viewNotification(accountType:String, ref:String, amlsRegistrationNumber: String, notificationId: String): Action[AnyContent] =
     authAction.async {
       implicit request =>
         logger.debug(s"$prefix[viewNotification] - amlsRegNo: $amlsRegistrationNumber - notificationId: $notificationId")
@@ -86,7 +86,7 @@ class ViewNotificationController @Inject()(private[controllers] val connector: V
         }
     }
 
-  private def markNotificationAsRead(id: String) = {
+  private def markNotificationAsRead(id: String): Future[Result] = {
     notificationRepository.markAsRead(id) map {
       response =>
         Ok(Json.toJson(response))

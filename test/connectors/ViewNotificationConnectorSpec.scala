@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import exceptions.HttpStatusException
 import metrics.{API11, Metrics}
 import models.des.NotificationResponse
 import org.joda.time.{DateTimeUtils, LocalDateTime}
-import org.mockito.ArgumentMatchers.{any, eq => eqTo}
+import org.mockito.ArgumentMatchers.{any, argThat, eq => eqTo}
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
@@ -87,10 +87,6 @@ class ViewNotificationConnectorSpec extends PlaySpec with MockitoSugar with Scal
       )
 
       when {
-        viewNotificationConnector.audit.sendDataEvent
-      } thenReturn ((f: DataEvent) => dataEvent = f)
-
-      when {
         viewNotificationConnector.http.GET[HttpResponse](eqTo(url), any(), any())(any(), any(), any())
       } thenReturn Future.successful(response)
 
@@ -98,8 +94,10 @@ class ViewNotificationConnectorSpec extends PlaySpec with MockitoSugar with Scal
         _ mustEqual successModel
       }
 
-      dataEvent.auditSource mustEqual "amls-notification"
-      dataEvent.auditType mustEqual "OutboundCall"
+      verify(viewNotificationConnector.audit).sendDataEvent(argThat { dataEvent: DataEvent =>
+        dataEvent.auditSource.equals("amls-notification") &&
+          dataEvent.auditType.equals("OutboundCall")
+      })(any())
     }
 
     "return a failed future when the response contains a BAD_REQUEST and no response body" in new Fixture {
@@ -113,17 +111,16 @@ class ViewNotificationConnectorSpec extends PlaySpec with MockitoSugar with Scal
         viewNotificationConnector.http.GET[HttpResponse](eqTo(url), any(), any())(any(), any(), any())
       } thenReturn Future.successful(response)
 
-      when {
-        viewNotificationConnector.audit.sendDataEvent
-      } thenReturn ((f: DataEvent) => dataEvent = f)
-
       whenReady(viewNotificationConnector.getNotification(amlsRegistrationNumber, contactNumber).failed) {
         case HttpStatusException(status, body) =>
           status mustEqual BAD_REQUEST
           body mustEqual None
-          dataEvent.auditSource mustEqual "amls-notification"
-          dataEvent.auditType mustEqual "viewNotificationEventFailed"
       }
+
+      verify(viewNotificationConnector.audit, times(2)).sendDataEvent(argThat { dataEvent: DataEvent =>
+        dataEvent.auditSource.equals("amls-notification") &&
+          dataEvent.auditType.equals("viewNotificationEventFailed")
+      })(any())
     }
 
     "return a failed future containing json validation message" in new Fixture {
@@ -138,17 +135,16 @@ class ViewNotificationConnectorSpec extends PlaySpec with MockitoSugar with Scal
         viewNotificationConnector.http.GET[HttpResponse](eqTo(url), any(), any())(any(), any(), any())
       } thenReturn Future.successful(response)
 
-      when {
-        viewNotificationConnector.audit.sendDataEvent
-      } thenReturn ((f: DataEvent) => dataEvent = f)
-
       whenReady(viewNotificationConnector.getNotification(amlsRegistrationNumber, contactNumber).failed) {
         case HttpStatusException(status, body) =>
           status mustEqual OK
           body mustEqual Some("{\"message\": \"none\"}")
-          dataEvent.auditSource mustEqual "amls-notification"
-          dataEvent.auditType mustEqual "viewNotificationEventFailed"
       }
+
+      verify(viewNotificationConnector.audit, times(2)).sendDataEvent(argThat { dataEvent: DataEvent =>
+        dataEvent.auditSource.equals("amls-notification") &&
+          dataEvent.auditType.equals("viewNotificationEventFailed")
+      })(any())
     }
 
     "return a failed future containing an exception message" in new Fixture {

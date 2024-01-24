@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class DefaultAuthActionSpec extends PlaySpec with MockitoSugar with ScalaFutures with Matchers with IntegrationPatience with GuiceOneAppPerSuite {
 
   val mockAuthConnector = mock[AuthConnector]
-  implicit val headCarrier = mock[HeaderCarrier]
+  implicit val headCarrier: HeaderCarrier = mock[HeaderCarrier]
   val mockCC: ControllerComponents = app.injector.instanceOf[ControllerComponents]
 
   class Harness(authAction: DefaultAuthAction) extends BaseController {

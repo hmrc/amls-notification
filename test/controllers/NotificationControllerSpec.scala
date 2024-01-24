@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import repositories.NotificationMongoRepository
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFutures with GuiceOneAppPerSuite with BeforeAndAfter {
 
@@ -47,8 +47,10 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
   val mockAuditConnector = mock[AuditConnector]
   val mockConfig = app.injector.instanceOf[ApplicationConfig]
   val mockNotificationRepository = mock[NotificationMongoRepository]
+  val mockExecutionContext = app.injector.instanceOf[ExecutionContext]
 
-  val notificationController = new NotificationController(mockEmailConnector, mockConfig, mockAuditConnector, mockCC, mockNotificationRepository)
+  val notificationController = new NotificationController(
+    mockEmailConnector, mockConfig, mockAuditConnector, mockCC, mockNotificationRepository)(mockExecutionContext)
 
   before {
     reset(notificationController.notificationRepository)

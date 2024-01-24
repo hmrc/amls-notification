@@ -4,18 +4,14 @@ import play.core.PlayVersion
 
 private object AppDependencies {
 
-  val bootstrapVersion = "6.2.0"
+  val bootstrapVersion = "8.4.0"
 
-  val compile = Seq(
-    "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28" %  "0.70.0",
+  val compile: Seq[ModuleID] = Seq(
+    "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28" %  "1.7.0",
     ws,
     "uk.gov.hmrc" %% "bootstrap-backend-play-28" % bootstrapVersion,
-    "uk.gov.hmrc" %% "domain" % "8.1.0-play-28"
+    "uk.gov.hmrc" %% "domain" % "8.3.0-play-28"
   )
-
-  private val scalatestPlusPlayVersion = "5.1.0"
-  private val scalaTestVersion = "3.2.9"
-  private val pegdownVersion = "1.6.0"
 
   trait TestDependencies {
     lazy val scope: String = "test"
@@ -23,36 +19,15 @@ private object AppDependencies {
   }
 
   object Test {
-    def apply() = new TestDependencies {
+    def apply(): Seq[sbt.ModuleID] = new TestDependencies {
       override lazy val test = Seq(
-        "org.scalatest" %% "scalatest" % scalaTestVersion % scope,
         "uk.gov.hmrc" %% "bootstrap-test-play-28" % bootstrapVersion % scope,
-        "org.scalatestplus.play" %% "scalatestplus-play" % scalatestPlusPlayVersion % scope,
-        "org.pegdown" % "pegdown" % pegdownVersion % scope,
-        "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
-        "org.mockito" % "mockito-core" % "3.11.2" % scope,
-        "org.scalacheck" %% "scalacheck" % "1.15.4" % scope,
-        "org.scalatestplus" %% "mockito-3-4" % "3.2.9.0" % scope,
-        "com.vladsch.flexmark" %  "flexmark-all" % "0.36.8" % scope
+        "org.scalacheck" %% "scalacheck" % "1.17.0" % scope,
+        "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % scope,
+        "com.vladsch.flexmark" %  "flexmark-all" % "0.62.2" % scope
       )
     }.test
   }
 
-  object IntegrationTest {
-    def apply() = new TestDependencies {
-
-      override lazy val scope: String = "it"
-
-      override lazy val test = Seq(
-        "org.scalatest" %% "scalatest" % scalaTestVersion % scope,
-        "uk.gov.hmrc" %% "bootstrap-test-play-28" % bootstrapVersion % scope,
-        "org.scalatestplus.play" %% "scalatestplus-play" % scalatestPlusPlayVersion % scope,
-        "org.pegdown" % "pegdown" % pegdownVersion % scope,
-        "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
-        "org.mockito" % "mockito-core" % "3.11.2" % scope
-      )
-    }.test
-  }
-
-  def apply() = compile ++ Test() ++ IntegrationTest()
+  def apply(): Seq[ModuleID] = compile ++ Test()
 }
