@@ -15,13 +15,12 @@
  */
 
 package models
+
 import play.api.libs.json._
 import org.bson.types.ObjectId
-import uk.gov.hmrc.mongo.play.json.formats.{MongoFormats, MongoJodaFormats}
-import org.joda.time.{DateTime}
-
-
-
+import uk.gov.hmrc.mongo.play.json.formats.MongoFormats
+import org.joda.time.DateTime
+import utils.DateTimeFormats
 
 case class NotificationRecord (amlsRegistrationNumber: String,
                                safeId: String,
@@ -39,6 +38,6 @@ case class NotificationRecord (amlsRegistrationNumber: String,
 object NotificationRecord {
 
   implicit val objectIdFormat: Format[ObjectId] = MongoFormats.objectIdFormat
-  implicit val dtf: Format[DateTime] = MongoJodaFormats.dateTimeFormat
+  implicit val dtf: Format[DateTime] = DateTimeFormats.dateTimeFormat
   implicit val format: Format[NotificationRecord] = Json.format[NotificationRecord]
 }
