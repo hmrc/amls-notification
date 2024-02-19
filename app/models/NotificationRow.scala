@@ -16,14 +16,11 @@
 
 package models
 
-
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Format.GenericFormat
 import play.api.libs.json._
 import org.joda.time.DateTime
-import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats
-
-
+import utils.DateTimeFormats
 
 case class NotificationRow (
                              status: Option[Status],
@@ -44,7 +41,7 @@ object NotificationRow {
         (JsPath \ "contactType").readNullable[ContactType] and
         (JsPath \ "contactNumber").readNullable[String] and
         (JsPath \ "variation").read[Boolean] and
-        (JsPath \ "receivedAt").read[DateTime](MongoJodaFormats.dateTimeReads)and
+        (JsPath \ "receivedAt").read[DateTime](DateTimeFormats.dateTimeReads)and
         (JsPath \ "isRead").read[Boolean] and
         (JsPath \ "amlsRegistrationNumber").read[String] and
         (JsPath \ "templatePackageVersion").readNullable[String] and
@@ -57,7 +54,7 @@ object NotificationRow {
         (JsPath \ "contactType").writeNullable[ContactType] and
         (JsPath \ "contactNumber").writeNullable[String] and
         (JsPath \ "variation").write[Boolean] and
-        (JsPath \ "receivedAt").write[DateTime](MongoJodaFormats.dateTimeWrites) and
+        (JsPath \ "receivedAt").write[DateTime](DateTimeFormats.dateTimeWrites) and
         (JsPath \ "isRead").write[Boolean] and
         (JsPath \ "amlsRegistrationNumber").write[String] and
         (JsPath \ "templatePackageVersion").writeNullable[String] and

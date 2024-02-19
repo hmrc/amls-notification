@@ -4,30 +4,22 @@ import play.core.PlayVersion
 
 private object AppDependencies {
 
-  val bootstrapVersion = "8.4.0"
+  private val playVersion = "play-30"
+  private val bootstrapVersion = "8.4.0"
 
   val compile: Seq[ModuleID] = Seq(
-    "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28" %  "1.7.0",
-    ws,
-    "uk.gov.hmrc" %% "bootstrap-backend-play-28" % bootstrapVersion,
-    "uk.gov.hmrc" %% "domain" % "8.3.0-play-28"
+    "uk.gov.hmrc.mongo" %% s"hmrc-mongo-$playVersion"        %  "1.7.0",
+    "uk.gov.hmrc"       %% s"bootstrap-backend-$playVersion" % bootstrapVersion,
+    "uk.gov.hmrc"       %% "domain"                          % "8.3.0-play-28",
+    ws
   )
 
-  trait TestDependencies {
-    lazy val scope: String = "test"
-    lazy val test: Seq[ModuleID] = ???
-  }
+  val test: Seq[ModuleID] = Seq(
+    "uk.gov.hmrc"         %% s"bootstrap-test-$playVersion" % bootstrapVersion,
+    "org.scalacheck"      %% "scalacheck"                   % "1.17.0",
+    "org.scalatestplus"   %% "mockito-3-4"                  % "3.2.10.0",
+    "com.vladsch.flexmark" % "flexmark-all"                 % "0.62.2"
+  ).map(_ % "test")
 
-  object Test {
-    def apply(): Seq[sbt.ModuleID] = new TestDependencies {
-      override lazy val test = Seq(
-        "uk.gov.hmrc" %% "bootstrap-test-play-28" % bootstrapVersion % scope,
-        "org.scalacheck" %% "scalacheck" % "1.17.0" % scope,
-        "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % scope,
-        "com.vladsch.flexmark" %  "flexmark-all" % "0.62.2" % scope
-      )
-    }.test
-  }
-
-  def apply(): Seq[ModuleID] = compile ++ Test()
+  def apply(): Seq[ModuleID] = compile ++ test
 }
