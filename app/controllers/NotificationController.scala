@@ -172,7 +172,7 @@ class NotificationController @Inject()(private[controllers] val emailConnector: 
   def getContactType(contactType: Option[ContactType], date: DateTime, templateVersion: String): Option[ContactType] ={
     val boundaryDay = date.dayOfMonth().getMaximumValue - (28 + 14)/2
     templateVersion match {
-      case "v5m0" => contactType match {
+      case "v6m0" => contactType match {
         case Some(RenewalReminder) if date.getDayOfMonth >= boundaryDay =>
           Some(NewRenewalReminder)
         case _ => contactType
