@@ -1,1 +1,0 @@
- + [AMLS-5225] - 'Revert Notifications Controller to using out of the box play auth as auth is manually disabled for this controller - fixes Assyst 1961565'
