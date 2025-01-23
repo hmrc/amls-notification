@@ -16,12 +16,8 @@
 
 package repositories
 
-import org.mongodb.scala.model.Indexes.ascending
-import org.mongodb.scala.model.{IndexModel, IndexOptions, Indexes}
-import org.scalatestplus.mockito.MockitoSugar.mock
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import uk.gov.hmrc.mongo.MongoComponent
 
 
 class NotificationMongoRespositorySpec extends PlaySpec with GuiceOneAppPerSuite {
