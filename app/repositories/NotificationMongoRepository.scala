@@ -33,9 +33,20 @@ class NotificationMongoRepository @Inject()(mongo: MongoComponent)(implicit ec: 
     mongoComponent = mongo,
     collectionName ="notification",
     domainFormat =NotificationRecord.format,
-    indexes = Seq(IndexModel(ascending("receivedAt"), IndexOptions()
-      .name("receivedAt_1")
-    )))with Logging
+    indexes = Seq(
+        IndexModel(
+          ascending("receivedAt"),
+          IndexOptions().name("receivedAt_1")
+        ),
+      IndexModel(
+        keys         = Indexes.ascending("amlsRegistrationNumber"),
+        indexOptions = IndexOptions().name("amlsRegistrationNumber_index").unique(false)
+      ),
+      IndexModel(
+        keys         = Indexes.ascending("safeId"),
+        indexOptions = IndexOptions().name("safeId_index").unique(false)
+      )
+    ))with Logging
 {
 
   def insertRecord(notificationRequest: NotificationRecord): Future[Boolean] = {
