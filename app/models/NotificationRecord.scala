@@ -22,22 +22,23 @@ import uk.gov.hmrc.mongo.play.json.formats.MongoFormats
 import org.joda.time.DateTime
 import utils.DateTimeFormats
 
-case class NotificationRecord (amlsRegistrationNumber: String,
-                               safeId: String,
-                               name: String,
-                               email: String,
-                               status: Option[Status],
-                               contactType: Option[ContactType],
-                               contactNumber: Option[String],
-                               variation: Boolean,
-                               receivedAt: DateTime,
-                               isRead: Boolean,
-                               templatePackageVersion: Option[String],
-                               _id:ObjectId = ObjectId.get()
-                              )
+case class NotificationRecord(
+  amlsRegistrationNumber: String,
+  safeId: String,
+  name: String,
+  email: String,
+  status: Option[Status],
+  contactType: Option[ContactType],
+  contactNumber: Option[String],
+  variation: Boolean,
+  receivedAt: DateTime,
+  isRead: Boolean,
+  templatePackageVersion: Option[String],
+  _id: ObjectId = ObjectId.get()
+)
 object NotificationRecord {
 
-  implicit val objectIdFormat: Format[ObjectId] = MongoFormats.objectIdFormat
-  implicit val dtf: Format[DateTime] = DateTimeFormats.dateTimeFormat
+  implicit val objectIdFormat: Format[ObjectId]   = MongoFormats.objectIdFormat
+  implicit val dtf: Format[DateTime]              = DateTimeFormats.dateTimeFormat
   implicit val format: Format[NotificationRecord] = Json.format[NotificationRecord]
 }

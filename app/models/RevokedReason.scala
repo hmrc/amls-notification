@@ -47,17 +47,17 @@ object RevokedReason {
       case "05" => Reads(_ => JsSuccess(RevokedFailedToPayCharges))
       case "06" => Reads(_ => JsSuccess(RevokedFailedToRespond))
       case "99" => Reads(_ => JsSuccess(RevokedOther))
-      case _ => Reads(_ => JsError(JsPath \ "status_reason" -> JsonValidationError("error.invalid")))
+      case _    => Reads(_ => JsError(JsPath \ "status_reason" -> JsonValidationError("error.invalid")))
     }
   }
 
   implicit val jsonWrites: Writes[RevokedReason] = Writes[RevokedReason] {
-    case RevokedMissingTrader =>  JsString("01")
-    case RevokedCeasedTrading =>  JsString("02")
-    case RevokedNonCompliant =>  JsString("03")
-    case RevokedFitAndProperFailure =>  JsString("04")
-    case RevokedFailedToPayCharges =>  JsString("05")
-    case RevokedFailedToRespond =>  JsString("06")
-    case RevokedOther =>  JsString("99")
+    case RevokedMissingTrader       => JsString("01")
+    case RevokedCeasedTrading       => JsString("02")
+    case RevokedNonCompliant        => JsString("03")
+    case RevokedFitAndProperFailure => JsString("04")
+    case RevokedFailedToPayCharges  => JsString("05")
+    case RevokedFailedToRespond     => JsString("06")
+    case RevokedOther               => JsString("99")
   }
 }

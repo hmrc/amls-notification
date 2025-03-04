@@ -16,7 +16,6 @@
 
 package controllers
 
-
 import connectors.ViewNotificationConnector
 import exceptions.HttpStatusException
 import models._
@@ -46,10 +45,10 @@ class ViewNotificationControllerSpec extends PlaySpec with ScalaFutures with Moc
 
   trait Fixture {
 
-    val mockViewNotificationConnector = mock[ViewNotificationConnector]
-    val mockAuditConnector =  mock[AuditConnector]
-    val mockCC: ControllerComponents = app.injector.instanceOf[ControllerComponents]
-    val mockNotificationMongoRepository =  mock[NotificationMongoRepository]
+    val mockViewNotificationConnector   = mock[ViewNotificationConnector]
+    val mockAuditConnector              = mock[AuditConnector]
+    val mockCC: ControllerComponents    = app.injector.instanceOf[ControllerComponents]
+    val mockNotificationMongoRepository = mock[NotificationMongoRepository]
 
     val viewNotificationController = new ViewNotificationController(
       mockViewNotificationConnector,
@@ -66,31 +65,31 @@ class ViewNotificationControllerSpec extends PlaySpec with ScalaFutures with Moc
 
   "ViewNotificationController" must {
     val amlsRegistrationNumber = amlsRegNumberGen.sample.get
-    val contactNumber = "11111"
+    val contactNumber          = "11111"
 
     "return a `BadRequest` response when the amls registration number is invalid" in new Fixture {
-      val result = viewNotificationController.viewNotification("accountType", "ref", "test", "test")(request)
+      val result  = viewNotificationController.viewNotification("accountType", "ref", "test", "test")(request)
       val failure = Json.obj("errors" -> Seq("Invalid AMLS Registration Number"))
 
       when {
         viewNotificationController.audit.sendEvent(any())(any(), any())
       } thenReturn Future.successful(mock[AuditResult])
 
-      status(result) must be(BAD_REQUEST)
+      status(result)        must be(BAD_REQUEST)
       contentAsJson(result) must be(failure)
     }
 
     "return a valid response when the amls registration number is valid" in new Fixture {
-      val record = notificationRecordGen.sample.map(_.copy(
-        contactNumber = Some(contactNumber),
-        amlsRegistrationNumber = amlsRegistrationNumber) )
+      val record = notificationRecordGen.sample.map(
+        _.copy(contactNumber = Some(contactNumber), amlsRegistrationNumber = amlsRegistrationNumber)
+      )
 
       val expectedDetails = NotificationDetails(
-        record flatMap {_.contactType},
-        record flatMap {_.status},
+        record flatMap { _.contactType },
+        record flatMap { _.status },
         Some("secure-comms text"),
-        record.fold(false) {_.variation},
-        record.fold(new DateTime()){_.receivedAt}
+        record.fold(false)(_.variation),
+        record.fold(new DateTime())(_.receivedAt)
       )
 
       when {
@@ -102,12 +101,18 @@ class ViewNotificationControllerSpec extends PlaySpec with ScalaFutures with Moc
       } thenReturn Future.successful(record)
 
       when {
-        viewNotificationController.connector.getNotification(eqTo(amlsRegistrationNumber), eqTo(contactNumber))(any(), any())
-      } thenReturn Future.successful(Des.notificationResponseGen.sample.map(_.copy(secureCommText = "secure-comms text")).get)
+        viewNotificationController.connector
+          .getNotification(eqTo(amlsRegistrationNumber), eqTo(contactNumber))(any(), any())
+      } thenReturn Future.successful(
+        Des.notificationResponseGen.sample.map(_.copy(secureCommText = "secure-comms text")).get
+      )
 
-      val result = viewNotificationController.viewNotification("accountType", "ref", amlsRegistrationNumber, "NOTIFICATIONID")(request)
+      val result =
+        viewNotificationController.viewNotification("accountType", "ref", amlsRegistrationNumber, "NOTIFICATIONID")(
+          request
+        )
 
-      status(result) must be(OK)
+      status(result)        must be(OK)
       contentAsJson(result) must be(Json.toJson(expectedDetails))
 
       val captor = ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
@@ -128,7 +133,10 @@ class ViewNotificationControllerSpec extends PlaySpec with ScalaFutures with Moc
       when(viewNotificationController.notificationRepository.markAsRead("NOTIFICATIONID"))
         .thenReturn(Future.successful(true))
 
-      val result = viewNotificationController.viewNotification("accountType", "ref", amlsRegistrationNumber, "NOTIFICATIONID")(request)
+      val result =
+        viewNotificationController.viewNotification("accountType", "ref", amlsRegistrationNumber, "NOTIFICATIONID")(
+          request
+        )
 
       status(result) must be(OK)
       verify(viewNotificationController.notificationRepository)
@@ -147,15 +155,18 @@ class ViewNotificationControllerSpec extends PlaySpec with ScalaFutures with Moc
       when(viewNotificationController.notificationRepository.markAsRead(any()))
         .thenReturn(Future.failed(new HttpStatusException(500, None)))
 
-      val result = viewNotificationController.viewNotification("accountType", "ref", amlsRegistrationNumber, "NOTIFICATIONID")(request)
+      val result =
+        viewNotificationController.viewNotification("accountType", "ref", amlsRegistrationNumber, "NOTIFICATIONID")(
+          request
+        )
 
       status(result) must be(OK)
     }
 
     "return an invalid response when the service fails" in new Fixture {
-      private val maybeRecord = notificationRecordGen.sample.map(_.copy(
-        amlsRegistrationNumber = amlsRegistrationNumber,
-        contactNumber = Some("CONTACTNUMBER")))
+      private val maybeRecord = notificationRecordGen.sample.map(
+        _.copy(amlsRegistrationNumber = amlsRegistrationNumber, contactNumber = Some("CONTACTNUMBER"))
+      )
 
       when {
         viewNotificationController.notificationRepository.findById("NOTIFICATIONID")
@@ -165,107 +176,141 @@ class ViewNotificationControllerSpec extends PlaySpec with ScalaFutures with Moc
         viewNotificationController.connector.getNotification(any(), any())(any(), any())
       } thenReturn Future.failed(new HttpStatusException(INTERNAL_SERVER_ERROR, Some("message")))
 
-      private val future = viewNotificationController.viewNotification("accountType", "ref", amlsRegistrationNumber, "NOTIFICATIONID")(request)
+      private val future =
+        viewNotificationController.viewNotification("accountType", "ref", amlsRegistrationNumber, "NOTIFICATIONID")(
+          request
+        )
 
-      whenReady(future.failed) {
-        case HttpStatusException(status, body) =>
-          status mustEqual INTERNAL_SERVER_ERROR
-          body mustEqual Some("message")
+      whenReady(future.failed) { case HttpStatusException(status, body) =>
+        status mustEqual INTERNAL_SERVER_ERROR
+        body mustEqual Some("message")
       }
     }
   }
 
-
   it when {
-      "the requested notification exists" when {
-        "the requested notification belongs to the AMLSRegistration" when {
-          "the requested notification contains a contact number" must {
-            "return message details containing message type from the repo and text from the connector" in new Fixture {
-              val regNo = amlsRegNumberGen.sample.get
+    "the requested notification exists" when {
+      "the requested notification belongs to the AMLSRegistration" when {
+        "the requested notification contains a contact number" must {
+          "return message details containing message type from the repo and text from the connector" in new Fixture {
+            val regNo = amlsRegNumberGen.sample.get
 
-              when {
-                viewNotificationController.notificationRepository.findById("NOTIFICATIONID1")
-              }.thenReturn(Future.successful(notificationRecordGen.sample.map(_.copy(
-                amlsRegistrationNumber = regNo,
-                contactNumber = Some("CONTACTNUMBER1"),
-                contactType = Some(ContactType.ReminderToPayForManualCharges),
-                status = Some(Status(StatusType.Approved, Some(RejectedReason.FailedToRespond))),
-                variation = true,
-                receivedAt = dateTime
-              ))))
+            when {
+              viewNotificationController.notificationRepository.findById("NOTIFICATIONID1")
+            }.thenReturn(
+              Future.successful(
+                notificationRecordGen.sample.map(
+                  _.copy(
+                    amlsRegistrationNumber = regNo,
+                    contactNumber = Some("CONTACTNUMBER1"),
+                    contactType = Some(ContactType.ReminderToPayForManualCharges),
+                    status = Some(Status(StatusType.Approved, Some(RejectedReason.FailedToRespond))),
+                    variation = true,
+                    receivedAt = dateTime
+                  )
+                )
+              )
+            )
 
-              when {
-                viewNotificationController.connector.getNotification(regNo, "CONTACTNUMBER1")
-              }.thenReturn(Future.successful(Des.notificationResponseGen.sample.map(_.copy(
-                secureCommText = "THIS IS THE MESSAGE TEXT 00001")).get))
+            when {
+              viewNotificationController.connector.getNotification(regNo, "CONTACTNUMBER1")
+            }.thenReturn(
+              Future.successful(
+                Des.notificationResponseGen.sample.map(_.copy(secureCommText = "THIS IS THE MESSAGE TEXT 00001")).get
+              )
+            )
 
-              val result = viewNotificationController.viewNotification("accountType", "ref", regNo, "NOTIFICATIONID1")(request)
+            val result =
+              viewNotificationController.viewNotification("accountType", "ref", regNo, "NOTIFICATIONID1")(request)
 
-              status(result) must be(OK)
-              contentAsJson(result) must be(Json.obj(
+            status(result)        must be(OK)
+            contentAsJson(result) must be(
+              Json.obj(
                 "contactType" -> "RPM1",
-                "status" -> Json.obj("status_type"->"04", "status_reason" -> "02"),
+                "status"      -> Json.obj("status_type" -> "04", "status_reason" -> "02"),
                 "messageText" -> "THIS IS THE MESSAGE TEXT 00001",
-                "variation" -> true,
-                "receivedAt" -> Json.parse("""{"$date":{"$numberLong":"1479730062573"}}""")
-              ))
-            }
-          }
-
-          "the requested notification does not contain a contact number" must {
-            "return message details containing message type from the repo and no message text" in new Fixture {
-              val regNo = amlsRegNumberGen.sample.get
-              when {
-                viewNotificationController.notificationRepository.findById("NOTIFICATIONID2")
-              }.thenReturn(Future.successful(notificationRecordGen.sample.map(_.copy(
-                amlsRegistrationNumber = regNo,
-                contactNumber = None,
-                contactType = Some(ContactType.ReminderToPayForManualCharges),
-                status = Some(Status(StatusType.Approved, Some(RejectedReason.FailedToRespond))),
-                variation = true,
-                receivedAt = dateTime
-              ))))
-
-              val result = viewNotificationController.viewNotification("accountType", "ref", regNo, "NOTIFICATIONID2")(request)
-
-              status(result) must be(OK)
-              contentAsJson(result) must be(Json.obj(
-                "contactType" -> "RPM1",
-                "status" -> Json.obj("status_type" -> "04", "status_reason" -> "02"),
-                "variation" -> true,
-                "receivedAt" -> Json.parse("""{"$date":{"$numberLong":"1479730062573"}}""")
-              ))
-            }
+                "variation"   -> true,
+                "receivedAt"  -> Json.parse("""{"$date":{"$numberLong":"1479730062573"}}""")
+              )
+            )
           }
         }
 
-        "the requested notification does not belong to the AMLSRegistration" must {
-          "return a Not Found" in new Fixture {
-            when {
-              viewNotificationController.notificationRepository.findById("NOTIFICATIONID1")
-            }.thenReturn(Future.successful(notificationRecordGen.sample.map(_.copy(
-              contactNumber = Some("CONTACTNUMBER1"),
-              amlsRegistrationNumber = "NOT A REAL AMLS REG NUMBER"
-            ))))
-
+        "the requested notification does not contain a contact number" must {
+          "return message details containing message type from the repo and no message text" in new Fixture {
             val regNo = amlsRegNumberGen.sample.get
+            when {
+              viewNotificationController.notificationRepository.findById("NOTIFICATIONID2")
+            }.thenReturn(
+              Future.successful(
+                notificationRecordGen.sample.map(
+                  _.copy(
+                    amlsRegistrationNumber = regNo,
+                    contactNumber = None,
+                    contactType = Some(ContactType.ReminderToPayForManualCharges),
+                    status = Some(Status(StatusType.Approved, Some(RejectedReason.FailedToRespond))),
+                    variation = true,
+                    receivedAt = dateTime
+                  )
+                )
+              )
+            )
 
-            val result = viewNotificationController.viewNotification("accountType", "ref", regNo, "NOTIFICATIONID1")(request)
+            val result =
+              viewNotificationController.viewNotification("accountType", "ref", regNo, "NOTIFICATIONID2")(request)
 
-            status(result) must be(NOT_FOUND)
+            status(result)        must be(OK)
+            contentAsJson(result) must be(
+              Json.obj(
+                "contactType" -> "RPM1",
+                "status"      -> Json.obj("status_type" -> "04", "status_reason" -> "02"),
+                "variation"   -> true,
+                "receivedAt"  -> Json.parse("""{"$date":{"$numberLong":"1479730062573"}}""")
+              )
+            )
           }
         }
       }
 
-      "the requested notification does not exist in the repo" must {
-        "return a not found " in new Fixture {
+      "the requested notification does not belong to the AMLSRegistration" must {
+        "return a Not Found" in new Fixture {
           when {
-            viewNotificationController.notificationRepository.findById(any())
-          }.thenReturn(Future.successful(None))
+            viewNotificationController.notificationRepository.findById("NOTIFICATIONID1")
+          }.thenReturn(
+            Future.successful(
+              notificationRecordGen.sample.map(
+                _.copy(
+                  contactNumber = Some("CONTACTNUMBER1"),
+                  amlsRegistrationNumber = "NOT A REAL AMLS REG NUMBER"
+                )
+              )
+            )
+          )
 
-          val result = viewNotificationController.viewNotification("accountType", "ref", amlsRegNumberGen.sample.get, "NOTIFICATIONID")(request)
+          val regNo = amlsRegNumberGen.sample.get
+
+          val result =
+            viewNotificationController.viewNotification("accountType", "ref", regNo, "NOTIFICATIONID1")(request)
+
           status(result) must be(NOT_FOUND)
         }
       }
     }
+
+    "the requested notification does not exist in the repo" must {
+      "return a not found " in new Fixture {
+        when {
+          viewNotificationController.notificationRepository.findById(any())
+        }.thenReturn(Future.successful(None))
+
+        val result = viewNotificationController.viewNotification(
+          "accountType",
+          "ref",
+          amlsRegNumberGen.sample.get,
+          "NOTIFICATIONID"
+        )(request)
+        status(result) must be(NOT_FOUND)
+      }
+    }
+  }
 }

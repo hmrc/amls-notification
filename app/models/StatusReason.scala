@@ -27,19 +27,19 @@ object StatusReason {
 
   def jsonReads(statusType: StatusType) = new Reads[StatusReason] {
     override def reads(json: JsValue) = statusType match {
-      case Rejected => RejectedReason.jsonReads.reads(json) map identity[StatusReason]
-      case Revoked => RevokedReason.jsonReads.reads(json) map identity[StatusReason]
+      case Rejected     => RejectedReason.jsonReads.reads(json) map identity[StatusReason]
+      case Revoked      => RevokedReason.jsonReads.reads(json) map identity[StatusReason]
       case DeRegistered => DeregisteredReason.jsonReads.reads(json) map identity[StatusReason]
-      case _ => JsSuccess(EmptyReason)
+      case _            => JsSuccess(EmptyReason)
     }
   }
 
   implicit val jsonWrites: Writes[StatusReason] = {
     import play.api.libs.json._
     Writes[StatusReason] {
-      case a: RejectedReason =>
+      case a: RejectedReason     =>
         RejectedReason.jsonWrites.writes(a)
-      case a: RevokedReason =>
+      case a: RevokedReason      =>
         RevokedReason.jsonWrites.writes(a)
       case a: DeregisteredReason =>
         DeregisteredReason.jsonWrites.writes(a)

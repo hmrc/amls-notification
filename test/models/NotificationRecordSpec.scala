@@ -16,14 +16,14 @@
 
 package models
 
-import org.joda.time.{DateTimeZone, DateTime}
+import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.JsSuccess
 
 class NotificationRecordSpec extends PlaySpec {
 
   "NotificationRecord" must {
-    "read and write json successfully"  in {
+    "read and write json successfully" in {
 
       val model = NotificationRecord(
         "amlsNumber",
@@ -31,8 +31,7 @@ class NotificationRecordSpec extends PlaySpec {
         "name",
         "hh@test.com",
         Some(
-          Status(StatusType.Revoked,
-          Some(RevokedReason.RevokedCeasedTrading))
+          Status(StatusType.Revoked, Some(RevokedReason.RevokedCeasedTrading))
         ),
         Some(ContactType.MindedToRevoke),
         None,

@@ -33,9 +33,11 @@ object SendTemplatedEmailRequest {
   implicit val format: OFormat[SendTemplatedEmailRequest] = Json.format[SendTemplatedEmailRequest]
 }
 
-class EmailConnector @Inject()(val config: ApplicationConfig, val http: DefaultHttpClient)(implicit ec: ExecutionContext) extends Logging {
+class EmailConnector @Inject() (val config: ApplicationConfig, val http: DefaultHttpClient)(implicit
+  ec: ExecutionContext
+) extends Logging {
   lazy val serviceURL: String = config.emailUrl
-  val sendEmailURI = "/hmrc/email"
+  val sendEmailURI            = "/hmrc/email"
 
   def sendNotificationReceivedTemplatedEmail(to: List[String])(implicit hc: HeaderCarrier): Future[Boolean] = {
     val request = SendTemplatedEmailRequest(to, "amls_notification_received_template", Map())
@@ -47,12 +49,11 @@ class EmailConnector @Inject()(val config: ApplicationConfig, val http: DefaultH
 
     logger.debug(s"[EmailConnector] Sending email to ${request.to.mkString(", ")}")
 
-    http.POST(postUrl, request) map {
-      response =>
-        response.status match {
-          case 202 => logger.debug(s"[EmailConnector] Email sent: ${response.body}"); true
-          case _ => logger.error(s"[EmailConnector] Email not sent: ${response.body}"); false
-        }
+    http.POST(postUrl, request) map { response =>
+      response.status match {
+        case 202 => logger.debug(s"[EmailConnector] Email sent: ${response.body}"); true
+        case _   => logger.error(s"[EmailConnector] Email not sent: ${response.body}"); false
+      }
     }
   }
 }

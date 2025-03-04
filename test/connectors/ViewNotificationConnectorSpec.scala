@@ -39,36 +39,41 @@ import uk.gov.hmrc.play.audit.model.DataEvent
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ViewNotificationConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures
-                                    with IntegrationPatience with GuiceOneAppPerSuite with BeforeAndAfterAll {
+class ViewNotificationConnectorSpec
+    extends PlaySpec
+    with MockitoSugar
+    with ScalaFutures
+    with IntegrationPatience
+    with GuiceOneAppPerSuite
+    with BeforeAndAfterAll {
 
-  override def beforeAll(): Unit = {
+  override def beforeAll(): Unit =
     DateTimeUtils.setCurrentMillisFixed(1000)
-  }
 
-  override def afterAll(): Unit = {
+  override def afterAll(): Unit =
     DateTimeUtils.setCurrentMillisSystem()
-  }
 
   trait Fixture {
 
-    val mockAppConfig = mock[ApplicationConfig]
-    val mockHttpClient = mock[HttpClient]
+    val mockAppConfig      = mock[ApplicationConfig]
+    val mockHttpClient     = mock[HttpClient]
     val mockAuditConnector = mock[AuditConnector]
-    val mockMetrics = mock[Metrics]
+    val mockMetrics        = mock[Metrics]
 
-    val viewNotificationConnector = new ViewNotificationConnector(mockAppConfig, mockHttpClient, mockAuditConnector, mockMetrics) {
-      override private[connectors] val audit = mock[MockAudit]
-    }
+    val viewNotificationConnector =
+      new ViewNotificationConnector(mockAppConfig, mockHttpClient, mockAuditConnector, mockMetrics) {
+        override private[connectors] val audit = mock[MockAudit]
+      }
 
     val successModel = NotificationResponse(LocalDateTime.now(), "Approved")
 
     val mockTimer = mock[Timer.Context]
 
     val amlsRegistrationNumber = "test"
-    val contactNumber = "contactNumber"
+    val contactNumber          = "contactNumber"
 
-    val url = s"${viewNotificationConnector.baseUrl}/anti-money-laundering/secure-comms/reg-number/$amlsRegistrationNumber/contact-number/$contactNumber"
+    val url                  =
+      s"${viewNotificationConnector.baseUrl}/anti-money-laundering/secure-comms/reg-number/$amlsRegistrationNumber/contact-number/$contactNumber"
     var dataEvent: DataEvent = null
 
     when {
@@ -96,7 +101,7 @@ class ViewNotificationConnectorSpec extends PlaySpec with MockitoSugar with Scal
 
       verify(viewNotificationConnector.audit).sendDataEvent(argThat { dataEvent: DataEvent =>
         dataEvent.auditSource.equals("amls-notification") &&
-          dataEvent.auditType.equals("OutboundCall")
+        dataEvent.auditType.equals("OutboundCall")
       })(any())
     }
 
@@ -119,7 +124,7 @@ class ViewNotificationConnectorSpec extends PlaySpec with MockitoSugar with Scal
 
       verify(viewNotificationConnector.audit, times(2)).sendDataEvent(argThat { dataEvent: DataEvent =>
         dataEvent.auditSource.equals("amls-notification") &&
-          dataEvent.auditType.equals("viewNotificationEventFailed")
+        dataEvent.auditType.equals("viewNotificationEventFailed")
       })(any())
     }
 
@@ -127,7 +132,7 @@ class ViewNotificationConnectorSpec extends PlaySpec with MockitoSugar with Scal
 
       val response = HttpResponse(
         status = OK,
-        headers= Map.empty,
+        headers = Map.empty,
         body = "{\"message\": \"none\"}"
       )
 
@@ -143,7 +148,7 @@ class ViewNotificationConnectorSpec extends PlaySpec with MockitoSugar with Scal
 
       verify(viewNotificationConnector.audit, times(2)).sendDataEvent(argThat { dataEvent: DataEvent =>
         dataEvent.auditSource.equals("amls-notification") &&
-          dataEvent.auditType.equals("viewNotificationEventFailed")
+        dataEvent.auditType.equals("viewNotificationEventFailed")
       })(any())
     }
 

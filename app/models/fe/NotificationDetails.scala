@@ -23,31 +23,32 @@ import play.api.libs.json.Format.GenericFormat
 import play.api.libs.json._
 import utils.DateTimeFormats
 
-case class NotificationDetails(contactType : Option[ContactType],
-                               status : Option[Status],
-                               messageText : Option[String],
-                               variation : Boolean,
-                               receivedAt: DateTime
-                              )
+case class NotificationDetails(
+  contactType: Option[ContactType],
+  status: Option[Status],
+  messageText: Option[String],
+  variation: Boolean,
+  receivedAt: DateTime
+)
 
 object NotificationDetails {
- val reads: Reads[NotificationDetails ] =
+  val reads: Reads[NotificationDetails] =
     (
       (JsPath \ "contactType").readNullable[ContactType] and
-      (JsPath \ "status").readNullable[Status] and
-      (JsPath \ "messageText").readNullable[String] and
-      (JsPath \ "variation").read[Boolean] and
-      (JsPath \ "receivedAt").read[DateTime]((DateTimeFormats.dateTimeFormat))
+        (JsPath \ "status").readNullable[Status] and
+        (JsPath \ "messageText").readNullable[String] and
+        (JsPath \ "variation").read[Boolean] and
+        (JsPath \ "receivedAt").read[DateTime](DateTimeFormats.dateTimeFormat)
     )(NotificationDetails.apply _)
 
-   val writes : OWrites[NotificationDetails ] =
+  val writes: OWrites[NotificationDetails] =
     (
       (JsPath \ "contactType").writeNullable[ContactType] and
         (JsPath \ "status").writeNullable[Status] and
         (JsPath \ "messageText").writeNullable[String] and
         (JsPath \ "variation").write[Boolean] and
-        (JsPath \ "receivedAt").write[DateTime]((DateTimeFormats.dateTimeFormat))
-      )(unlift(NotificationDetails.unapply))
+        (JsPath \ "receivedAt").write[DateTime](DateTimeFormats.dateTimeFormat)
+    )(unlift(NotificationDetails.unapply))
 
   implicit val format: OFormat[NotificationDetails] = OFormat(reads, writes)
 }

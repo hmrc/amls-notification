@@ -22,17 +22,17 @@ import play.api.libs.json._
 import org.joda.time.DateTime
 import utils.DateTimeFormats
 
-case class NotificationRow (
-                             status: Option[Status],
-                             contactType: Option[ContactType],
-                             contactNumber: Option[String],
-                             variation: Boolean,
-                             receivedAt: DateTime,
-                             isRead: Boolean,
-                             amlsRegistrationNumber: String,
-                             templatePackageVersion: Option[String],
-                             _id: IDType
-                           )
+case class NotificationRow(
+  status: Option[Status],
+  contactType: Option[ContactType],
+  contactNumber: Option[String],
+  variation: Boolean,
+  receivedAt: DateTime,
+  isRead: Boolean,
+  amlsRegistrationNumber: String,
+  templatePackageVersion: Option[String],
+  _id: IDType
+)
 
 object NotificationRow {
   val reads: Reads[NotificationRow] =
@@ -41,14 +41,14 @@ object NotificationRow {
         (JsPath \ "contactType").readNullable[ContactType] and
         (JsPath \ "contactNumber").readNullable[String] and
         (JsPath \ "variation").read[Boolean] and
-        (JsPath \ "receivedAt").read[DateTime](DateTimeFormats.dateTimeReads)and
+        (JsPath \ "receivedAt").read[DateTime](DateTimeFormats.dateTimeReads) and
         (JsPath \ "isRead").read[Boolean] and
         (JsPath \ "amlsRegistrationNumber").read[String] and
         (JsPath \ "templatePackageVersion").readNullable[String] and
         (JsPath \ "_id").read[IDType]
-      )(NotificationRow.apply _)
+    )(NotificationRow.apply _)
 
-  val writes : OWrites[NotificationRow] =
+  val writes: OWrites[NotificationRow] =
     (
       (JsPath \ "status").writeNullable[Status] and
         (JsPath \ "contactType").writeNullable[ContactType] and
@@ -59,7 +59,7 @@ object NotificationRow {
         (JsPath \ "amlsRegistrationNumber").write[String] and
         (JsPath \ "templatePackageVersion").writeNullable[String] and
         (JsPath \ "_id").write[IDType]
-      )(unlift(NotificationRow.unapply))
+    )(unlift(NotificationRow.unapply))
 
   implicit val format: OFormat[NotificationRow] = OFormat(reads, writes)
 }
@@ -71,7 +71,6 @@ object IDType {
     (__ \ "$oid").read[String].map { bsonId =>
       new IDType(bsonId)
     }
-
 
   implicit val bsonReadWrite: Writes[IDType] = new Writes[IDType] {
     def writes(bsonId: IDType): JsValue = Json.obj(

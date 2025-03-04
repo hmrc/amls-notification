@@ -43,16 +43,16 @@ object RejectedReason {
       case "04" => Reads(_ => JsSuccess(FitAndProperFailure))
       case "98" => Reads(_ => JsSuccess(OtherFailed))
       case "99" => Reads(_ => JsSuccess(OtherRefused))
-      case _ => Reads(_ => JsError(JsPath \ "status_reason" -> JsonValidationError("error.invalid")))
+      case _    => Reads(_ => JsError(JsPath \ "status_reason" -> JsonValidationError("error.invalid")))
     }
   }
 
   implicit val jsonWrites: Writes[RejectedReason] = Writes[RejectedReason] {
-    case NonCompliant => JsString("01")
-    case FailedToRespond => JsString("02")
-    case FailedToPayCharges => JsString("03")
+    case NonCompliant        => JsString("01")
+    case FailedToRespond     => JsString("02")
+    case FailedToPayCharges  => JsString("03")
     case FitAndProperFailure => JsString("04")
-    case OtherFailed => JsString("98")
-    case OtherRefused => JsString("99")
+    case OtherFailed         => JsString("98")
+    case OtherRefused        => JsString("99")
   }
 }
