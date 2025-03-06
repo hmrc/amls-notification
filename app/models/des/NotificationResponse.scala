@@ -28,9 +28,7 @@ object NotificationResponse {
   val dateTimeFormat = ISODateTimeFormat.dateTimeNoMillis().withZoneUTC
 
   implicit val readsJodaLocalDateTime: Reads[LocalDateTime] = Reads[LocalDateTime](js =>
-    js.validate[String].map[LocalDateTime](dtString =>
-      LocalDateTime.parse(dtString, dateTimeFormat)
-    )
+    js.validate[String].map[LocalDateTime](dtString => LocalDateTime.parse(dtString, dateTimeFormat))
   )
 
   implicit val localDateTimeWrite: Writes[LocalDateTime] = new Writes[LocalDateTime] {

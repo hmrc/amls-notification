@@ -47,17 +47,17 @@ object DeregisteredReason {
       case "05" => Reads(_ => JsSuccess(UnderAnotherSupervisor))
       case "06" => Reads(_ => JsSuccess(ChangeOfLegalEntity))
       case "99" => Reads(_ => JsSuccess(Other))
-      case _ => Reads(_ => JsError(JsPath \ "status_reason" -> JsonValidationError("error.invalid")))
+      case _    => Reads(_ => JsError(JsPath \ "status_reason" -> JsonValidationError("error.invalid")))
     }
   }
 
   implicit val jsonWrites: Writes[DeregisteredReason] = Writes[DeregisteredReason] {
-    case CeasedTrading => JsString("01")
-    case HVDNoCashPayment => JsString("02")
-    case OutOfScope => JsString("03")
-    case NotTrading => JsString("04")
+    case CeasedTrading          => JsString("01")
+    case HVDNoCashPayment       => JsString("02")
+    case OutOfScope             => JsString("03")
+    case NotTrading             => JsString("04")
     case UnderAnotherSupervisor => JsString("05")
-    case ChangeOfLegalEntity => JsString("06")
-    case Other => JsString("99")
+    case ChangeOfLegalEntity    => JsString("06")
+    case Other                  => JsString("99")
   }
 }

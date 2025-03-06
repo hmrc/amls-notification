@@ -29,14 +29,15 @@ object Status {
     val reads = (
       (__ \ "status_type").read[StatusType] and
         (__ \ "status_reason").readNullable[String]
-      ).tupled
+    ).tupled
 
     reads flatMap {
-      case (statusType, Some(_)) => StatusReason.jsonReads(statusType) map {
-        case EmptyReason => Status(statusType, None)
-        case reason => Status(statusType, Some(reason))
-      }
-      case (statusType, _) => Reads(_ => JsSuccess(Status(statusType, None)))
+      case (statusType, Some(_)) =>
+        StatusReason.jsonReads(statusType) map {
+          case EmptyReason => Status(statusType, None)
+          case reason      => Status(statusType, Some(reason))
+        }
+      case (statusType, _)       => Reads(_ => JsSuccess(Status(statusType, None)))
     }
   }
 
@@ -46,6 +47,6 @@ object Status {
     (
       (__ \ "status_type").write[StatusType] and
         (__ \ "status_reason").writeNullable[StatusReason]
-      ) (unlift(Status.unapply))
+    )(unlift(Status.unapply))
   }
 }

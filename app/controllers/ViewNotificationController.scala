@@ -33,71 +33,80 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ViewNotificationController @Inject()(private[controllers] val connector: ViewNotificationConnector,
-                                           private[controllers] val audit: AuditConnector,
-                                           cc: ControllerComponents,
-                                           authAction: AuthAction,
-                                           private[controllers] val notificationRepository: NotificationMongoRepository)
-                                          (implicit ec: ExecutionContext) extends BackendController(cc) with Logging {
+class ViewNotificationController @Inject() (
+  private[controllers] val connector: ViewNotificationConnector,
+  private[controllers] val audit: AuditConnector,
+  cc: ControllerComponents,
+  authAction: AuthAction,
+  private[controllers] val notificationRepository: NotificationMongoRepository
+)(implicit ec: ExecutionContext)
+    extends BackendController(cc)
+    with Logging {
 
   val amlsRegNoRegex = "^X[A-Z]ML00000[0-9]{6}$".r
-  val prefix = "[ViewNotificationController]"
+  val prefix         = "[ViewNotificationController]"
 
   private def toError(message: String): JsObject =
     Json.obj(
       "errors" -> Seq(message)
     )
 
-  def viewNotification(accountType:String, ref:String, amlsRegistrationNumber: String, notificationId: String): Action[AnyContent] =
-    authAction.async {
-      implicit request =>
-        logger.debug(s"$prefix[viewNotification] - amlsRegNo: $amlsRegistrationNumber - notificationId: $notificationId")
+  def viewNotification(
+    accountType: String,
+    ref: String,
+    amlsRegistrationNumber: String,
+    notificationId: String
+  ): Action[AnyContent] =
+    authAction.async { implicit request =>
+      logger.debug(s"$prefix[viewNotification] - amlsRegNo: $amlsRegistrationNumber - notificationId: $notificationId")
 
-        amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
-          case Some(_) => notificationRepository.findById(notificationId) flatMap {
-            case Some(record@NotificationRecord(`amlsRegistrationNumber`, _,_,_,_,_,_,_,_,_,_,_)) => { record match {
-              case record if record.contactNumber.isDefined => {
-                connector.getNotification(amlsRegistrationNumber, record.contactNumber.get) map { detail =>
-                  val notificationDetails = NotificationDetails(
-                    record.contactType,
-                    record.status,
-                    Some(detail.secureCommText),
-                    record.variation,
-                    record.receivedAt
-                  )
+      amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
+        case Some(_) =>
+          notificationRepository.findById(notificationId) flatMap {
+            case Some(record @ NotificationRecord(`amlsRegistrationNumber`, _, _, _, _, _, _, _, _, _, _, _)) =>
+              {
+                record match {
+                  case record if record.contactNumber.isDefined =>
+                    connector.getNotification(amlsRegistrationNumber, record.contactNumber.get) map { detail =>
+                      val notificationDetails = NotificationDetails(
+                        record.contactType,
+                        record.status,
+                        Some(detail.secureCommText),
+                        record.variation,
+                        record.receivedAt
+                      )
 
-                  logger.debug(s"$prefix[viewNotification] - sending: $notificationDetails")
-                  audit.sendExtendedEvent(NotificationReadEvent(amlsRegistrationNumber,notificationDetails))
-                  Ok(Json.toJson(notificationDetails))
-              }
-            }
-              case _ => {
-                Future.successful(Ok(Json.toJson(NotificationDetails(
-                  record.contactType,
-                  record.status,
-                  None,
-                  record.variation,
-                  record.receivedAt))))
-              }
-            }}.andThen{case _ => markNotificationAsRead(notificationId)}
-            case _ => Future.successful(NotFound)
+                      logger.debug(s"$prefix[viewNotification] - sending: $notificationDetails")
+                      audit.sendExtendedEvent(NotificationReadEvent(amlsRegistrationNumber, notificationDetails))
+                      Ok(Json.toJson(notificationDetails))
+                    }
+                  case _                                        =>
+                    Future.successful(
+                      Ok(
+                        Json.toJson(
+                          NotificationDetails(
+                            record.contactType,
+                            record.status,
+                            None,
+                            record.variation,
+                            record.receivedAt
+                          )
+                        )
+                      )
+                    )
+                }
+              }.andThen { case _ => markNotificationAsRead(notificationId) }
+            case _                                                                                            => Future.successful(NotFound)
           }
-          case None => Future.successful(BadRequest(toError("Invalid AMLS Registration Number")))
-        }
+        case None    => Future.successful(BadRequest(toError("Invalid AMLS Registration Number")))
+      }
     }
 
-  private def markNotificationAsRead(id: String): Future[Result] = {
-    notificationRepository.markAsRead(id) map {
-      response =>
-        Ok(Json.toJson(response))
-    } recoverWith {
-      case e@HttpStatusException(status, _) =>
-        logger.warn(s"$prefix - Failed to mark notification as read. Status: ${status}")
-        Future.failed(e)
+  private def markNotificationAsRead(id: String): Future[Result] =
+    notificationRepository.markAsRead(id) map { response =>
+      Ok(Json.toJson(response))
+    } recoverWith { case e @ HttpStatusException(status, _) =>
+      logger.warn(s"$prefix - Failed to mark notification as read. Status: $status")
+      Future.failed(e)
     }
-  }
 }
-
-
-
-

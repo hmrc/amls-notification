@@ -30,24 +30,32 @@ import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class EmailConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with IntegrationPatience with GuiceOneAppPerSuite with BeforeAndAfterAll {
+class EmailConnectorSpec
+    extends PlaySpec
+    with MockitoSugar
+    with ScalaFutures
+    with IntegrationPatience
+    with GuiceOneAppPerSuite
+    with BeforeAndAfterAll {
 
   trait Fixture {
 
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
-    val sendTo = "e@mail.com"
-    val mockHttpClient: DefaultHttpClient = mock[DefaultHttpClient]
-    val config: ApplicationConfig = app.injector.instanceOf[ApplicationConfig]
+    val sendTo                                 = "e@mail.com"
+    val mockHttpClient: DefaultHttpClient      = mock[DefaultHttpClient]
+    val config: ApplicationConfig              = app.injector.instanceOf[ApplicationConfig]
     val mockExecutionContext: ExecutionContext = app.injector.instanceOf[ExecutionContext]
-
 
     val emailConnector = new EmailConnector(config, mockHttpClient)(mockExecutionContext)
   }
 
   "The Email connector" must {
     "send a details of the email template and content and report a positive response" in new Fixture {
-      when(emailConnector.http.POST[SendTemplatedEmailRequest, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+      when(
+        emailConnector.http
+          .POST[SendTemplatedEmailRequest, HttpResponse](any(), any(), any())(any(), any(), any(), any())
+      )
         .thenReturn(Future.successful(HttpResponse(202, "")))
 
       val result: Boolean = await(emailConnector.sendNotificationReceivedTemplatedEmail(List(sendTo)))
@@ -56,7 +64,10 @@ class EmailConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures wi
     }
 
     "send a details of the email template and content and report a negative response" in new Fixture {
-      when(emailConnector.http.POST[SendTemplatedEmailRequest, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+      when(
+        emailConnector.http
+          .POST[SendTemplatedEmailRequest, HttpResponse](any(), any(), any())(any(), any(), any(), any())
+      )
         .thenReturn(Future.successful(HttpResponse(400, "")))
 
       val result: Boolean = await(emailConnector.sendNotificationReceivedTemplatedEmail(List(sendTo)))

@@ -16,7 +16,6 @@
 
 package connectors
 
-
 import audit.{ViewNotificationEvent, ViewNotificationEventFailed}
 import config.ApplicationConfig
 import exceptions.HttpStatusException
@@ -32,39 +31,40 @@ import uk.gov.hmrc.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 
+class ViewNotificationConnector @Inject() (
+  val amlsConfig: ApplicationConfig,
+  val http: HttpClient,
+  val auditConnector: AuditConnector,
+  val metrics: Metrics
+) extends DESConnector {
 
-class ViewNotificationConnector @Inject()(val amlsConfig: ApplicationConfig,
-                                          val http: HttpClient,
-                                          val auditConnector: AuditConnector,
-                                          val metrics: Metrics) extends DESConnector {
+  def getNotification(amlsRegistrationNumber: String, contactNumber: String)(implicit
+    ec: ExecutionContext,
+    wr: Writes[NotificationResponse]
+  ): Future[NotificationResponse] = {
 
-  def getNotification(amlsRegistrationNumber: String, contactNumber: String)
-    (implicit ec: ExecutionContext, wr: Writes[NotificationResponse]): Future[NotificationResponse] = {
-
-    val prefix = "[DESConnector][getNotification]"
-    val bodyParser = JsonParsed[NotificationResponse]
-    val timer = metrics.timer(API11)
+    val prefix          = "[DESConnector][getNotification]"
+    val bodyParser      = JsonParsed[NotificationResponse]
+    val timer           = metrics.timer(API11)
     val notificationUrl = s"$fullUrl/reg-number/$amlsRegistrationNumber/contact-number/$contactNumber"
     logger.debug(s"$prefix - reg no: $amlsRegistrationNumber - contactNumber: $contactNumber")
 
-    http.GET[HttpResponse](notificationUrl, headers = Seq("Environment" -> env,
-      HeaderNames.ACCEPT -> "application/json",
-      "Authorization" -> token
-    )
-    )(implicitly, hc, implicitly) map {
-      response =>
-        timer.stop()
-        logger.debug(s"$prefix - Base Response: ${response.status}")
-        logger.debug(s"$prefix - Response Body: ${response.body}")
-        response
+    http.GET[HttpResponse](
+      notificationUrl,
+      headers = Seq("Environment" -> env, HeaderNames.ACCEPT -> "application/json", "Authorization" -> token)
+    )(implicitly, hc, implicitly) map { response =>
+      timer.stop()
+      logger.debug(s"$prefix - Base Response: ${response.status}")
+      logger.debug(s"$prefix - Response Body: ${response.body}")
+      response
     } flatMap {
-      case _@status(OK) & bodyParser(JsSuccess(body: NotificationResponse, _)) =>
+      case _ @status(OK) & bodyParser(JsSuccess(body: NotificationResponse, _)) =>
         metrics.success(API11)
         audit.sendDataEvent(ViewNotificationEvent(amlsRegistrationNumber, contactNumber, body))
         logger.debug(s"$prefix - Success response")
         logger.debug(s"$prefix - Response body: ${Json.toJson(body)}")
         Future.successful(body)
-      case r@status(s) =>
+      case r @ status(s)                                                        =>
         metrics.failed(API11)
         logger.warn(s"$prefix - Failure response: $s")
         val httpEx: HttpStatusException = HttpStatusException(s, Option(r.body))
@@ -75,7 +75,7 @@ class ViewNotificationConnector @Inject()(val amlsConfig: ApplicationConfig,
         logger.warn(s"$prefix - Failure: Exception", e)
         audit.sendDataEvent(ViewNotificationEventFailed(amlsRegistrationNumber, contactNumber, e))
         Future.failed(e)
-      case e =>
+      case e                      =>
         timer.stop()
         metrics.failed(API11)
         logger.warn(s"$prefix - Failure: Exception", e)

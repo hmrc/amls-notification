@@ -25,10 +25,13 @@ import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class DefaultAuthAction @Inject()(
-                                   val authConnector: AuthConnector,
-                                   val controllerComponents: ControllerComponents
-                                 )(implicit ec: ExecutionContext) extends AuthAction with AuthorisedFunctions with Logging {
+class DefaultAuthAction @Inject() (
+  val authConnector: AuthConnector,
+  val controllerComponents: ControllerComponents
+)(implicit ec: ExecutionContext)
+    extends AuthAction
+    with AuthorisedFunctions
+    with Logging {
 
   override protected def filter[A](request: Request[A]): Future[Option[Result]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
@@ -38,15 +41,13 @@ class DefaultAuthAction @Inject()(
     authorised(ConfidenceLevel.L50) {
       logger.debug(s"DefaultAuthAction calling authorised(ConfidenceLevel.L50) - success")
       Future.successful(None)
-    }.recover[Option[Result]] {
-      case e: AuthorisationException => {
-        logger.debug(s"DefaultAuthAction calling authorised(ConfidenceLevel.L50 - fail: " + e)
-        Some(Results.Unauthorized)
-      }
+    }.recover[Option[Result]] { case e: AuthorisationException =>
+      logger.debug(s"DefaultAuthAction calling authorised(ConfidenceLevel.L50 - fail: " + e)
+      Some(Results.Unauthorized)
     }
   }
 
-  override def parser: BodyParser[AnyContent] = controllerComponents.parsers.defaultBodyParser
+  override def parser: BodyParser[AnyContent]               = controllerComponents.parsers.defaultBodyParser
   override protected def executionContext: ExecutionContext = controllerComponents.executionContext
 }
 

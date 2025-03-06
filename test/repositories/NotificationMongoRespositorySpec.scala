@@ -19,7 +19,6 @@ package repositories
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 
-
 class NotificationMongoRespositorySpec extends PlaySpec with GuiceOneAppPerSuite {
 
   val repository = app.injector.instanceOf[NotificationMongoRepository]
@@ -31,6 +30,5 @@ class NotificationMongoRespositorySpec extends PlaySpec with GuiceOneAppPerSuite
       """{"safeId": 1}"""
     )
   }
-
 
 }

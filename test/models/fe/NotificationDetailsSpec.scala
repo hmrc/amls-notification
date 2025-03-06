@@ -37,23 +37,27 @@ class NotificationDetailsSpec extends AnyWordSpec with Matchers {
           false,
           dateTime
         )
-      ) must be (Json.obj(
-        "contactType" -> "NMRV",
-        "status" -> Json.obj("status_type" -> "04", "status_reason" -> "02"),
-        "messageText" -> "THIS IS THE TEST TEXT",
-        "variation" -> false,
-        "receivedAt" -> Json.parse("""{"$date":{"$numberLong":"1479730062573"}}""")
-      ))
+      ) must be(
+        Json.obj(
+          "contactType" -> "NMRV",
+          "status"      -> Json.obj("status_type" -> "04", "status_reason" -> "02"),
+          "messageText" -> "THIS IS THE TEST TEXT",
+          "variation"   -> false,
+          "receivedAt"  -> Json.parse("""{"$date":{"$numberLong":"1479730062573"}}""")
+        )
+      )
     }
 
     "serialise the object correctly when data is missing" in {
       NotificationDetails.writes.writes(
-        NotificationDetails(None, None,  Some("THIS IS THE TEST TEXT"), false, dateTime)
-      ) must be (Json.obj(
-        "messageText" -> "THIS IS THE TEST TEXT",
-        "variation" -> false,
-        "receivedAt" -> Json.parse("""{"$date":{"$numberLong":"1479730062573"}}""")
-      ))
+        NotificationDetails(None, None, Some("THIS IS THE TEST TEXT"), false, dateTime)
+      ) must be(
+        Json.obj(
+          "messageText" -> "THIS IS THE TEST TEXT",
+          "variation"   -> false,
+          "receivedAt"  -> Json.parse("""{"$date":{"$numberLong":"1479730062573"}}""")
+        )
+      )
     }
   }
 }

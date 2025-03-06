@@ -20,10 +20,10 @@ import com.codahale.metrics.Timer.Context
 import com.codahale.metrics.{Counter, MetricRegistry, Timer}
 import com.google.inject.Inject
 
-class Metrics @Inject()(metrics: com.codahale.metrics.MetricRegistry) {
+class Metrics @Inject() (metrics: com.codahale.metrics.MetricRegistry) {
   // $COVERAGE-OFF$
   val registry = new MetricRegistry
-  val timers = Map[APITypes, Timer](
+  val timers   = Map[APITypes, Timer](
     API11 -> registry.timer(s"${API11.key}-timer")
   )
 
@@ -36,6 +36,6 @@ class Metrics @Inject()(metrics: com.codahale.metrics.MetricRegistry) {
   )
 
   def timer(api: APITypes): Context = timers(api).time()
-  def success(api: APITypes): Unit = successCounters(api).inc()
-  def failed(api: APITypes): Unit = failedCounters(api).inc()
+  def success(api: APITypes): Unit  = successCounters(api).inc()
+  def failed(api: APITypes): Unit   = failedCounters(api).inc()
 }

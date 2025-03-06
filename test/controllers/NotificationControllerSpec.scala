@@ -40,33 +40,48 @@ import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFutures with GuiceOneAppPerSuite with BeforeAndAfter {
+class NotificationControllerSpec
+    extends PlaySpec
+    with MockitoSugar
+    with ScalaFutures
+    with GuiceOneAppPerSuite
+    with BeforeAndAfter {
 
-  val mockCC = app.injector.instanceOf[ControllerComponents]
-  val mockEmailConnector = mock[EmailConnector]
-  val mockAuditConnector = mock[AuditConnector]
-  val mockConfig = app.injector.instanceOf[ApplicationConfig]
+  val mockCC                     = app.injector.instanceOf[ControllerComponents]
+  val mockEmailConnector         = mock[EmailConnector]
+  val mockAuditConnector         = mock[AuditConnector]
+  val mockConfig                 = app.injector.instanceOf[ApplicationConfig]
   val mockNotificationRepository = mock[NotificationMongoRepository]
-  val mockExecutionContext = app.injector.instanceOf[ExecutionContext]
+  val mockExecutionContext       = app.injector.instanceOf[ExecutionContext]
 
-  val notificationController = new NotificationController(
-    mockEmailConnector, mockConfig, mockAuditConnector, mockCC, mockNotificationRepository)(mockExecutionContext)
+  val notificationController =
+    new NotificationController(mockEmailConnector, mockConfig, mockAuditConnector, mockCC, mockNotificationRepository)(
+      mockExecutionContext
+    )
 
   before {
     reset(notificationController.notificationRepository)
   }
 
-  val body = NotificationPushRequest("AA1234567891234", "name", "hh@test.com",
-    Some(Status(StatusType.DeRegistered, Some(DeregisteredReason.CeasedTrading))), Some(ContactType.ApplicationApproval), None, false)
+  val body = NotificationPushRequest(
+    "AA1234567891234",
+    "name",
+    "hh@test.com",
+    Some(Status(StatusType.DeRegistered, Some(DeregisteredReason.CeasedTrading))),
+    Some(ContactType.ApplicationApproval),
+    None,
+    false
+  )
 
-  val json = Json.obj("safeId" -> "AA1234567891234",
-    "name" -> "test",
-    "email" -> "test@gg.com",
-    "status" -> Json.obj("status_type" -> "06",
-      "status_reason" -> "100"),
-    "contact_type" -> "REJR",
+  val json = Json.obj(
+    "safeId"         -> "AA1234567891234",
+    "name"           -> "test",
+    "email"          -> "test@gg.com",
+    "status"         -> Json.obj("status_type" -> "06", "status_reason" -> "100"),
+    "contact_type"   -> "REJR",
     "contact_number" -> "112345678251212",
-    "variation" -> false)
+    "variation"      -> false
+  )
 
   val postRequest = FakeRequest("POST", "/")
     .withHeaders(CONTENT_TYPE -> "application/json")
@@ -82,7 +97,7 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
   "NotificationController" must {
 
     val amlsRegistrationNumber = "XAML00000567890"
-    val safeId = "XA8743294823094"
+    val safeId                 = "XA8743294823094"
 
     "save the input notificationPushRequest into mongo repo successfully" in {
       when {
@@ -106,15 +121,17 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
     "fail validation when json parse throws error" in {
 
       val result = notificationController.saveNotification(amlsRegistrationNumber)(postRequestWithError)
-      status(result) must be(BAD_REQUEST)
-      contentAsJson(result) must be(Json.obj("errors" -> Json.arr(Json.obj("path" -> "obj.status.status_reason", "error" -> "error.invalid"))))
+      status(result)        must be(BAD_REQUEST)
+      contentAsJson(result) must be(
+        Json.obj("errors" -> Json.arr(Json.obj("path" -> "obj.status.status_reason", "error" -> "error.invalid")))
+      )
     }
 
     "return BadRequest, if input request fails validation" in {
-      val result = notificationController.saveNotification("hhhh")(postRequest)
+      val result  = notificationController.saveNotification("hhhh")(postRequest)
       val failure = Json.obj("errors" -> Seq("Invalid AMLS Registration Number"))
 
-      status(result) must be(BAD_REQUEST)
+      status(result)        must be(BAD_REQUEST)
       contentAsJson(result) must be(failure)
     }
 
@@ -137,36 +154,36 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
         .withBody[JsValue](JsNull)
 
       val response = Json.obj(
-        "errors" -> Seq (
+        "errors" -> Seq(
           Json.obj(
-            "path" -> "obj.safeId",
+            "path"  -> "obj.safeId",
             "error" -> "error.path.missing"
           ),
           Json.obj(
-            "path" -> "obj.email",
+            "path"  -> "obj.email",
             "error" -> "error.path.missing"
           ),
           Json.obj(
-            "path" -> "obj.name",
+            "path"  -> "obj.name",
             "error" -> "error.path.missing"
           ),
           Json.obj(
-            "path" -> "obj.variation",
+            "path"  -> "obj.variation",
             "error" -> "error.path.missing"
           )
         )
       )
-      val result = notificationController.saveNotification(amlsRegistrationNumber)(request)
+      val result   = notificationController.saveNotification(amlsRegistrationNumber)(request)
 
       status(result) mustEqual BAD_REQUEST
       contentAsJson(result) mustEqual response
     }
 
     "return BadRequest, if input request fails validation of mongo fetch" in {
-      val result = notificationController.fetchNotifications("accountType", "ref", "hhhh")(getRequest)
+      val result  = notificationController.fetchNotifications("accountType", "ref", "hhhh")(getRequest)
       val failure = Json.obj("errors" -> Seq("Invalid AMLS Registration Number"))
 
-      status(result) must be(BAD_REQUEST)
+      status(result)        must be(BAD_REQUEST)
       contentAsJson(result) must be(failure)
     }
 
@@ -176,10 +193,11 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
         notificationController.notificationRepository.findByAmlsReference(any())
       } thenReturn Future.failed(new HttpStatusException(INTERNAL_SERVER_ERROR, Some("message")))
 
-      whenReady(notificationController.fetchNotifications("accountType", "ref", amlsRegistrationNumber)(getRequest).failed) {
-        case HttpStatusException(status, body) =>
-          status mustEqual INTERNAL_SERVER_ERROR
-          body mustEqual Some("message")
+      whenReady(
+        notificationController.fetchNotifications("accountType", "ref", amlsRegistrationNumber)(getRequest).failed
+      ) { case HttpStatusException(status, body) =>
+        status mustEqual INTERNAL_SERVER_ERROR
+        body mustEqual Some("message")
       }
     }
 
@@ -194,7 +212,8 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
         isRead = false,
         amlsRegistrationNumber = amlsRegistrationNumber,
         templatePackageVersion = Some("1"),
-        _id = new IDType("5832e38e01000001005ca3ff"))
+        _id = new IDType("5832e38e01000001005ca3ff")
+      )
 
       val notificationRows = Seq(notificationRecord)
 
@@ -207,26 +226,31 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
         isRead = false,
         amlsRegistrationNumber = amlsRegistrationNumber,
         templatePackageVersion = None,
-        _id = new IDType("5832e38e01000001005ca3ff"))
+        _id = new IDType("5832e38e01000001005ca3ff")
+      )
 
       val notificationRowsWithoutVersion = Seq(notificationRecordWithoutVersion)
 
       "valid amlsRegistration number is passed and a version number" in {
-        when(notificationController.notificationRepository.findByAmlsReference(any())).thenReturn(Future.successful(notificationRows))
+        when(notificationController.notificationRepository.findByAmlsReference(any()))
+          .thenReturn(Future.successful(notificationRows))
 
         val result = notificationController.fetchNotifications("accountType", "ref", amlsRegistrationNumber)(getRequest)
-        status(result) must be(OK)
+        status(result)        must be(OK)
         contentAsJson(result) must be(Json.toJson(notificationRows))
 
         verify(notificationController.notificationRepository).findByAmlsReference(amlsRegistrationNumber)
       }
 
       "valid amlsRegistration number is passed and no version number" in {
-        when(notificationController.notificationRepository.findByAmlsReference(any())).thenReturn(Future.successful(notificationRowsWithoutVersion))
+        when(notificationController.notificationRepository.findByAmlsReference(any()))
+          .thenReturn(Future.successful(notificationRowsWithoutVersion))
 
         val result = notificationController.fetchNotifications("accountType", "ref", amlsRegistrationNumber)(getRequest)
-        status(result) must be(OK)
-        contentAsJson(result) must be(Json.toJson(Seq(notificationRecordWithoutVersion.copy(templatePackageVersion = Some("v1m0")))))
+        status(result)        must be(OK)
+        contentAsJson(result) must be(
+          Json.toJson(Seq(notificationRecordWithoutVersion.copy(templatePackageVersion = Some("v1m0"))))
+        )
 
         verify(notificationController.notificationRepository).findByAmlsReference(amlsRegistrationNumber)
       }
@@ -251,7 +275,9 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
         val result = notificationController.fetchNotificationsBySafeId("accountType", "ref", safeId)(getRequest)
         status(result) mustBe OK
 
-        contentAsJson(result) mustBe Json.toJson(Seq(notificationRecordWithoutVersion.copy(templatePackageVersion = Some("v1m0"))))
+        contentAsJson(result) mustBe Json.toJson(
+          Seq(notificationRecordWithoutVersion.copy(templatePackageVersion = Some("v1m0")))
+        )
         verify(mockNotificationRepository).findBySafeId(safeId)
       }
 
@@ -260,26 +286,42 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
     "return correct Content Type" when {
 
       "contact Type is RenewalReminder and currentTemplatePackageVersion in config is v6m0" when {
-        "28 days " in{
-          val result = notificationController.getContactType(Some(RenewalReminder), DateTime.parse("2022-07-03T10:49:17.727Z"),"v6m0")
+        "28 days " in {
+          val result = notificationController.getContactType(
+            Some(RenewalReminder),
+            DateTime.parse("2022-07-03T10:49:17.727Z"),
+            "v6m0"
+          )
           result must be(Some(RenewalReminder))
         }
 
-        "14 days" in{
-          val result = notificationController.getContactType(Some(RenewalReminder), DateTime.parse("2022-07-16T10:49:17.727Z"),"v6m0")
+        "14 days" in {
+          val result = notificationController.getContactType(
+            Some(RenewalReminder),
+            DateTime.parse("2022-07-16T10:49:17.727Z"),
+            "v6m0"
+          )
           result must be(Some(NewRenewalReminder))
         }
 
-        "7 days" in{
-          val result = notificationController.getContactType(Some(RenewalReminder), DateTime.parse("2022-07-28T10:49:17.727Z"),"v6m0")
-          result must be (Some(NewRenewalReminder))
+        "7 days" in {
+          val result = notificationController.getContactType(
+            Some(RenewalReminder),
+            DateTime.parse("2022-07-28T10:49:17.727Z"),
+            "v6m0"
+          )
+          result must be(Some(NewRenewalReminder))
         }
 
       }
 
       "contact Type is RenewalReminder and currentTemplatePackageVersion in config is v4m0" when {
-        "14 days" in{
-          val result = notificationController.getContactType(Some(RenewalReminder), DateTime.parse("2022-07-16T10:49:17.727Z"),"v4m0")
+        "14 days" in {
+          val result = notificationController.getContactType(
+            Some(RenewalReminder),
+            DateTime.parse("2022-07-16T10:49:17.727Z"),
+            "v4m0"
+          )
           result must be(Some(RenewalReminder))
         }
 
@@ -289,14 +331,15 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
         List(ContactType.AutoExpiryOfRegistration, ContactType.ReminderToPayForRenewal).foreach { cTYpe =>
           withClue(s"For Contact Type [$cTYpe]") {
             val result = notificationController
-              .getContactType(Some(cTYpe), DateTime.parse("2022-07-22T10:49:17.727Z"),"v6m0")
+              .getContactType(Some(cTYpe), DateTime.parse("2022-07-22T10:49:17.727Z"), "v6m0")
             result must be(Some(cTYpe))
           }
         }
       }
 
       "contact Type is not renewal Reminder but old template needed" in {
-        List(ContactType.RejectionReasons,
+        List(
+          ContactType.RejectionReasons,
           ContactType.RevocationReasons,
           ContactType.MindedToReject,
           ContactType.NoLongerMindedToReject,
@@ -307,7 +350,8 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
           ContactType.RenewalApproval,
           ContactType.ReminderToPayForApplication,
           ContactType.ReminderToPayForVariation,
-          ContactType.ReminderToPayForManualCharges).foreach { cTYpe =>
+          ContactType.ReminderToPayForManualCharges
+        ).foreach { cTYpe =>
           withClue(s"For Contact Type [$cTYpe]") {
             val result = notificationController
               .getContactType(Some(cTYpe), DateTime.parse("2022-07-22T10:49:17.727Z"), "v6m0")
@@ -316,12 +360,12 @@ class NotificationControllerSpec extends PlaySpec with MockitoSugar with ScalaFu
         }
       }
 
-
     }
 
     "return a bad request" when {
       "an invalid safeId is passed" in {
-        val result = notificationController.fetchNotificationsBySafeId("accountType", "ref", "an invalid safe ID")(getRequest)
+        val result =
+          notificationController.fetchNotificationsBySafeId("accountType", "ref", "an invalid safe ID")(getRequest)
 
         status(result) mustBe BAD_REQUEST
       }

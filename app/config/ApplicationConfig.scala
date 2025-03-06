@@ -22,7 +22,7 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import javax.inject.Inject
 
 @Singleton
-class ApplicationConfig @Inject()(servicesConfig: ServicesConfig) {
+class ApplicationConfig @Inject() (servicesConfig: ServicesConfig) {
 
   private def getBaseUrl(service: String) = servicesConfig.baseUrl(service)
 

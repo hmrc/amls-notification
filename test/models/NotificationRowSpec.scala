@@ -18,7 +18,7 @@ package models
 
 import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatestplus.play.PlaySpec
-import play.api.libs.json.{Json, JsSuccess}
+import play.api.libs.json.{JsSuccess, Json}
 
 class NotificationRowSpec extends PlaySpec {
 
@@ -35,10 +35,10 @@ class NotificationRowSpec extends PlaySpec {
         false,
         amlsRegistrationNumber,
         Some("1"),
-        new IDType("5832e38e01000001005ca3ff"))
+        new IDType("5832e38e01000001005ca3ff")
+      )
 
-      val json = Json.parse(
-        """
+      val json = Json.parse("""
           | {
           |   "status": {
           |     "status_type":"08",

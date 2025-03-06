@@ -24,28 +24,29 @@ class RevokedReasonSpec extends PlaySpec {
 
   "RevokedReason model" must {
     "return reason for the string" in {
-      RevokedReason.jsonReads.reads(Json.obj("status_reason" ->"01")) must be(JsSuccess(RevokedMissingTrader))
-      RevokedReason.jsonReads.reads(Json.obj("status_reason" ->"02")) must be(JsSuccess(RevokedCeasedTrading))
-      RevokedReason.jsonReads.reads(Json.obj("status_reason" ->"03")) must be(JsSuccess(RevokedNonCompliant))
-      RevokedReason.jsonReads.reads(Json.obj("status_reason" ->"04")) must be(JsSuccess(RevokedFitAndProperFailure))
-      RevokedReason.jsonReads.reads(Json.obj("status_reason" ->"05")) must be(JsSuccess(RevokedFailedToPayCharges))
-      RevokedReason.jsonReads.reads(Json.obj("status_reason" ->"06")) must be(JsSuccess(RevokedFailedToRespond))
-      RevokedReason.jsonReads.reads(Json.obj("status_reason" ->"99")) must be(JsSuccess(RevokedOther))
+      RevokedReason.jsonReads.reads(Json.obj("status_reason" -> "01")) must be(JsSuccess(RevokedMissingTrader))
+      RevokedReason.jsonReads.reads(Json.obj("status_reason" -> "02")) must be(JsSuccess(RevokedCeasedTrading))
+      RevokedReason.jsonReads.reads(Json.obj("status_reason" -> "03")) must be(JsSuccess(RevokedNonCompliant))
+      RevokedReason.jsonReads.reads(Json.obj("status_reason" -> "04")) must be(JsSuccess(RevokedFitAndProperFailure))
+      RevokedReason.jsonReads.reads(Json.obj("status_reason" -> "05")) must be(JsSuccess(RevokedFailedToPayCharges))
+      RevokedReason.jsonReads.reads(Json.obj("status_reason" -> "06")) must be(JsSuccess(RevokedFailedToRespond))
+      RevokedReason.jsonReads.reads(Json.obj("status_reason" -> "99")) must be(JsSuccess(RevokedOther))
     }
 
     "fail validation on invalid data" in {
-      RevokedReason.jsonReads.reads(Json.obj("status_reason" ->"100")) must be(JsError(List((JsPath \ "status_reason",
-        List(JsonValidationError(List("error.invalid")))))))
+      RevokedReason.jsonReads.reads(Json.obj("status_reason" -> "100")) must be(
+        JsError(List((JsPath \ "status_reason", List(JsonValidationError(List("error.invalid"))))))
+      )
     }
 
     "write data successfully" in {
-      RevokedReason.jsonWrites.writes(RevokedMissingTrader) must be(JsString("01"))
-      RevokedReason.jsonWrites.writes(RevokedCeasedTrading) must be(JsString("02"))
-      RevokedReason.jsonWrites.writes(RevokedNonCompliant) must be(JsString("03"))
+      RevokedReason.jsonWrites.writes(RevokedMissingTrader)       must be(JsString("01"))
+      RevokedReason.jsonWrites.writes(RevokedCeasedTrading)       must be(JsString("02"))
+      RevokedReason.jsonWrites.writes(RevokedNonCompliant)        must be(JsString("03"))
       RevokedReason.jsonWrites.writes(RevokedFitAndProperFailure) must be(JsString("04"))
-      RevokedReason.jsonWrites.writes(RevokedFailedToPayCharges) must be(JsString("05"))
-      RevokedReason.jsonWrites.writes(RevokedFailedToRespond) must be(JsString("06"))
-      RevokedReason.jsonWrites.writes(RevokedOther) must be(JsString("99"))
+      RevokedReason.jsonWrites.writes(RevokedFailedToPayCharges)  must be(JsString("05"))
+      RevokedReason.jsonWrites.writes(RevokedFailedToRespond)     must be(JsString("06"))
+      RevokedReason.jsonWrites.writes(RevokedOther)               must be(JsString("99"))
     }
   }
 }

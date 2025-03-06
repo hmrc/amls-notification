@@ -25,17 +25,20 @@ import utils.AuditHelper
 
 object NotificationReceivedEvent {
 
-  def apply(amlsRegNo: String, request: NotificationPushRequest)
-           (implicit hc: HeaderCarrier, contactW: Writes[ContactType], statusW: Writes[Status]) = {
+  def apply(amlsRegNo: String, request: NotificationPushRequest)(implicit
+    hc: HeaderCarrier,
+    contactW: Writes[ContactType],
+    statusW: Writes[Status]
+  ) = {
 
     val data = Json.toJson(hc.toAuditDetails()).as[JsObject] ++ Json.obj(
       "registrationNumber" -> amlsRegNo,
-      "emailAddress" -> request.email,
-      "contactType" -> request.contactType,
-      "contactNumber" -> request.contactNumber,
-      "status" -> request.status,
-      "safeId" -> request.safeId,
-      "isVariation" -> request.variation
+      "emailAddress"       -> request.email,
+      "contactType"        -> request.contactType,
+      "contactNumber"      -> request.contactNumber,
+      "status"             -> request.status,
+      "safeId"             -> request.safeId,
+      "isVariation"        -> request.variation
     )
 
     ExtendedDataEvent(
@@ -49,18 +52,21 @@ object NotificationReceivedEvent {
 
 object NotificationFailedEvent {
 
-  def apply(amlsRegNo: String, request: NotificationPushRequest, errors: Seq[String])
-           (implicit hc: HeaderCarrier, contactW: Writes[ContactType], statusW: Writes[Status]) = {
+  def apply(amlsRegNo: String, request: NotificationPushRequest, errors: Seq[String])(implicit
+    hc: HeaderCarrier,
+    contactW: Writes[ContactType],
+    statusW: Writes[Status]
+  ) = {
 
     val data = Json.toJson(hc.toAuditDetails()).as[JsObject] ++ Json.obj(
       "registrationNumber" -> amlsRegNo,
-      "emailAddress" -> request.email,
-      "contactType" -> request.contactType,
-      "contactNumber" -> request.contactNumber,
-      "status" -> request.status,
-      "safeId" -> request.safeId,
-      "isVariation" -> request.variation,
-      "errors" -> errors
+      "emailAddress"       -> request.email,
+      "contactType"        -> request.contactType,
+      "contactNumber"      -> request.contactNumber,
+      "status"             -> request.status,
+      "safeId"             -> request.safeId,
+      "isVariation"        -> request.variation,
+      "errors"             -> errors
     )
 
     ExtendedDataEvent(
@@ -71,4 +77,3 @@ object NotificationFailedEvent {
     )
   }
 }
-

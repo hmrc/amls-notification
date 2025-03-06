@@ -34,10 +34,10 @@ trait DESConnector extends HttpResponseHelper with Logging {
   protected val metrics: Metrics
 
   private[connectors] lazy val baseUrl: String = amlsConfig.desUrl
-  private[connectors] lazy val token: String = s"Bearer ${amlsConfig.desToken}"
-  private[connectors] lazy val env: String = amlsConfig.desEnv
-  private[connectors] val audit: Audit = new Audit(AuditHelper.appName, auditConnector)
-  private[connectors] val fullUrl: String = s"$baseUrl/$requestUrl"
+  private[connectors] lazy val token: String   = s"Bearer ${amlsConfig.desToken}"
+  private[connectors] lazy val env: String     = amlsConfig.desEnv
+  private[connectors] val audit: Audit         = new Audit(AuditHelper.appName, auditConnector)
+  private[connectors] val fullUrl: String      = s"$baseUrl/$requestUrl"
 
   protected implicit val hc: HeaderCarrier = HeaderCarrier()
 }

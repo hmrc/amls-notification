@@ -19,23 +19,24 @@ package models
 import models.StatusType.DeRegistered
 import play.api.libs.json._
 
-case class NotificationPushRequest (
-                                   safeId: String,
-                                   name: String,
-                                   email: String,
-                                   status: Option[Status],
-                                   contactType: Option[ContactType],
-                                   contactNumber: Option[String],
-                                   variation:Boolean
-                                  ) {
+case class NotificationPushRequest(
+  safeId: String,
+  name: String,
+  email: String,
+  status: Option[Status],
+  contactType: Option[ContactType],
+  contactNumber: Option[String],
+  variation: Boolean
+) {
   def isSane: Boolean = this match {
-    case NotificationPushRequest(_, _, _, `status`, None, _, false) => status match {
-      case Some(Status(DeRegistered, _)) => true
-      case Some(Status(_, None)) => false
-      case None => false
-      case _ => true
-    }
-    case _ => true
+    case NotificationPushRequest(_, _, _, `status`, None, _, false) =>
+      status match {
+        case Some(Status(DeRegistered, _)) => true
+        case Some(Status(_, None))         => false
+        case None                          => false
+        case _                             => true
+      }
+    case _                                                          => true
   }
 }
 
@@ -45,18 +46,17 @@ object NotificationPushRequest {
     import play.api.libs.functional.syntax._
     import play.api.libs.json.Reads._
     import play.api.libs.json._
-    val safeIdPattern = "^[A-Za-z0-9]{15}$".r
-    val namePattern = "^.{1,140}$".r
+    val safeIdPattern  = "^[A-Za-z0-9]{15}$".r
+    val namePattern    = "^.{1,140}$".r
     val maxEmailLength = 100
 
-      ((__ \ "safeId").read[String] (pattern(safeIdPattern)) and
-        (__ \ "name").read[String] (pattern(namePattern)) and
-        (__ \ "email").read[String] (minLength[String](1)keepAnd maxLength[String](maxEmailLength)) and
-        (__ \ "status").readNullable[Status] and
-        (__ \ "contact_type").readNullable[ContactType] and
-        (__ \ "contact_number").readNullable[String] and
-        (__ \ "variation").read[Boolean]
-        )(NotificationPushRequest.apply _)
+    ((__ \ "safeId").read[String](pattern(safeIdPattern)) and
+      (__ \ "name").read[String](pattern(namePattern)) and
+      (__ \ "email").read[String](minLength[String](1) keepAnd maxLength[String](maxEmailLength)) and
+      (__ \ "status").readNullable[Status] and
+      (__ \ "contact_type").readNullable[ContactType] and
+      (__ \ "contact_number").readNullable[String] and
+      (__ \ "variation").read[Boolean])(NotificationPushRequest.apply _)
   }
 
   implicit val jsonWrites: OWrites[NotificationPushRequest] = {
@@ -64,17 +64,17 @@ object NotificationPushRequest {
     import play.api.libs.json.Writes._
     import play.api.libs.json._
 
-      (
-        (__ \ "safeId").write[String] and
+    (
+      (__ \ "safeId").write[String] and
         (__ \ "name").write[String] and
-          (__ \ "email").write[String] and
-          (__ \ "status").writeNullable[Status] and
-          (__ \ "contact_type").writeNullable[ContactType] and
-          (__ \ "contact_number").writeNullable[String] and
-          (__ \ "variation").write[Boolean]
-        ) (unlift(NotificationPushRequest.unapply))
-    }
+        (__ \ "email").write[String] and
+        (__ \ "status").writeNullable[Status] and
+        (__ \ "contact_type").writeNullable[ContactType] and
+        (__ \ "contact_number").writeNullable[String] and
+        (__ \ "variation").write[Boolean]
+    )(unlift(NotificationPushRequest.unapply))
+  }
 
   implicit val formats: OFormat[NotificationPushRequest] =
-  OFormat(jsonReads, jsonWrites)
+    OFormat(jsonReads, jsonWrites)
 }

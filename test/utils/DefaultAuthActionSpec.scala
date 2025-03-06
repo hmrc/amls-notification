@@ -32,11 +32,17 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
-class DefaultAuthActionSpec extends PlaySpec with MockitoSugar with ScalaFutures with Matchers with IntegrationPatience with GuiceOneAppPerSuite {
+class DefaultAuthActionSpec
+    extends PlaySpec
+    with MockitoSugar
+    with ScalaFutures
+    with Matchers
+    with IntegrationPatience
+    with GuiceOneAppPerSuite {
 
-  val mockAuthConnector = mock[AuthConnector]
+  val mockAuthConnector                   = mock[AuthConnector]
   implicit val headCarrier: HeaderCarrier = mock[HeaderCarrier]
-  val mockCC: ControllerComponents = app.injector.instanceOf[ControllerComponents]
+  val mockCC: ControllerComponents        = app.injector.instanceOf[ControllerComponents]
 
   class Harness(authAction: DefaultAuthAction) extends BaseController {
     def onPageLoad() = authAction { _ =>
@@ -53,7 +59,7 @@ class DefaultAuthActionSpec extends PlaySpec with MockitoSugar with ScalaFutures
       "be UNAUTHORIZED" in {
         val authAction = new DefaultAuthAction(new FakeAuthConnector(Some(new MissingBearerToken)), mockCC)
         val controller = new Harness(authAction)
-        val result = controller.onPageLoad()(fakeRequest)
+        val result     = controller.onPageLoad()(fakeRequest)
         status(result) mustBe UNAUTHORIZED
       }
     }
@@ -62,7 +68,7 @@ class DefaultAuthActionSpec extends PlaySpec with MockitoSugar with ScalaFutures
       "be OK" in {
         val authAction = new DefaultAuthAction(new FakeAuthConnector(None), mockCC)
         val controller = new Harness(authAction)
-        val result = controller.onPageLoad()(fakeRequest)
+        val result     = controller.onPageLoad()(fakeRequest)
         status(result) mustBe OK
       }
     }
@@ -71,9 +77,12 @@ class DefaultAuthActionSpec extends PlaySpec with MockitoSugar with ScalaFutures
 
 class FakeAuthConnector(exceptionToReturn: Option[Throwable]) extends AuthConnector {
   val serviceUrl: String = "amls-notification"
-  def success: Any = ()
+  def success: Any       = ()
 
-  override def authorise[A](predicate: Predicate, retrieval: Retrieval[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] =
+  override def authorise[A](predicate: Predicate, retrieval: Retrieval[A])(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[A] =
     exceptionToReturn.fold(Future.successful(success.asInstanceOf[A]))(Future.failed(_))
 
 }

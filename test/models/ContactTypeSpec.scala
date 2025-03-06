@@ -23,28 +23,63 @@ class ContactTypeSpec extends PlaySpec {
 
   "ContactType model" must {
     "read/write Json successfully" in {
-      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.RejectionReasons)) must be(JsSuccess(ContactType.RejectionReasons))
-      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.RevocationReasons)) must be(JsSuccess(ContactType.RevocationReasons))
-      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.MindedToReject)) must be(JsSuccess(ContactType.MindedToReject))
-      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.NoLongerMindedToReject)) must be(JsSuccess(ContactType.NoLongerMindedToReject))
-      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.MindedToRevoke)) must be(JsSuccess(ContactType.MindedToRevoke))
-      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.NoLongerMindedToRevoke)) must be(JsSuccess(ContactType.NoLongerMindedToRevoke))
-      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.Others)) must be(JsSuccess(ContactType.Others))
-      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.ApplicationApproval)) must be(JsSuccess(ContactType.ApplicationApproval))
-      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.RenewalApproval)) must be(JsSuccess(ContactType.RenewalApproval))
-      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.NewRenewalReminder)) must be(JsSuccess(ContactType.NewRenewalReminder))
-      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.AutoExpiryOfRegistration)) must be(JsSuccess(ContactType.AutoExpiryOfRegistration))
-      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.RenewalReminder)) must be(JsSuccess(ContactType.RenewalReminder))
-      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.NewRenewalReminder)) must be(JsSuccess(ContactType.NewRenewalReminder))
-      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.ReminderToPayForApplication)) must be(JsSuccess(ContactType.ReminderToPayForApplication))
-      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.ReminderToPayForRenewal)) must be(JsSuccess(ContactType.ReminderToPayForRenewal))
-      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.ReminderToPayForVariation)) must be(JsSuccess(ContactType.ReminderToPayForVariation))
-      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.ReminderToPayForManualCharges)) must be(JsSuccess(ContactType.ReminderToPayForManualCharges))
+      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.RejectionReasons))              must be(
+        JsSuccess(ContactType.RejectionReasons)
+      )
+      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.RevocationReasons))             must be(
+        JsSuccess(ContactType.RevocationReasons)
+      )
+      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.MindedToReject))                must be(
+        JsSuccess(ContactType.MindedToReject)
+      )
+      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.NoLongerMindedToReject))        must be(
+        JsSuccess(ContactType.NoLongerMindedToReject)
+      )
+      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.MindedToRevoke))                must be(
+        JsSuccess(ContactType.MindedToRevoke)
+      )
+      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.NoLongerMindedToRevoke))        must be(
+        JsSuccess(ContactType.NoLongerMindedToRevoke)
+      )
+      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.Others))                        must be(
+        JsSuccess(ContactType.Others)
+      )
+      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.ApplicationApproval))           must be(
+        JsSuccess(ContactType.ApplicationApproval)
+      )
+      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.RenewalApproval))               must be(
+        JsSuccess(ContactType.RenewalApproval)
+      )
+      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.NewRenewalReminder))            must be(
+        JsSuccess(ContactType.NewRenewalReminder)
+      )
+      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.AutoExpiryOfRegistration))      must be(
+        JsSuccess(ContactType.AutoExpiryOfRegistration)
+      )
+      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.RenewalReminder))               must be(
+        JsSuccess(ContactType.RenewalReminder)
+      )
+      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.NewRenewalReminder))            must be(
+        JsSuccess(ContactType.NewRenewalReminder)
+      )
+      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.ReminderToPayForApplication))   must be(
+        JsSuccess(ContactType.ReminderToPayForApplication)
+      )
+      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.ReminderToPayForRenewal))       must be(
+        JsSuccess(ContactType.ReminderToPayForRenewal)
+      )
+      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.ReminderToPayForVariation))     must be(
+        JsSuccess(ContactType.ReminderToPayForVariation)
+      )
+      ContactType.jsonReads.reads(ContactType.jsonWrites.writes(ContactType.ReminderToPayForManualCharges)) must be(
+        JsSuccess(ContactType.ReminderToPayForManualCharges)
+      )
     }
 
-
     "fail with error when status value is passed incorrectly" in {
-      ContactType.jsonReads.reads(JsString("RPM1RPM1")) must be(JsError(List((JsPath  \"contact_type",List(JsonValidationError(List("error.invalid")))))))
+      ContactType.jsonReads.reads(JsString("RPM1RPM1")) must be(
+        JsError(List((JsPath \ "contact_type", List(JsonValidationError(List("error.invalid"))))))
+      )
 
     }
   }
