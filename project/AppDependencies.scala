@@ -5,7 +5,7 @@ import play.core.PlayVersion
 private object AppDependencies {
 
   private val playVersion = "play-30"
-  private val bootstrapVersion = "9.11.0"
+  private val bootstrapVersion = "9.18.0"
 
   val compile: Seq[ModuleID] = Seq(
     "uk.gov.hmrc.mongo" %% s"hmrc-mongo-$playVersion"        %  "2.6.0",
