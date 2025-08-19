@@ -20,6 +20,7 @@ import config.ApplicationConfig
 import metrics.Metrics
 import play.api.Logging
 import uk.gov.hmrc.http._
+import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.Audit
 import utils.{AuditHelper, HttpResponseHelper}
@@ -29,7 +30,7 @@ trait DESConnector extends HttpResponseHelper with Logging {
   val requestUrl = "anti-money-laundering/secure-comms"
 
   protected val amlsConfig: ApplicationConfig
-  protected val http: HttpClient
+  protected val http: HttpClientV2
   protected val auditConnector: AuditConnector
   protected val metrics: Metrics
 

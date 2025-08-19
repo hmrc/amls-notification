@@ -21,9 +21,9 @@ import config.ApplicationConfig
 import javax.inject.Inject
 import play.api.Logging
 import play.api.libs.json.{Json, OFormat}
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
-import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -33,7 +33,7 @@ object SendTemplatedEmailRequest {
   implicit val format: OFormat[SendTemplatedEmailRequest] = Json.format[SendTemplatedEmailRequest]
 }
 
-class EmailConnector @Inject() (val config: ApplicationConfig, val http: DefaultHttpClient)(implicit
+class EmailConnector @Inject() (val config: ApplicationConfig, val httpClientV2: HttpClientV2)(implicit
   ec: ExecutionContext
 ) extends Logging {
   lazy val serviceURL: String = config.emailUrl
@@ -45,15 +45,19 @@ class EmailConnector @Inject() (val config: ApplicationConfig, val http: Default
   }
 
   private def sendEmail(request: SendTemplatedEmailRequest)(implicit hc: HeaderCarrier): Future[Boolean] = {
-    val postUrl = s"""$serviceURL$sendEmailURI"""
+    val postUrl = s"$serviceURL$sendEmailURI"
 
     logger.debug(s"[EmailConnector] Sending email to ${request.to.mkString(", ")}")
 
-    http.POST(postUrl, request) map { response =>
-      response.status match {
-        case 202 => logger.debug(s"[EmailConnector] Email sent: ${response.body}"); true
-        case _   => logger.error(s"[EmailConnector] Email not sent: ${response.body}"); false
+    httpClientV2
+      .post(url"$postUrl")
+      .withBody(Json.toJson(request))
+      .execute[HttpResponse]
+      .map { response =>
+        response.status match {
+          case 202 => logger.debug(s"[EmailConnector] Email sent: ${response.body}"); true
+          case _   => logger.error(s"[EmailConnector] Email not sent: ${response.body}"); false
+        }
       }
-    }
   }
 }

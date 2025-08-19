@@ -26,7 +26,7 @@ import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
+import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -39,24 +39,22 @@ class EmailConnectorSpec
     with BeforeAndAfterAll {
 
   trait Fixture {
+    implicit val hc: HeaderCarrier    = HeaderCarrier()
+    implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
 
-    implicit val hc: HeaderCarrier = HeaderCarrier()
+    val sendTo                             = "e@mail.com"
+    val mockHttpClientV2: HttpClientV2     = mock[HttpClientV2]
+    val mockRequestBuilder: RequestBuilder = mock[RequestBuilder]
+    val config: ApplicationConfig          = app.injector.instanceOf[ApplicationConfig]
 
-    val sendTo                                 = "e@mail.com"
-    val mockHttpClient: DefaultHttpClient      = mock[DefaultHttpClient]
-    val config: ApplicationConfig              = app.injector.instanceOf[ApplicationConfig]
-    val mockExecutionContext: ExecutionContext = app.injector.instanceOf[ExecutionContext]
-
-    val emailConnector = new EmailConnector(config, mockHttpClient)(mockExecutionContext)
+    val emailConnector = new EmailConnector(config, mockHttpClientV2)
   }
 
   "The Email connector" must {
     "send a details of the email template and content and report a positive response" in new Fixture {
-      when(
-        emailConnector.http
-          .POST[SendTemplatedEmailRequest, HttpResponse](any(), any(), any())(any(), any(), any(), any())
-      )
-        .thenReturn(Future.successful(HttpResponse(202, "")))
+      when(mockHttpClientV2.post(any())(any())).thenReturn(mockRequestBuilder)
+      when(mockRequestBuilder.withBody(any())(any(), any(), any())).thenReturn(mockRequestBuilder)
+      when(mockRequestBuilder.execute[HttpResponse](any(), any())).thenReturn(Future.successful(HttpResponse(202, "")))
 
       val result: Boolean = await(emailConnector.sendNotificationReceivedTemplatedEmail(List(sendTo)))
 
@@ -64,11 +62,9 @@ class EmailConnectorSpec
     }
 
     "send a details of the email template and content and report a negative response" in new Fixture {
-      when(
-        emailConnector.http
-          .POST[SendTemplatedEmailRequest, HttpResponse](any(), any(), any())(any(), any(), any(), any())
-      )
-        .thenReturn(Future.successful(HttpResponse(400, "")))
+      when(mockHttpClientV2.post(any())(any())).thenReturn(mockRequestBuilder)
+      when(mockRequestBuilder.withBody(any())(any(), any(), any())).thenReturn(mockRequestBuilder)
+      when(mockRequestBuilder.execute[HttpResponse](any(), any())).thenReturn(Future.successful(HttpResponse(400, "")))
 
       val result: Boolean = await(emailConnector.sendNotificationReceivedTemplatedEmail(List(sendTo)))
 

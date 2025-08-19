@@ -33,6 +33,7 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.http._
+import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.DataEvent
 
@@ -56,12 +57,17 @@ class ViewNotificationConnectorSpec
   trait Fixture {
 
     val mockAppConfig      = mock[ApplicationConfig]
-    val mockHttpClient     = mock[HttpClient]
+    val mockHttpClientV2   = mock[HttpClientV2]
+    val mockRequestBuilder = mock[RequestBuilder]
     val mockAuditConnector = mock[AuditConnector]
     val mockMetrics        = mock[Metrics]
 
+    when(mockAppConfig.desUrl).thenReturn("http://localhost:8080")
+    when(mockAppConfig.desToken).thenReturn("test-token")
+    when(mockAppConfig.desEnv).thenReturn("test-env")
+
     val viewNotificationConnector =
-      new ViewNotificationConnector(mockAppConfig, mockHttpClient, mockAuditConnector, mockMetrics) {
+      new ViewNotificationConnector(mockAppConfig, mockHttpClientV2, mockAuditConnector, mockMetrics) {
         override private[connectors] val audit = mock[MockAudit]
       }
 
@@ -91,9 +97,9 @@ class ViewNotificationConnectorSpec
         headers = Map.empty
       )
 
-      when {
-        viewNotificationConnector.http.GET[HttpResponse](eqTo(url), any(), any())(any(), any(), any())
-      } thenReturn Future.successful(response)
+      when(mockHttpClientV2.get(any())(any())).thenReturn(mockRequestBuilder)
+      when(mockRequestBuilder.setHeader(any(): _*)).thenReturn(mockRequestBuilder)
+      when(mockRequestBuilder.execute[HttpResponse](any(), any())).thenReturn(Future.successful(response))
 
       whenReady(viewNotificationConnector.getNotification(amlsRegistrationNumber, contactNumber)) {
         _ mustEqual successModel
@@ -112,9 +118,10 @@ class ViewNotificationConnectorSpec
         headers = Map.empty,
         body = null
       )
-      when {
-        viewNotificationConnector.http.GET[HttpResponse](eqTo(url), any(), any())(any(), any(), any())
-      } thenReturn Future.successful(response)
+
+      when(mockHttpClientV2.get(any())(any())).thenReturn(mockRequestBuilder)
+      when(mockRequestBuilder.setHeader(any(): _*)).thenReturn(mockRequestBuilder)
+      when(mockRequestBuilder.execute[HttpResponse](any(), any())).thenReturn(Future.successful(response))
 
       whenReady(viewNotificationConnector.getNotification(amlsRegistrationNumber, contactNumber).failed) {
         case HttpStatusException(status, body) =>
@@ -136,9 +143,9 @@ class ViewNotificationConnectorSpec
         body = "{\"message\": \"none\"}"
       )
 
-      when {
-        viewNotificationConnector.http.GET[HttpResponse](eqTo(url), any(), any())(any(), any(), any())
-      } thenReturn Future.successful(response)
+      when(mockHttpClientV2.get(any())(any())).thenReturn(mockRequestBuilder)
+      when(mockRequestBuilder.setHeader(any(): _*)).thenReturn(mockRequestBuilder)
+      when(mockRequestBuilder.execute[HttpResponse](any(), any())).thenReturn(Future.successful(response))
 
       whenReady(viewNotificationConnector.getNotification(amlsRegistrationNumber, contactNumber).failed) {
         case HttpStatusException(status, body) =>
@@ -154,9 +161,9 @@ class ViewNotificationConnectorSpec
 
     "return a failed future containing an exception message" in new Fixture {
 
-      when {
-        viewNotificationConnector.http.GET[HttpResponse](eqTo(url), any(), any())(any(), any(), any())
-      } thenReturn Future.failed(new Exception("message"))
+      when(mockHttpClientV2.get(any())(any())).thenReturn(mockRequestBuilder)
+      when(mockRequestBuilder.setHeader(any(): _*)).thenReturn(mockRequestBuilder)
+      when(mockRequestBuilder.execute[HttpResponse](any(), any())).thenReturn(Future.failed(new Exception("message")))
 
       whenReady(viewNotificationConnector.getNotification(amlsRegistrationNumber, contactNumber).failed) {
         case HttpStatusException(status, body) =>
