@@ -16,8 +16,8 @@
 
 package models.des
 
-import org.joda.time.{DateTime, DateTimeZone, LocalDateTime}
-import org.joda.time.format.ISODateTimeFormat
+import java.time.{Instant, LocalDateTime, ZoneId}
+import java.time.format.DateTimeFormatter
 import play.api.libs.json._
 import utils.DateTimeFormats
 
@@ -25,17 +25,18 @@ case class NotificationResponse(processingDate: LocalDateTime, secureCommText: S
 
 object NotificationResponse {
 
-  val dateTimeFormat = ISODateTimeFormat.dateTimeNoMillis().withZoneUTC
+  val dateTimeFormat: DateTimeFormatter =
+    DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of("UTC"))
 
   implicit val readsJodaLocalDateTime: Reads[LocalDateTime] = Reads[LocalDateTime](js =>
     js.validate[String].map[LocalDateTime](dtString => LocalDateTime.parse(dtString, dateTimeFormat))
   )
 
   implicit val localDateTimeWrite: Writes[LocalDateTime] = new Writes[LocalDateTime] {
-    def writes(dateTime: LocalDateTime): JsValue = JsString(dateTimeFormat.print(dateTime.toDateTime(DateTimeZone.UTC)))
+    def writes(dateTime: LocalDateTime): JsValue = JsString(dateTime.format(dateTimeFormat))
   }
 
   implicit val format: OFormat[NotificationResponse] = Json.format[NotificationResponse]
 
-  implicit val dateFormat: Format[DateTime] = DateTimeFormats.dateTimeFormat
+  implicit val dateFormat: Format[Instant] = DateTimeFormats.dateTimeFormat
 }

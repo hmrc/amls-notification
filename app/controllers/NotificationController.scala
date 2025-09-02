@@ -23,7 +23,9 @@ import connectors.EmailConnector
 import exceptions.HttpStatusException
 import models.ContactType.{NewRenewalReminder, RenewalReminder}
 import models.{ContactType, NotificationPushRequest, NotificationRecord}
-import org.joda.time.{DateTime, DateTimeZone}
+
+import java.time.temporal.TemporalAdjusters
+import java.time.{LocalDateTime, ZoneId, ZoneOffset, ZonedDateTime}
 import play.api.Logging
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
@@ -76,7 +78,7 @@ class NotificationController @Inject() (
             case JsSuccess(body, _)                                                           =>
               val contactType = getContactType(
                 body.contactType,
-                DateTime.now(DateTimeZone.UTC),
+                ZonedDateTime.now(ZoneId.of("UTC")),
                 amlsConfig.currentTemplatePackageVersion
               )
               val record      = NotificationRecord(
@@ -88,7 +90,7 @@ class NotificationController @Inject() (
                 contactType,
                 body.contactNumber,
                 body.variation,
-                DateTime.now(DateTimeZone.UTC),
+                LocalDateTime.now(ZoneId.of("UTC")).toInstant(ZoneOffset.UTC),
                 isRead = false,
                 Some(amlsConfig.currentTemplatePackageVersion)
               )
@@ -176,8 +178,14 @@ class NotificationController @Inject() (
     }
   }
 
-  def getContactType(contactType: Option[ContactType], date: DateTime, templateVersion: String): Option[ContactType] = {
-    val boundaryDay = date.dayOfMonth().getMaximumValue - (28 + 14) / 2
+  def getContactType(
+    contactType: Option[ContactType],
+    date: ZonedDateTime,
+    templateVersion: String
+  ): Option[ContactType] = {
+    val lastDayOfMonth = date.`with`(TemporalAdjusters.lastDayOfMonth).getDayOfMonth
+    val boundaryDay    = lastDayOfMonth - (28 + 14) / 2
+
     templateVersion match {
       case "v6m0" =>
         contactType match {

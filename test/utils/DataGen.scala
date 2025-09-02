@@ -17,7 +17,7 @@
 package utils
 
 import models._
-import org.joda.time.{DateTime, LocalDateTime}
+import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import org.scalacheck.Gen
 
 object DataGen {
@@ -86,13 +86,13 @@ object DataGen {
     month <- Gen.choose(1, 12)
     day   <- Gen.choose(1, daysInMonth(month))
     year  <- Gen.choose(1967, 2020)
-  } yield new DateTime(year, month, day, 0, 0)
+  } yield ZonedDateTime.of(year, month, day, 0, 0, 0, 0, ZoneId.of("UTC")).toInstant
 
   val localDateTimeGen = for {
     month <- Gen.choose(1, 12)
     day   <- Gen.choose(1, daysInMonth(month))
     year  <- Gen.choose(1967, 2020)
-  } yield new LocalDateTime(year, month, day, 0, 0)
+  } yield LocalDateTime.of(year, month, day, 0, 0)
 
   val notificationRecordGen = for {
     a <- amlsRegNumberGen

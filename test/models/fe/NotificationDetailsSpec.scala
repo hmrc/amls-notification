@@ -17,16 +17,16 @@
 package models.fe
 
 import models._
-import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
+import java.time.Instant
 
 class NotificationDetailsSpec extends AnyWordSpec with Matchers {
 
   "NotificationDetails serialisation" must {
 
-    val dateTime = new DateTime(1479730062573L, DateTimeZone.UTC)
+    val dateTime = Instant.ofEpochMilli(1479730062573L)
 
     "Serialise the object correctly" in {
       NotificationDetails.writes.writes(

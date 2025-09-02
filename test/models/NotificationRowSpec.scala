@@ -16,7 +16,7 @@
 
 package models
 
-import org.joda.time.{DateTime, DateTimeZone}
+import java.time.{Instant, LocalDateTime, ZoneId}
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.{JsSuccess, Json}
 
@@ -31,7 +31,7 @@ class NotificationRowSpec extends PlaySpec {
         Some(ContactType.MindedToRevoke),
         None,
         false,
-        new DateTime(1479730062573L, DateTimeZone.UTC),
+        Instant.ofEpochMilli(1479730062573L),
         false,
         amlsRegistrationNumber,
         Some("1"),

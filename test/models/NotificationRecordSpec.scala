@@ -16,9 +16,11 @@
 
 package models
 
-import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.JsSuccess
+
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 class NotificationRecordSpec extends PlaySpec {
 
@@ -36,7 +38,7 @@ class NotificationRecordSpec extends PlaySpec {
         Some(ContactType.MindedToRevoke),
         None,
         false,
-        DateTime.now(DateTimeZone.UTC),
+        Instant.now().truncatedTo(ChronoUnit.MILLIS),
         false,
         Some("1")
       )

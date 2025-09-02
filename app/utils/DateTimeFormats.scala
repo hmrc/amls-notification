@@ -16,27 +16,27 @@
 
 package utils
 
-import org.joda.time.{DateTime, DateTimeZone, LocalDate, LocalDateTime}
+import java.time.{Instant, ZoneId}
 import play.api.libs.json._
 
 trait DateTimeFormats {
   outer =>
 
-  final val dateTimeReads: Reads[DateTime] =
+  final val dateTimeReads: Reads[Instant] =
     Reads
       .at[String](__ \ "$date" \ "$numberLong")
-      .map(dateTime => new DateTime(dateTime.toLong, DateTimeZone.UTC))
+      .map(dateTime => Instant.ofEpochMilli(dateTime.toLong).atZone(ZoneId.of("UTC")).toInstant)
 
-  final val dateTimeWrites: Writes[DateTime] =
+  final val dateTimeWrites: Writes[Instant] =
     Writes
       .at[String](__ \ "$date" \ "$numberLong")
-      .contramap[DateTime](_.getMillis.toString)
+      .contramap[Instant](_.toEpochMilli.toString)
 
-  final val dateTimeFormat: Format[DateTime] =
+  final val dateTimeFormat: Format[Instant] =
     Format(dateTimeReads, dateTimeWrites)
 
   trait Implicits {
-    implicit val jotDateTimeFormat: Format[DateTime] = outer.dateTimeFormat
+    implicit val jotDateTimeFormat: Format[Instant] = outer.dateTimeFormat
   }
 
   object Implicits extends Implicits

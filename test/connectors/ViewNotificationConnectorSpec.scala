@@ -22,7 +22,8 @@ import config.ApplicationConfig
 import exceptions.HttpStatusException
 import metrics.{API11, Metrics}
 import models.des.NotificationResponse
-import org.joda.time.{DateTimeUtils, LocalDateTime}
+
+import java.time.{Clock, Instant, LocalDateTime, ZoneId}
 import org.mockito.ArgumentMatchers.{any, argThat, eq => eqTo}
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterAll
@@ -37,6 +38,7 @@ import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.DataEvent
 
+import java.time.temporal.ChronoUnit
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -48,11 +50,12 @@ class ViewNotificationConnectorSpec
     with GuiceOneAppPerSuite
     with BeforeAndAfterAll {
 
+  private var testClock: Clock   = Clock.systemDefaultZone()
   override def beforeAll(): Unit =
-    DateTimeUtils.setCurrentMillisFixed(1000)
+    testClock = Clock.fixed(Instant.ofEpochMilli(1000), ZoneId.of("UTC"))
 
   override def afterAll(): Unit =
-    DateTimeUtils.setCurrentMillisSystem()
+    testClock = Clock.systemUTC()
 
   trait Fixture {
 
@@ -71,7 +74,7 @@ class ViewNotificationConnectorSpec
         override private[connectors] val audit = mock[MockAudit]
       }
 
-    val successModel = NotificationResponse(LocalDateTime.now(), "Approved")
+    val successModel = NotificationResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), "Approved")
 
     val mockTimer = mock[Timer.Context]
 

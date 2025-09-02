@@ -17,18 +17,19 @@
 package models.fe
 
 import models.{ContactType, Status}
-import org.joda.time.DateTime
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Format.GenericFormat
 import play.api.libs.json._
 import utils.DateTimeFormats
+
+import java.time.Instant
 
 case class NotificationDetails(
   contactType: Option[ContactType],
   status: Option[Status],
   messageText: Option[String],
   variation: Boolean,
-  receivedAt: DateTime
+  receivedAt: Instant
 )
 
 object NotificationDetails {
@@ -38,7 +39,7 @@ object NotificationDetails {
         (JsPath \ "status").readNullable[Status] and
         (JsPath \ "messageText").readNullable[String] and
         (JsPath \ "variation").read[Boolean] and
-        (JsPath \ "receivedAt").read[DateTime](DateTimeFormats.dateTimeFormat)
+        (JsPath \ "receivedAt").read[Instant](DateTimeFormats.dateTimeFormat)
     )(NotificationDetails.apply _)
 
   val writes: OWrites[NotificationDetails] =
@@ -47,7 +48,7 @@ object NotificationDetails {
         (JsPath \ "status").writeNullable[Status] and
         (JsPath \ "messageText").writeNullable[String] and
         (JsPath \ "variation").write[Boolean] and
-        (JsPath \ "receivedAt").write[DateTime](DateTimeFormats.dateTimeFormat)
+        (JsPath \ "receivedAt").write[Instant](DateTimeFormats.dateTimeFormat)
     )(unlift(NotificationDetails.unapply))
 
   implicit val format: OFormat[NotificationDetails] = OFormat(reads, writes)

@@ -20,7 +20,8 @@ import connectors.ViewNotificationConnector
 import exceptions.HttpStatusException
 import models._
 import models.fe.NotificationDetails
-import org.joda.time.{DateTime, DateTimeZone}
+
+import java.time.Instant
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
@@ -61,7 +62,7 @@ class ViewNotificationControllerSpec extends PlaySpec with ScalaFutures with Moc
 
   val request = FakeRequest() withHeaders CONTENT_TYPE -> "application/json"
 
-  val dateTime = new DateTime(1479730062573L, DateTimeZone.UTC)
+  val dateTime: Instant = Instant.ofEpochMilli(1479730062573L)
 
   "ViewNotificationController" must {
     val amlsRegistrationNumber = amlsRegNumberGen.sample.get
@@ -89,7 +90,7 @@ class ViewNotificationControllerSpec extends PlaySpec with ScalaFutures with Moc
         record flatMap { _.status },
         Some("secure-comms text"),
         record.fold(false)(_.variation),
-        record.fold(new DateTime())(_.receivedAt)
+        record.fold(Instant.now())(_.receivedAt)
       )
 
       when {
