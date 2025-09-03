@@ -28,7 +28,7 @@ object NotificationResponse {
   val dateTimeFormat: DateTimeFormatter =
     DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of("UTC"))
 
-  implicit val readsJodaLocalDateTime: Reads[LocalDateTime] = Reads[LocalDateTime](js =>
+  implicit val readsLocalDateTime: Reads[LocalDateTime] = Reads[LocalDateTime](js =>
     js.validate[String].map[LocalDateTime](dtString => LocalDateTime.parse(dtString, dateTimeFormat))
   )
 
