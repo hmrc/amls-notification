@@ -16,15 +16,17 @@
 
 package models.des
 
-import org.joda.time.LocalDateTime
-import org.joda.time.format.ISODateTimeFormat
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
 
 class NotificationResponseSpec extends PlaySpec {
-  val dateTimeFormat = ISODateTimeFormat.dateTimeNoMillis().withZoneUTC
 
-  private val testProcessingDate = new LocalDateTime(2001, 12, 17, 9, 30, 47)
+  val dateTimeFormat: DateTimeFormatter =
+    DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(java.time.ZoneId.of("UTC"))
+
+  private val testProcessingDate = LocalDateTime.of(2001, 12, 17, 9, 30, 47)
 
   val notificationJson = Json.obj(
     "processingDate" -> "2001-12-17T09:30:47Z",

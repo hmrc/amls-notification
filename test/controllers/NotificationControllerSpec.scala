@@ -21,7 +21,9 @@ import connectors.EmailConnector
 import exceptions.HttpStatusException
 import models.ContactType.{NewRenewalReminder, RenewalReminder}
 import models._
-import org.joda.time.{DateTime, DateTimeZone}
+
+import java.time.{Instant, LocalDateTime, ZoneOffset}
+import java.time.{ZoneId, ZonedDateTime}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{any, eq => eqTo}
 import org.mockito.Mockito._
@@ -208,7 +210,7 @@ class NotificationControllerSpec
         contactType = Some(ContactType.MindedToRevoke),
         contactNumber = None,
         variation = false,
-        receivedAt = DateTime.now(DateTimeZone.UTC),
+        receivedAt = ZonedDateTime.now(ZoneOffset.UTC).toInstant,
         isRead = false,
         amlsRegistrationNumber = amlsRegistrationNumber,
         templatePackageVersion = Some("1"),
@@ -222,7 +224,7 @@ class NotificationControllerSpec
         contactType = Some(ContactType.MindedToRevoke),
         contactNumber = None,
         variation = false,
-        receivedAt = DateTime.now(DateTimeZone.UTC),
+        receivedAt = ZonedDateTime.now(ZoneOffset.UTC).toInstant,
         isRead = false,
         amlsRegistrationNumber = amlsRegistrationNumber,
         templatePackageVersion = None,
@@ -289,7 +291,7 @@ class NotificationControllerSpec
         "28 days " in {
           val result = notificationController.getContactType(
             Some(RenewalReminder),
-            DateTime.parse("2022-07-03T10:49:17.727Z"),
+            ZonedDateTime.ofInstant(Instant.parse("2022-07-03T10:49:17.727Z"), ZoneId.of("UTC")),
             "v6m0"
           )
           result must be(Some(RenewalReminder))
@@ -298,7 +300,7 @@ class NotificationControllerSpec
         "14 days" in {
           val result = notificationController.getContactType(
             Some(RenewalReminder),
-            DateTime.parse("2022-07-16T10:49:17.727Z"),
+            ZonedDateTime.ofInstant(Instant.parse("2022-07-16T10:49:17.727Z"), ZoneId.of("UTC")),
             "v6m0"
           )
           result must be(Some(NewRenewalReminder))
@@ -307,7 +309,7 @@ class NotificationControllerSpec
         "7 days" in {
           val result = notificationController.getContactType(
             Some(RenewalReminder),
-            DateTime.parse("2022-07-28T10:49:17.727Z"),
+            ZonedDateTime.ofInstant(Instant.parse("2022-07-28T10:49:17.727Z"), ZoneId.of("UTC")),
             "v6m0"
           )
           result must be(Some(NewRenewalReminder))
@@ -319,7 +321,7 @@ class NotificationControllerSpec
         "14 days" in {
           val result = notificationController.getContactType(
             Some(RenewalReminder),
-            DateTime.parse("2022-07-16T10:49:17.727Z"),
+            ZonedDateTime.ofInstant(Instant.parse("2022-07-16T10:49:17.727Z"), ZoneId.of("UTC")),
             "v4m0"
           )
           result must be(Some(RenewalReminder))
@@ -331,7 +333,12 @@ class NotificationControllerSpec
         List(ContactType.AutoExpiryOfRegistration, ContactType.ReminderToPayForRenewal).foreach { cTYpe =>
           withClue(s"For Contact Type [$cTYpe]") {
             val result = notificationController
-              .getContactType(Some(cTYpe), DateTime.parse("2022-07-22T10:49:17.727Z"), "v6m0")
+              .getContactType(
+                Some(cTYpe),
+                ZonedDateTime.ofInstant(Instant.parse("2022-07-22T10:49:17.727Z"), ZoneId.of("UTC")),
+                "v6m0"
+              )
+
             result must be(Some(cTYpe))
           }
         }
@@ -354,7 +361,11 @@ class NotificationControllerSpec
         ).foreach { cTYpe =>
           withClue(s"For Contact Type [$cTYpe]") {
             val result = notificationController
-              .getContactType(Some(cTYpe), DateTime.parse("2022-07-22T10:49:17.727Z"), "v6m0")
+              .getContactType(
+                Some(cTYpe),
+                ZonedDateTime.ofInstant(Instant.parse("2022-07-22T10:49:17.727Z"), ZoneId.of("UTC")),
+                "v6m0"
+              )
             result must be(Some(cTYpe))
           }
         }
