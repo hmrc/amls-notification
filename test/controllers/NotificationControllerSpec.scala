@@ -287,12 +287,12 @@ class NotificationControllerSpec
 
     "return correct Content Type" when {
 
-      "contact Type is RenewalReminder and currentTemplatePackageVersion in config is v6m0" when {
+      "contact Type is RenewalReminder and currentTemplatePackageVersion in config is v7m0" when {
         "28 days " in {
           val result = notificationController.getContactType(
             Some(RenewalReminder),
             ZonedDateTime.ofInstant(Instant.parse("2022-07-03T10:49:17.727Z"), ZoneId.of("UTC")),
-            "v6m0"
+            "v7m0"
           )
           result must be(Some(RenewalReminder))
         }
@@ -301,7 +301,7 @@ class NotificationControllerSpec
           val result = notificationController.getContactType(
             Some(RenewalReminder),
             ZonedDateTime.ofInstant(Instant.parse("2022-07-16T10:49:17.727Z"), ZoneId.of("UTC")),
-            "v6m0"
+            "v7m0"
           )
           result must be(Some(NewRenewalReminder))
         }
@@ -310,7 +310,7 @@ class NotificationControllerSpec
           val result = notificationController.getContactType(
             Some(RenewalReminder),
             ZonedDateTime.ofInstant(Instant.parse("2022-07-28T10:49:17.727Z"), ZoneId.of("UTC")),
-            "v6m0"
+            "v7m0"
           )
           result must be(Some(NewRenewalReminder))
         }
@@ -336,7 +336,7 @@ class NotificationControllerSpec
               .getContactType(
                 Some(cTYpe),
                 ZonedDateTime.ofInstant(Instant.parse("2022-07-22T10:49:17.727Z"), ZoneId.of("UTC")),
-                "v6m0"
+                "v7m0"
               )
 
             result must be(Some(cTYpe))
@@ -364,7 +364,7 @@ class NotificationControllerSpec
               .getContactType(
                 Some(cTYpe),
                 ZonedDateTime.ofInstant(Instant.parse("2022-07-22T10:49:17.727Z"), ZoneId.of("UTC")),
-                "v6m0"
+                "v7m0"
               )
             result must be(Some(cTYpe))
           }

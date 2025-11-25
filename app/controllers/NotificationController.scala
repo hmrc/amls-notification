@@ -187,7 +187,7 @@ class NotificationController @Inject() (
     val boundaryDay    = lastDayOfMonth - (28 + 14) / 2
 
     templateVersion match {
-      case "v6m0" =>
+      case "v7m0" =>
         contactType match {
           case Some(RenewalReminder) if date.getDayOfMonth >= boundaryDay =>
             Some(NewRenewalReminder)
