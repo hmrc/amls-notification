@@ -22,7 +22,7 @@ import exceptions.HttpStatusException
 import models.ContactType.{NewRenewalReminder, RenewalReminder}
 import models._
 
-import java.time.{Instant, LocalDateTime, ZoneOffset}
+import java.time.{Instant, ZoneOffset}
 import java.time.{ZoneId, ZonedDateTime}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{any, eq => eqTo}
