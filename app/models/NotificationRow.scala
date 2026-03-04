@@ -23,16 +23,16 @@ import java.time.Instant
 import utils.DateTimeFormats
 
 case class NotificationRow(
-  status: Option[Status],
-  contactType: Option[ContactType],
-  contactNumber: Option[String],
-  variation: Boolean,
-  receivedAt: Instant,
-  isRead: Boolean,
-  amlsRegistrationNumber: String,
-  templatePackageVersion: Option[String],
-  _id: IDType
-)
+                            status: Option[Status],
+                            contactType: Option[ContactType],
+                            contactNumber: Option[String],
+                            variation: Boolean,
+                            receivedAt: Instant,
+                            isRead: Boolean,
+                            amlsRegistrationNumber: String,
+                            templatePackageVersion: Option[String],
+                            _id: IDType
+                          )
 
 object NotificationRow {
   val reads: Reads[NotificationRow] =
@@ -46,7 +46,7 @@ object NotificationRow {
         (JsPath \ "amlsRegistrationNumber").read[String] and
         (JsPath \ "templatePackageVersion").readNullable[String] and
         (JsPath \ "_id").read[IDType]
-    )(NotificationRow.apply _)
+      )(NotificationRow.apply _)
 
   val writes: OWrites[NotificationRow] =
     (
@@ -59,7 +59,9 @@ object NotificationRow {
         (JsPath \ "amlsRegistrationNumber").write[String] and
         (JsPath \ "templatePackageVersion").writeNullable[String] and
         (JsPath \ "_id").write[IDType]
-    )(unlift(NotificationRow.unapply))
+      )((n: NotificationRow) =>
+      (n.status, n.contactType, n.contactNumber, n.variation, n.receivedAt, n.isRead, n.amlsRegistrationNumber, n.templatePackageVersion, n._id)
+    )
 
   implicit val format: OFormat[NotificationRow] = OFormat(reads, writes)
 }

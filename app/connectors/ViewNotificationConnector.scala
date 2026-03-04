@@ -23,7 +23,7 @@ import javax.inject.Inject
 import metrics.{API11, Metrics}
 import models.des.NotificationResponse
 import play.api.http.Status._
-import play.api.libs.json.{JsSuccess, Json, Writes}
+import play.api.libs.json.JsSuccess
 import play.mvc.Http.HeaderNames
 import uk.gov.hmrc.http.{HttpResponse, StringContextOps}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -32,15 +32,14 @@ import uk.gov.hmrc.http.client.HttpClientV2
 import scala.concurrent.{ExecutionContext, Future}
 
 class ViewNotificationConnector @Inject() (
-  val amlsConfig: ApplicationConfig,
-  val http: HttpClientV2,
-  val auditConnector: AuditConnector,
-  val metrics: Metrics
-) extends DESConnector {
+                                            val amlsConfig: ApplicationConfig,
+                                            val http: HttpClientV2,
+                                            val auditConnector: AuditConnector,
+                                            val metrics: Metrics
+                                          ) extends DESConnector {
 
   def getNotification(amlsRegistrationNumber: String, contactNumber: String)(implicit
-    ec: ExecutionContext,
-    wr: Writes[NotificationResponse]
+                                                                             ec: ExecutionContext
   ): Future[NotificationResponse] = {
 
     val prefix          = "[DESConnector][getNotification]"
@@ -68,7 +67,6 @@ class ViewNotificationConnector @Inject() (
           metrics.success(API11)
           audit.sendDataEvent(ViewNotificationEvent(amlsRegistrationNumber, contactNumber, body))
           logger.debug(s"$prefix - Success response")
-          logger.debug(s"$prefix - Response body: ${Json.toJson(body)}")
           Future.successful(body)
         case r @ status(s)                                                        =>
           metrics.failed(API11)

@@ -21,7 +21,7 @@ import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.mvc.{BaseController, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.auth.core.authorise.Predicate
@@ -33,7 +33,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
 class DefaultAuthActionSpec
-    extends PlaySpec
+  extends PlaySpec
     with MockitoSugar
     with ScalaFutures
     with Matchers
@@ -45,7 +45,7 @@ class DefaultAuthActionSpec
   val mockCC: ControllerComponents        = app.injector.instanceOf[ControllerComponents]
 
   class Harness(authAction: DefaultAuthAction) extends BaseController {
-    def onPageLoad() = authAction { _ =>
+    def onPageLoad(): Action[AnyContent] = authAction { _ =>
       Ok
     }
 
@@ -80,8 +80,8 @@ class FakeAuthConnector(exceptionToReturn: Option[Throwable]) extends AuthConnec
   def success: Any       = ()
 
   override def authorise[A](predicate: Predicate, retrieval: Retrieval[A])(implicit
-    hc: HeaderCarrier,
-    ec: ExecutionContext
+                                                                           hc: HeaderCarrier,
+                                                                           ec: ExecutionContext
   ): Future[A] =
     exceptionToReturn.fold(Future.successful(success.asInstanceOf[A]))(Future.failed(_))
 

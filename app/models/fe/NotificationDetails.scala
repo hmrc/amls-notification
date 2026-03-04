@@ -25,12 +25,12 @@ import utils.DateTimeFormats
 import java.time.Instant
 
 case class NotificationDetails(
-  contactType: Option[ContactType],
-  status: Option[Status],
-  messageText: Option[String],
-  variation: Boolean,
-  receivedAt: Instant
-)
+                                contactType: Option[ContactType],
+                                status: Option[Status],
+                                messageText: Option[String],
+                                variation: Boolean,
+                                receivedAt: Instant
+                              )
 
 object NotificationDetails {
   val reads: Reads[NotificationDetails] =
@@ -40,7 +40,7 @@ object NotificationDetails {
         (JsPath \ "messageText").readNullable[String] and
         (JsPath \ "variation").read[Boolean] and
         (JsPath \ "receivedAt").read[Instant](DateTimeFormats.dateTimeFormat)
-    )(NotificationDetails.apply _)
+      )(NotificationDetails.apply _)
 
   val writes: OWrites[NotificationDetails] =
     (
@@ -49,7 +49,9 @@ object NotificationDetails {
         (JsPath \ "messageText").writeNullable[String] and
         (JsPath \ "variation").write[Boolean] and
         (JsPath \ "receivedAt").write[Instant](DateTimeFormats.dateTimeFormat)
-    )(unlift(NotificationDetails.unapply))
+      )((n: NotificationDetails) =>
+      (n.contactType, n.status, n.messageText, n.variation, n.receivedAt)
+    )
 
   implicit val format: OFormat[NotificationDetails] = OFormat(reads, writes)
 }
