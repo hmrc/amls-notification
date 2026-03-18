@@ -84,7 +84,6 @@ class ViewNotificationConnectorSpec
     val url =
       s"${viewNotificationConnector.baseUrl}/anti-money-laundering/secure-comms/reg-number/$amlsRegistrationNumber/contact-number/$contactNumber"
 
-    // Helper method to set up the common HTTP client mocking
     def setupHttpMock(response: Future[HttpResponse]): Unit = {
       when(mockHttpClientV2.get(any())(any())).thenReturn(mockRequestBuilder)
       doReturn(mockRequestBuilder).when(mockRequestBuilder).setHeader(any[(String, String)]())

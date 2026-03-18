@@ -51,7 +51,6 @@ class ViewNotificationControllerSpec extends PlaySpec with ScalaFutures with Moc
     val mockCC: ControllerComponents    = app.injector.instanceOf[ControllerComponents]
     val mockNotificationMongoRepository = mock[NotificationMongoRepository]
 
-    // Set up default audit connector behavior
     when(mockAuditConnector.sendEvent(any())(any(), any()))
       .thenReturn(Future.successful(AuditResult.Success))
     when(mockAuditConnector.sendExtendedEvent(any())(any(), any()))
