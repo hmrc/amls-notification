@@ -29,7 +29,7 @@ object Status {
     val reads = (
       (__ \ "status_type").read[StatusType] and
         (__ \ "status_reason").readNullable[String]
-    ).tupled
+      ).tupled
 
     reads flatMap {
       case (statusType, Some(_)) =>
@@ -47,6 +47,6 @@ object Status {
     (
       (__ \ "status_type").write[StatusType] and
         (__ \ "status_reason").writeNullable[StatusReason]
-    )(unlift(Status.unapply))
+      )((s: Status) => (s.status, s.statusReason))
   }
 }

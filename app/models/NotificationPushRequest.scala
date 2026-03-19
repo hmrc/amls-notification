@@ -20,14 +20,14 @@ import models.StatusType.DeRegistered
 import play.api.libs.json._
 
 case class NotificationPushRequest(
-  safeId: String,
-  name: String,
-  email: String,
-  status: Option[Status],
-  contactType: Option[ContactType],
-  contactNumber: Option[String],
-  variation: Boolean
-) {
+                                    safeId: String,
+                                    name: String,
+                                    email: String,
+                                    status: Option[Status],
+                                    contactType: Option[ContactType],
+                                    contactNumber: Option[String],
+                                    variation: Boolean
+                                  ) {
   def isSane: Boolean = this match {
     case NotificationPushRequest(_, _, _, `status`, None, _, false) =>
       status match {
@@ -72,7 +72,9 @@ object NotificationPushRequest {
         (__ \ "contact_type").writeNullable[ContactType] and
         (__ \ "contact_number").writeNullable[String] and
         (__ \ "variation").write[Boolean]
-    )(unlift(NotificationPushRequest.unapply))
+      )((n: NotificationPushRequest) =>
+      (n.safeId, n.name, n.email, n.status, n.contactType, n.contactNumber, n.variation)
+    )
   }
 
   implicit val formats: OFormat[NotificationPushRequest] =

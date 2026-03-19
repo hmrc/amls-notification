@@ -51,6 +51,11 @@ class ViewNotificationControllerSpec extends PlaySpec with ScalaFutures with Moc
     val mockCC: ControllerComponents    = app.injector.instanceOf[ControllerComponents]
     val mockNotificationMongoRepository = mock[NotificationMongoRepository]
 
+    when(mockAuditConnector.sendEvent(any())(any(), any()))
+      .thenReturn(Future.successful(AuditResult.Success))
+    when(mockAuditConnector.sendExtendedEvent(any())(any(), any()))
+      .thenReturn(Future.successful(AuditResult.Success))
+
     val viewNotificationController = new ViewNotificationController(
       mockViewNotificationConnector,
       mockAuditConnector,
@@ -72,10 +77,6 @@ class ViewNotificationControllerSpec extends PlaySpec with ScalaFutures with Moc
       val result  = viewNotificationController.viewNotification("accountType", "ref", "test", "test")(request)
       val failure = Json.obj("errors" -> Seq("Invalid AMLS Registration Number"))
 
-      when {
-        viewNotificationController.audit.sendEvent(any())(any(), any())
-      } thenReturn Future.successful(mock[AuditResult])
-
       status(result)        must be(BAD_REQUEST)
       contentAsJson(result) must be(failure)
     }
@@ -94,19 +95,19 @@ class ViewNotificationControllerSpec extends PlaySpec with ScalaFutures with Moc
       )
 
       when {
-        viewNotificationController.audit.sendEvent(any())(any(), any())
-      } thenReturn Future.successful(mock[AuditResult])
-
-      when {
         viewNotificationController.notificationRepository.findById("NOTIFICATIONID")
       } thenReturn Future.successful(record)
 
       when {
         viewNotificationController.connector
-          .getNotification(eqTo(amlsRegistrationNumber), eqTo(contactNumber))(any(), any())
+          .getNotification(eqTo(amlsRegistrationNumber), eqTo(contactNumber))(any())
       } thenReturn Future.successful(
         Des.notificationResponseGen.sample.map(_.copy(secureCommText = "secure-comms text")).get
       )
+
+      when {
+        viewNotificationController.notificationRepository.markAsRead("NOTIFICATIONID")
+      } thenReturn Future.successful(true)
 
       val result =
         viewNotificationController.viewNotification("accountType", "ref", amlsRegistrationNumber, "NOTIFICATIONID")(
@@ -128,7 +129,7 @@ class ViewNotificationControllerSpec extends PlaySpec with ScalaFutures with Moc
           _.copy(amlsRegistrationNumber = amlsRegistrationNumber)
         }))
 
-      when(viewNotificationController.connector.getNotification(any(), any())(any(), any()))
+      when(viewNotificationController.connector.getNotification(any(), any())(any()))
         .thenReturn(Future.successful(Des.notificationResponseGen.sample.get))
 
       when(viewNotificationController.notificationRepository.markAsRead("NOTIFICATIONID"))
@@ -150,7 +151,7 @@ class ViewNotificationControllerSpec extends PlaySpec with ScalaFutures with Moc
           _.copy(amlsRegistrationNumber = amlsRegistrationNumber)
         }))
 
-      when(viewNotificationController.connector.getNotification(any(), any())(any(), any()))
+      when(viewNotificationController.connector.getNotification(any(), any())(any()))
         .thenReturn(Future.successful(Des.notificationResponseGen.sample.get))
 
       when(viewNotificationController.notificationRepository.markAsRead(any()))
@@ -174,7 +175,7 @@ class ViewNotificationControllerSpec extends PlaySpec with ScalaFutures with Moc
       } thenReturn Future.successful(maybeRecord)
 
       when {
-        viewNotificationController.connector.getNotification(any(), any())(any(), any())
+        viewNotificationController.connector.getNotification(any(), any())(any())
       } thenReturn Future.failed(new HttpStatusException(INTERNAL_SERVER_ERROR, Some("message")))
 
       private val future =
@@ -221,6 +222,10 @@ class ViewNotificationControllerSpec extends PlaySpec with ScalaFutures with Moc
               )
             )
 
+            when {
+              viewNotificationController.notificationRepository.markAsRead("NOTIFICATIONID1")
+            }.thenReturn(Future.successful(true))
+
             val result =
               viewNotificationController.viewNotification("accountType", "ref", regNo, "NOTIFICATIONID1")(request)
 
@@ -256,6 +261,10 @@ class ViewNotificationControllerSpec extends PlaySpec with ScalaFutures with Moc
                 )
               )
             )
+
+            when {
+              viewNotificationController.notificationRepository.markAsRead("NOTIFICATIONID2")
+            }.thenReturn(Future.successful(true))
 
             val result =
               viewNotificationController.viewNotification("accountType", "ref", regNo, "NOTIFICATIONID2")(request)

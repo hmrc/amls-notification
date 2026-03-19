@@ -43,7 +43,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class ViewNotificationConnectorSpec
-    extends PlaySpec
+  extends PlaySpec
     with MockitoSugar
     with ScalaFutures
     with IntegrationPatience
@@ -81,18 +81,20 @@ class ViewNotificationConnectorSpec
     val amlsRegistrationNumber = "test"
     val contactNumber          = "contactNumber"
 
-    val url                  =
+    val url =
       s"${viewNotificationConnector.baseUrl}/anti-money-laundering/secure-comms/reg-number/$amlsRegistrationNumber/contact-number/$contactNumber"
-    var dataEvent: DataEvent = null
 
-    when {
-      viewNotificationConnector.metrics.timer(eqTo(API11))
-    } thenReturn mockTimer
+    def setupHttpMock(response: Future[HttpResponse]): Unit = {
+      when(mockHttpClientV2.get(any())(any())).thenReturn(mockRequestBuilder)
+      doReturn(mockRequestBuilder).when(mockRequestBuilder).setHeader(any[(String, String)]())
+      when(mockRequestBuilder.execute[HttpResponse](any(), any())).thenReturn(response)
+    }
   }
 
   "ViewNotificationConnector" must {
 
     "return a successful future containing the Notification response" in new Fixture {
+      when(viewNotificationConnector.metrics.timer(eqTo(API11))).thenReturn(mockTimer)
 
       val response = HttpResponse(
         status = OK,
@@ -100,21 +102,20 @@ class ViewNotificationConnectorSpec
         headers = Map.empty
       )
 
-      when(mockHttpClientV2.get(any())(any())).thenReturn(mockRequestBuilder)
-      when(mockRequestBuilder.setHeader(any(): _*)).thenReturn(mockRequestBuilder)
-      when(mockRequestBuilder.execute[HttpResponse](any(), any())).thenReturn(Future.successful(response))
+      setupHttpMock(Future.successful(response))
 
       whenReady(viewNotificationConnector.getNotification(amlsRegistrationNumber, contactNumber)) {
         _ mustEqual successModel
       }
 
-      verify(viewNotificationConnector.audit).sendDataEvent(argThat { dataEvent: DataEvent =>
+      verify(viewNotificationConnector.audit).sendDataEvent(argThat((dataEvent: DataEvent) =>
         dataEvent.auditSource.equals("amls-notification") &&
-        dataEvent.auditType.equals("OutboundCall")
-      })(any())
+          dataEvent.auditType.equals("OutboundCall")
+      ))(any())
     }
 
     "return a failed future when the response contains a BAD_REQUEST and no response body" in new Fixture {
+      when(viewNotificationConnector.metrics.timer(eqTo(API11))).thenReturn(mockTimer)
 
       val response = HttpResponse(
         status = BAD_REQUEST,
@@ -122,9 +123,7 @@ class ViewNotificationConnectorSpec
         body = null
       )
 
-      when(mockHttpClientV2.get(any())(any())).thenReturn(mockRequestBuilder)
-      when(mockRequestBuilder.setHeader(any(): _*)).thenReturn(mockRequestBuilder)
-      when(mockRequestBuilder.execute[HttpResponse](any(), any())).thenReturn(Future.successful(response))
+      setupHttpMock(Future.successful(response))
 
       whenReady(viewNotificationConnector.getNotification(amlsRegistrationNumber, contactNumber).failed) {
         case HttpStatusException(status, body) =>
@@ -132,13 +131,14 @@ class ViewNotificationConnectorSpec
           body mustEqual None
       }
 
-      verify(viewNotificationConnector.audit, times(2)).sendDataEvent(argThat { dataEvent: DataEvent =>
+      verify(viewNotificationConnector.audit, times(2)).sendDataEvent(argThat((dataEvent: DataEvent) =>
         dataEvent.auditSource.equals("amls-notification") &&
-        dataEvent.auditType.equals("viewNotificationEventFailed")
-      })(any())
+          dataEvent.auditType.equals("viewNotificationEventFailed")
+      ))(any())
     }
 
     "return a failed future containing json validation message" in new Fixture {
+      when(viewNotificationConnector.metrics.timer(eqTo(API11))).thenReturn(mockTimer)
 
       val response = HttpResponse(
         status = OK,
@@ -146,9 +146,7 @@ class ViewNotificationConnectorSpec
         body = "{\"message\": \"none\"}"
       )
 
-      when(mockHttpClientV2.get(any())(any())).thenReturn(mockRequestBuilder)
-      when(mockRequestBuilder.setHeader(any(): _*)).thenReturn(mockRequestBuilder)
-      when(mockRequestBuilder.execute[HttpResponse](any(), any())).thenReturn(Future.successful(response))
+      setupHttpMock(Future.successful(response))
 
       whenReady(viewNotificationConnector.getNotification(amlsRegistrationNumber, contactNumber).failed) {
         case HttpStatusException(status, body) =>
@@ -156,17 +154,16 @@ class ViewNotificationConnectorSpec
           body mustEqual Some("{\"message\": \"none\"}")
       }
 
-      verify(viewNotificationConnector.audit, times(2)).sendDataEvent(argThat { dataEvent: DataEvent =>
+      verify(viewNotificationConnector.audit, times(2)).sendDataEvent(argThat((dataEvent: DataEvent) =>
         dataEvent.auditSource.equals("amls-notification") &&
-        dataEvent.auditType.equals("viewNotificationEventFailed")
-      })(any())
+          dataEvent.auditType.equals("viewNotificationEventFailed")
+      ))(any())
     }
 
     "return a failed future containing an exception message" in new Fixture {
+      when(viewNotificationConnector.metrics.timer(eqTo(API11))).thenReturn(mockTimer)
 
-      when(mockHttpClientV2.get(any())(any())).thenReturn(mockRequestBuilder)
-      when(mockRequestBuilder.setHeader(any(): _*)).thenReturn(mockRequestBuilder)
-      when(mockRequestBuilder.execute[HttpResponse](any(), any())).thenReturn(Future.failed(new Exception("message")))
+      setupHttpMock(Future.failed(new Exception("message")))
 
       whenReady(viewNotificationConnector.getNotification(amlsRegistrationNumber, contactNumber).failed) {
         case HttpStatusException(status, body) =>
