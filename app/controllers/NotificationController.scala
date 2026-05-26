@@ -72,6 +72,7 @@ class NotificationController @Inject() (
   def saveNotification(amlsRegistrationNumber: String): Action[JsValue] =
     Action.async(parse.json) { implicit request =>
       logger.debug(s"$prefix [saveNotification] - amlsRegNo: $amlsRegistrationNumber, body: ${request.body.toString}")
+      logger.info(s"$prefix [saveNotification] - amlsRegNo: $amlsRegistrationNumber")
       amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
         case Some(_) =>
           Json.fromJson[NotificationPushRequest](request.body) match {
@@ -97,7 +98,7 @@ class NotificationController @Inject() (
 
               if (!body.isSane) {
                 // $COVERAGE-OFF$
-                logger.warn(s"$prefix [saveNotification] - $amlsRegistrationNumber - malformed API 12 message received")
+                logger.info(s"$prefix [saveNotification] - $amlsRegistrationNumber - malformed API 12 message received")
                 // $COVERAGE-ON$
               }
 
@@ -108,6 +109,7 @@ class NotificationController @Inject() (
                   NoContent
               } recoverWith { case e @ HttpStatusException(status, Some(exceptionBody)) =>
                 logger.warn(s"$prefix [saveNotification] - Status: $status, Message: $exceptionBody")
+                logger.info(s"$prefix [saveNotification] - Status: $status, Message: $exceptionBody")
 
                 auditConnector.sendExtendedEvent(
                   NotificationFailedEvent(
@@ -132,6 +134,7 @@ class NotificationController @Inject() (
   def fetchNotifications(accountType: String, ref: String, amlsRegistrationNumber: String): Action[AnyContent] =
     Action.async {
       logger.debug(s"$prefix [fetchNotifications] - amlsRegNo: $amlsRegistrationNumber")
+      logger.info(s"$prefix [fetchNotifications] - amlsRegNo: $amlsRegistrationNumber")
       amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
         case Some(_) =>
           notificationRepository.findByAmlsReference(amlsRegistrationNumber) map { response =>
@@ -155,6 +158,7 @@ class NotificationController @Inject() (
 
   def fetchNotificationsBySafeId(accountType: String, ref: String, safeId: String): Action[AnyContent] = Action.async {
     logger.debug(s"$prefix [fetchNotificationsBySafeId] - safeId: $safeId")
+    logger.info(s"$prefix [fetchNotificationsBySafeId] - safeId: $safeId")
     safeIdRegex.findFirstIn(safeId) match {
       case Some(_) =>
         notificationRepository.findBySafeId(safeId) map { response =>
