@@ -59,6 +59,11 @@ class ViewNotificationController @Inject() (
   ): Action[AnyContent] =
     authAction.async { implicit request =>
       logger.debug(s"$prefix[viewNotification] - amlsRegNo: $amlsRegistrationNumber - notificationId: $notificationId")
+      logger.info(
+        s"$prefix[viewNotification] - amlsRegNo: $amlsRegistrationNumber - notificationId: $notificationId, User-Agent--> ${request.headers
+            .get("User-Agent")}, deviceID--> ${request.headers.get("deviceID")}, deviceID--> ${request.headers
+            .get("deviceID")}, X-Session-ID --> ${request.headers.get("X-Session-ID")}"
+      )
 
       amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
         case Some(_) =>
