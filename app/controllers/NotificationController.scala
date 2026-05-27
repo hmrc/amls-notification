@@ -100,7 +100,7 @@ class NotificationController @Inject() (
 
               if (!body.isSane) {
                 // $COVERAGE-OFF$
-                logger.info(s"$prefix [saveNotification] - $amlsRegistrationNumber - malformed API 12 message received")
+                logger.warn(s"$prefix [saveNotification] - $amlsRegistrationNumber - malformed API 12 message received")
                 // $COVERAGE-ON$
               }
 
