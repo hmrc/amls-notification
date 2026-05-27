@@ -72,7 +72,9 @@ class NotificationController @Inject() (
   def saveNotification(amlsRegistrationNumber: String): Action[JsValue] =
     Action.async(parse.json) { implicit request =>
       logger.debug(s"$prefix [saveNotification] - amlsRegNo: $amlsRegistrationNumber, body: ${request.body.toString}")
-      logger.info(s"$prefix [saveNotification] - amlsRegNo: $amlsRegistrationNumber")
+      logger.info(s"$prefix [saveNotification] - amlsRegNo: $amlsRegistrationNumber, User-Agent--> ${request.headers
+          .get("User-Agent")}, deviceID--> ${request.headers.get("deviceID")}, deviceID--> ${request.headers
+          .get("deviceID")}, X-Session-ID --> ${request.headers.get("X-Session-ID")}")
       amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
         case Some(_) =>
           Json.fromJson[NotificationPushRequest](request.body) match {
