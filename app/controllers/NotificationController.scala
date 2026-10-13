@@ -73,7 +73,8 @@ class NotificationController @Inject() (
     Action.async(parse.json) { implicit request =>
       logger.debug(s"$prefix[saveNotification] - amlsRegNo: $amlsRegistrationNumber, body: ${request.body.toString}")
       logger.info(
-        s"$prefix[saveNotification] - amlsRegNo: $amlsRegistrationNumber, User-Agent: ${request.headers.get("User-Agent")}, deviceID: ${request.headers.get("deviceID")}, X-Session-ID: ${request.headers.get("X-Session-ID")}"
+        s"$prefix[saveNotification] - amlsRegNo: $amlsRegistrationNumber, User-Agent: ${request.headers
+            .get("User-Agent")}, deviceID: ${request.headers.get("deviceID")}, X-Session-ID: ${request.headers.get("X-Session-ID")}"
       )
       amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
         case Some(_) =>
@@ -136,7 +137,9 @@ class NotificationController @Inject() (
               }
             case JsError(errors: immutable.Seq[(JsPath, immutable.Seq[JsonValidationError])]) =>
               logger.warn(
-                s"$prefix[saveNotification] - Invalid notification payload - amlsRegNo: $amlsRegistrationNumber, invalid paths: ${errors.map(_._1.toJsonString).mkString(", ")}"
+                s"$prefix[saveNotification] - Invalid notification payload - amlsRegNo: $amlsRegistrationNumber, invalid paths: ${errors
+                    .map(_._1.toJsonString)
+                    .mkString(", ")}"
               )
               Future.successful(BadRequest(toError(errors)))
           }
