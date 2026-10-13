@@ -36,14 +36,20 @@ class DefaultAuthAction @Inject() (
   override protected def filter[A](request: Request[A]): Future[Option[Result]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
 
-    logger.debug(s"DefaultAuthAction calling authorised(ConfidenceLevel.L50)")
+    val prefix = "[DefaultAuthAction][filter]"
+
+    logger.debug(s"$prefix - Calling authorised(ConfidenceLevel.L50)")
 
     authorised(ConfidenceLevel.L50) {
-      logger.debug(s"DefaultAuthAction calling authorised(ConfidenceLevel.L50) - success")
+      logger.debug(s"$prefix - Authorisation succeeded")
       Future.successful(None)
-    }.recover[Option[Result]] { case e: AuthorisationException =>
-      logger.debug(s"DefaultAuthAction calling authorised(ConfidenceLevel.L50 - fail: " + e)
-      Some(Results.Unauthorized)
+    }.recoverWith {
+      case e: AuthorisationException =>
+        logger.warn(s"$prefix - Authorisation failed - reason: ${e.reason}, type: ${e.getClass.getSimpleName}")
+        Future.successful(Some(Results.Unauthorized))
+      case e                         =>
+        logger.warn(s"$prefix - Unexpected exception calling auth service", e)
+        Future.failed(e)
     }
   }
 
