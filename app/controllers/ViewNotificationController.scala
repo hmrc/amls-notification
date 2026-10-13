@@ -58,11 +58,8 @@ class ViewNotificationController @Inject() (
     notificationId: String
   ): Action[AnyContent] =
     authAction.async { implicit request =>
-      logger.debug(s"$prefix[viewNotification] - amlsRegNo: $amlsRegistrationNumber - notificationId: $notificationId")
       logger.info(
-        s"$prefix[viewNotification] - amlsRegNo: $amlsRegistrationNumber - notificationId: $notificationId, User-Agent--> ${request.headers
-            .get("User-Agent")}, deviceID--> ${request.headers.get("deviceID")}, deviceID--> ${request.headers
-            .get("deviceID")}, X-Session-ID --> ${request.headers.get("X-Session-ID")}"
+        s"$prefix[viewNotification] - amlsRegNo: $amlsRegistrationNumber - notificationId: $notificationId, User-Agent: ${request.headers.get("User-Agent")}, deviceID: ${request.headers.get("deviceID")}, X-Session-ID: ${request.headers.get("X-Session-ID")}"
       )
 
       amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
@@ -101,17 +98,35 @@ class ViewNotificationController @Inject() (
                     )
                 }
               }.andThen { case _ => markNotificationAsRead(notificationId) }
-            case _                                                                                            => Future.successful(NotFound)
+            case Some(_)                                                                                      =>
+              logger.warn(
+                s"$prefix[viewNotification] - Notification does not belong to amlsRegNo: $amlsRegistrationNumber - notificationId: $notificationId"
+              )
+              Future.successful(NotFound)
+            case None                                                                                         =>
+              logger.warn(s"$prefix[viewNotification] - Notification not found - notificationId: $notificationId")
+              Future.successful(NotFound)
           }
-        case None    => Future.successful(BadRequest(toError("Invalid AMLS Registration Number")))
+        case None    =>
+          logger.warn(s"$prefix[viewNotification] - Invalid AMLS registration number format")
+          Future.successful(BadRequest(toError("Invalid AMLS Registration Number")))
       }
     }
 
   private def markNotificationAsRead(id: String): Future[Result] =
     notificationRepository.markAsRead(id) map { response =>
       Ok(Json.toJson(response))
-    } recoverWith { case e @ HttpStatusException(status, _) =>
-      logger.warn(s"$prefix - Failed to mark notification as read. Status: $status")
-      Future.failed(e)
+    } recoverWith {
+      case e @ HttpStatusException(status, _) =>
+        logger.warn(
+          s"$prefix[markNotificationAsRead] - HttpStatusException marking notification as read - status: $status, notificationId: $id"
+        )
+        Future.failed(e)
+      case e                                  =>
+        logger.warn(
+          s"$prefix[markNotificationAsRead] - Unexpected exception marking notification as read - notificationId: $id",
+          e
+        )
+        Future.failed(e)
     }
 }

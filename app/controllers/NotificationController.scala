@@ -71,10 +71,10 @@ class NotificationController @Inject() (
   // noinspection ScalaStyle
   def saveNotification(amlsRegistrationNumber: String): Action[JsValue] =
     Action.async(parse.json) { implicit request =>
-      logger.debug(s"$prefix [saveNotification] - amlsRegNo: $amlsRegistrationNumber, body: ${request.body.toString}")
-      logger.info(s"$prefix [saveNotification] - amlsRegNo: $amlsRegistrationNumber, User-Agent--> ${request.headers
-          .get("User-Agent")}, deviceID--> ${request.headers.get("deviceID")}, deviceID--> ${request.headers
-          .get("deviceID")}, X-Session-ID --> ${request.headers.get("X-Session-ID")}")
+      logger.debug(s"$prefix[saveNotification] - amlsRegNo: $amlsRegistrationNumber, body: ${request.body.toString}")
+      logger.info(
+        s"$prefix[saveNotification] - amlsRegNo: $amlsRegistrationNumber, User-Agent: ${request.headers.get("User-Agent")}, deviceID: ${request.headers.get("deviceID")}, X-Session-ID: ${request.headers.get("X-Session-ID")}"
+      )
       amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
         case Some(_) =>
           Json.fromJson[NotificationPushRequest](request.body) match {
@@ -100,33 +100,48 @@ class NotificationController @Inject() (
 
               if (!body.isSane) {
                 // $COVERAGE-OFF$
-                logger.warn(s"$prefix [saveNotification] - $amlsRegistrationNumber - malformed API 12 message received")
+                logger.warn(s"$prefix[saveNotification] - $amlsRegistrationNumber - malformed API 12 message received")
                 // $COVERAGE-ON$
               }
 
               notificationRepository.insertRecord(record) map {
-                case result if result =>
+                case true  =>
                   emailConnector.sendNotificationReceivedTemplatedEmail(List(body.email))
                   auditConnector.sendExtendedEvent(NotificationReceivedEvent(amlsRegistrationNumber, body))
                   NoContent
-              } recoverWith { case e @ HttpStatusException(status, Some(exceptionBody)) =>
-                logger.warn(s"$prefix [saveNotification] - Status: $status, Message: $exceptionBody")
-                logger.info(s"$prefix [saveNotification] - Status: $status, Message: $exceptionBody")
-
-                auditConnector.sendExtendedEvent(
-                  NotificationFailedEvent(
-                    amlsRegistrationNumber,
-                    body,
-                    Seq(e.getMessage)
+                case false =>
+                  logger.error(
+                    s"$prefix[saveNotification] - Notification insert not acknowledged - amlsRegNo: $amlsRegistrationNumber"
                   )
-                )
-
-                Future.failed(e)
+                  InternalServerError
+              } recoverWith {
+                case e @ HttpStatusException(status, Some(exceptionBody)) =>
+                  logger.warn(
+                    s"$prefix[saveNotification] - HttpStatusException saving notification - status: $status, message: $exceptionBody"
+                  )
+                  auditConnector.sendExtendedEvent(
+                    NotificationFailedEvent(
+                      amlsRegistrationNumber,
+                      body,
+                      Seq(e.getMessage)
+                    )
+                  )
+                  Future.failed(e)
+                case e                                                    =>
+                  logger.warn(
+                    s"$prefix[saveNotification] - Unexpected exception saving notification - amlsRegNo: $amlsRegistrationNumber",
+                    e
+                  )
+                  Future.failed(e)
               }
             case JsError(errors: immutable.Seq[(JsPath, immutable.Seq[JsonValidationError])]) =>
+              logger.warn(
+                s"$prefix[saveNotification] - Invalid notification payload - amlsRegNo: $amlsRegistrationNumber, invalid paths: ${errors.map(_._1.toJsonString).mkString(", ")}"
+              )
               Future.successful(BadRequest(toError(errors)))
           }
         case _       =>
+          logger.warn(s"$prefix[saveNotification] - Invalid AMLS registration number format")
           Future.successful {
             BadRequest(toError("Invalid AMLS Registration Number"))
           }
@@ -135,8 +150,7 @@ class NotificationController @Inject() (
 
   def fetchNotifications(accountType: String, ref: String, amlsRegistrationNumber: String): Action[AnyContent] =
     Action.async {
-      logger.debug(s"$prefix [fetchNotifications] - amlsRegNo: $amlsRegistrationNumber")
-      logger.info(s"$prefix [fetchNotifications] - amlsRegNo: $amlsRegistrationNumber")
+      logger.info(s"$prefix[fetchNotifications] - amlsRegNo: $amlsRegistrationNumber")
       amlsRegNoRegex.findFirstIn(amlsRegistrationNumber) match {
         case Some(_) =>
           notificationRepository.findByAmlsReference(amlsRegistrationNumber) map { response =>
@@ -145,13 +159,23 @@ class NotificationController @Inject() (
                 templatePackageVersion = x.templatePackageVersion orElse Some(amlsConfig.defaultTemplatePackageVersion)
               )
             )
-            logger.debug(s"$prefix [fetchNotifications] - Response: ${Json.toJson(newResponse)}")
+            logger.debug(s"$prefix[fetchNotifications] - Response: ${Json.toJson(newResponse)}")
             Ok(Json.toJson(newResponse))
-          } recoverWith { case e @ HttpStatusException(status, Some(body)) =>
-            logger.warn(s"$prefix [fetchNotifications] - Status: $status, Message: $body")
-            Future.failed(e)
+          } recoverWith {
+            case e @ HttpStatusException(status, Some(body)) =>
+              logger.warn(
+                s"$prefix[fetchNotifications] - HttpStatusException fetching notifications - status: $status, message: $body"
+              )
+              Future.failed(e)
+            case e                                           =>
+              logger.warn(
+                s"$prefix[fetchNotifications] - Unexpected exception fetching notifications - amlsRegNo: $amlsRegistrationNumber",
+                e
+              )
+              Future.failed(e)
           }
         case _       =>
+          logger.warn(s"$prefix[fetchNotifications] - Invalid AMLS registration number format")
           Future.successful {
             BadRequest(toError("Invalid AMLS Registration Number"))
           }
@@ -159,8 +183,7 @@ class NotificationController @Inject() (
     }
 
   def fetchNotificationsBySafeId(accountType: String, ref: String, safeId: String): Action[AnyContent] = Action.async {
-    logger.debug(s"$prefix [fetchNotificationsBySafeId] - safeId: $safeId")
-    logger.info(s"$prefix [fetchNotificationsBySafeId] - safeId: $safeId")
+    logger.info(s"$prefix[fetchNotificationsBySafeId] - safeId: $safeId")
     safeIdRegex.findFirstIn(safeId) match {
       case Some(_) =>
         notificationRepository.findBySafeId(safeId) map { response =>
@@ -169,15 +192,25 @@ class NotificationController @Inject() (
               x.templatePackageVersion orElse Some(amlsConfig.defaultTemplatePackageVersion)
             )
           )
-          logger.debug(s"$prefix [fetchNotificationsBySafeId] - Response: ${Json.toJson(newResponse)}")
+          logger.debug(s"$prefix[fetchNotificationsBySafeId] - Response: ${Json.toJson(newResponse)}")
           Ok(Json.toJson(newResponse))
-        } recoverWith { case e @ HttpStatusException(status, Some(body)) =>
+        } recoverWith {
           // $COVERAGE-OFF$
-          logger.warn(s"$prefix [fetchNotificationsBySafeId] - Status: $status, Message: $body")
-          Future.failed(e)
-        // $COVERAGE-ON$
+          case e @ HttpStatusException(status, Some(body)) =>
+            logger.warn(
+              s"$prefix[fetchNotificationsBySafeId] - HttpStatusException fetching notifications - status: $status, message: $body"
+            )
+            Future.failed(e)
+          case e                                           =>
+            logger.warn(
+              s"$prefix[fetchNotificationsBySafeId] - Unexpected exception fetching notifications - safeId: $safeId",
+              e
+            )
+            Future.failed(e)
+          // $COVERAGE-ON$
         }
       case _       =>
+        logger.warn(s"$prefix[fetchNotificationsBySafeId] - Invalid SafeID format")
         Future.successful {
           BadRequest(toError("Invalid SafeID"))
         }

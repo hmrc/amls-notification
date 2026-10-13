@@ -42,7 +42,7 @@ class ViewNotificationConnector @Inject() (
     ec: ExecutionContext
   ): Future[NotificationResponse] = {
 
-    val prefix          = "[DESConnector][getNotification]"
+    val prefix          = "[ViewNotificationConnector][getNotification]"
     val bodyParser      = JsonParsed[NotificationResponse]
     val timer           = metrics.timer(API11)
     val notificationUrl = s"$fullUrl/reg-number/$amlsRegistrationNumber/contact-number/$contactNumber"
@@ -70,20 +70,20 @@ class ViewNotificationConnector @Inject() (
           Future.successful(body)
         case r @ status(s)                                                        =>
           metrics.failed(API11)
-          logger.warn(s"$prefix - Failure response: $s")
+          logger.warn(s"$prefix - Non-OK status or invalid JSON from DES API11 - status: $s")
           val httpEx: HttpStatusException = HttpStatusException(s, Option(r.body))
           audit.sendDataEvent(ViewNotificationEventFailed(amlsRegistrationNumber, contactNumber, httpEx))
           Future.failed(HttpStatusException(s, Option(r.body)))
       }
       .recoverWith {
         case e: HttpStatusException =>
-          logger.warn(s"$prefix - Failure: Exception", e)
+          logger.warn(s"$prefix - HttpStatusException from DES API11 response", e)
           audit.sendDataEvent(ViewNotificationEventFailed(amlsRegistrationNumber, contactNumber, e))
           Future.failed(e)
         case e                      =>
           timer.stop()
           metrics.failed(API11)
-          logger.warn(s"$prefix - Failure: Exception", e)
+          logger.warn(s"$prefix - Unexpected exception calling DES API11, returning 500", e)
           Future.failed(HttpStatusException(INTERNAL_SERVER_ERROR, Some(e.getMessage)))
       }
   }

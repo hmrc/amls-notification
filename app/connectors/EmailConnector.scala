@@ -46,9 +46,10 @@ class EmailConnector @Inject() (val config: ApplicationConfig, val httpClientV2:
   }
 
   private def sendEmail(request: SendTemplatedEmailRequest)(implicit hc: HeaderCarrier): Future[Boolean] = {
+    val prefix  = "[EmailConnector][sendEmail]"
     val postUrl = s"$serviceURL$sendEmailURI"
 
-    logger.debug(s"[EmailConnector] Sending email to ${request.to.mkString(", ")}")
+    logger.debug(s"$prefix - Sending email template: ${request.templateId} to ${request.to.size} recipient(s)")
 
     httpClientV2
       .post(url"$postUrl")
@@ -56,9 +57,19 @@ class EmailConnector @Inject() (val config: ApplicationConfig, val httpClientV2:
       .execute[HttpResponse]
       .map { response =>
         response.status match {
-          case 202 => logger.debug(s"[EmailConnector] Email sent: ${response.body}"); true
-          case _   => logger.error(s"[EmailConnector] Email not sent: ${response.body}"); false
+          case 202    =>
+            logger.debug(s"$prefix - Email accepted by email service - template: ${request.templateId}")
+            true
+          case status =>
+            logger.error(
+              s"$prefix - Email service rejected request - status: $status, template: ${request.templateId}, body: ${response.body}"
+            )
+            false
         }
+      }
+      .recoverWith { case e =>
+        logger.warn(s"$prefix - Exception calling email service - template: ${request.templateId}", e)
+        Future.failed(e)
       }
   }
 }
