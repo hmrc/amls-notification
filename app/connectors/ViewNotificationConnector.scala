@@ -32,14 +32,14 @@ import uk.gov.hmrc.http.client.HttpClientV2
 import scala.concurrent.{ExecutionContext, Future}
 
 class ViewNotificationConnector @Inject() (
-                                            val amlsConfig: ApplicationConfig,
-                                            val http: HttpClientV2,
-                                            val auditConnector: AuditConnector,
-                                            val metrics: Metrics
-                                          ) extends DESConnector {
+  val amlsConfig: ApplicationConfig,
+  val http: HttpClientV2,
+  val auditConnector: AuditConnector,
+  val metrics: Metrics
+) extends DESConnector {
 
   def getNotification(amlsRegistrationNumber: String, contactNumber: String)(implicit
-                                                                             ec: ExecutionContext
+    ec: ExecutionContext
   ): Future[NotificationResponse] = {
 
     val prefix          = "[DESConnector][getNotification]"

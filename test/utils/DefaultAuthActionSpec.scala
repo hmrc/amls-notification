@@ -33,7 +33,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
 class DefaultAuthActionSpec
-  extends PlaySpec
+    extends PlaySpec
     with MockitoSugar
     with ScalaFutures
     with Matchers
@@ -80,8 +80,8 @@ class FakeAuthConnector(exceptionToReturn: Option[Throwable]) extends AuthConnec
   def success: Any       = ()
 
   override def authorise[A](predicate: Predicate, retrieval: Retrieval[A])(implicit
-                                                                           hc: HeaderCarrier,
-                                                                           ec: ExecutionContext
+    hc: HeaderCarrier,
+    ec: ExecutionContext
   ): Future[A] =
     exceptionToReturn.fold(Future.successful(success.asInstanceOf[A]))(Future.failed(_))
 

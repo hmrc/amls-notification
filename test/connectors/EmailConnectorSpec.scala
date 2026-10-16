@@ -32,7 +32,7 @@ import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 import scala.concurrent.{ExecutionContext, Future}
 
 class EmailConnectorSpec
-  extends PlaySpec
+    extends PlaySpec
     with MockitoSugar
     with ScalaFutures
     with IntegrationPatience
