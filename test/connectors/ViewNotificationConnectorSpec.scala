@@ -43,7 +43,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class ViewNotificationConnectorSpec
-  extends PlaySpec
+    extends PlaySpec
     with MockitoSugar
     with ScalaFutures
     with IntegrationPatience
@@ -108,10 +108,12 @@ class ViewNotificationConnectorSpec
         _ mustEqual successModel
       }
 
-      verify(viewNotificationConnector.audit).sendDataEvent(argThat((dataEvent: DataEvent) =>
-        dataEvent.auditSource.equals("amls-notification") &&
-          dataEvent.auditType.equals("OutboundCall")
-      ))(any())
+      verify(viewNotificationConnector.audit).sendDataEvent(
+        argThat((dataEvent: DataEvent) =>
+          dataEvent.auditSource.equals("amls-notification") &&
+            dataEvent.auditType.equals("OutboundCall")
+        )
+      )(any())
     }
 
     "return a failed future when the response contains a BAD_REQUEST and no response body" in new Fixture {
@@ -131,10 +133,12 @@ class ViewNotificationConnectorSpec
           body mustEqual None
       }
 
-      verify(viewNotificationConnector.audit, times(2)).sendDataEvent(argThat((dataEvent: DataEvent) =>
-        dataEvent.auditSource.equals("amls-notification") &&
-          dataEvent.auditType.equals("viewNotificationEventFailed")
-      ))(any())
+      verify(viewNotificationConnector.audit, times(2)).sendDataEvent(
+        argThat((dataEvent: DataEvent) =>
+          dataEvent.auditSource.equals("amls-notification") &&
+            dataEvent.auditType.equals("viewNotificationEventFailed")
+        )
+      )(any())
     }
 
     "return a failed future containing json validation message" in new Fixture {
@@ -154,10 +158,12 @@ class ViewNotificationConnectorSpec
           body mustEqual Some("{\"message\": \"none\"}")
       }
 
-      verify(viewNotificationConnector.audit, times(2)).sendDataEvent(argThat((dataEvent: DataEvent) =>
-        dataEvent.auditSource.equals("amls-notification") &&
-          dataEvent.auditType.equals("viewNotificationEventFailed")
-      ))(any())
+      verify(viewNotificationConnector.audit, times(2)).sendDataEvent(
+        argThat((dataEvent: DataEvent) =>
+          dataEvent.auditSource.equals("amls-notification") &&
+            dataEvent.auditType.equals("viewNotificationEventFailed")
+        )
+      )(any())
     }
 
     "return a failed future containing an exception message" in new Fixture {

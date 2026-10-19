@@ -26,7 +26,6 @@ import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 
-
 import scala.concurrent.{ExecutionContext, Future}
 
 case class SendTemplatedEmailRequest(to: List[String], templateId: String, parameters: Map[String, String])
