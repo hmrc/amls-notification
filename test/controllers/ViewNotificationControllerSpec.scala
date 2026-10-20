@@ -38,11 +38,22 @@ import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 import utils.DataGen._
 import utils.SuccessfulAuthAction
+import ch.qos.logback.classic.Level
+import org.scalatest.concurrent.Eventually
+import org.scalatest.time.{Millis, Seconds, Span}
+import play.api.Logger
+import uk.gov.hmrc.play.bootstrap.tools.LogCapturing
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ViewNotificationControllerSpec extends PlaySpec with ScalaFutures with MockitoSugar with GuiceOneAppPerSuite {
+class ViewNotificationControllerSpec
+    extends PlaySpec
+    with ScalaFutures
+    with MockitoSugar
+    with GuiceOneAppPerSuite
+    with LogCapturing
+    with Eventually {
 
   trait Fixture {
 
@@ -320,6 +331,118 @@ class ViewNotificationControllerSpec extends PlaySpec with ScalaFutures with Moc
           "NOTIFICATIONID"
         )(request)
         status(result) must be(NOT_FOUND)
+      }
+    }
+  }
+
+  private val controllerLogger: Logger = Logger(classOf[ViewNotificationController])
+  private val backgroundPatience       = timeout(Span(5, Seconds))
+  private val pollInterval             = interval(Span(50, Millis))
+
+  "ViewNotificationController logging" must {
+    val regNo = amlsRegNumberGen.sample.get
+
+    "log a warning when the AMLS registration number is invalid" in new Fixture {
+      withCaptureOfLoggingFrom(controllerLogger) { logs =>
+        status(
+          viewNotificationController.viewNotification("accountType", "ref", "invalid", "ID")(request)
+        ) mustBe BAD_REQUEST
+
+        logs.exists(e =>
+          e.getLevel == Level.WARN &&
+            e.getFormattedMessage.contains(
+              "[ViewNotificationController][viewNotification] - Invalid AMLS registration number format"
+            )
+        ) mustBe true
+      }
+    }
+
+    "log a warning when the notification belongs to a different AMLS registration number" in new Fixture {
+      val otherRecord = notificationRecordGen.sample.map(_.copy(amlsRegistrationNumber = "XBML00000999999"))
+      when(viewNotificationController.notificationRepository.findById("NOTIFICATIONID")) thenReturn Future.successful(
+        otherRecord
+      )
+
+      withCaptureOfLoggingFrom(controllerLogger) { logs =>
+        status(
+          viewNotificationController.viewNotification("accountType", "ref", regNo, "NOTIFICATIONID")(request)
+        ) mustBe NOT_FOUND
+
+        logs.exists(e =>
+          e.getLevel == Level.WARN &&
+            e.getFormattedMessage.contains(
+              "[ViewNotificationController][viewNotification] - Notification does not belong to amlsRegNo"
+            ) &&
+            e.getFormattedMessage.contains("notificationId: NOTIFICATIONID")
+        ) mustBe true
+      }
+    }
+
+    "log a warning when the notification does not exist" in new Fixture {
+      when(viewNotificationController.notificationRepository.findById("NOTIFICATIONID")) thenReturn Future.successful(
+        None
+      )
+
+      withCaptureOfLoggingFrom(controllerLogger) { logs =>
+        status(
+          viewNotificationController.viewNotification("accountType", "ref", regNo, "NOTIFICATIONID")(request)
+        ) mustBe NOT_FOUND
+
+        logs.exists(e =>
+          e.getLevel == Level.WARN &&
+            e.getFormattedMessage.contains(
+              "[ViewNotificationController][viewNotification] - Notification not found - notificationId: NOTIFICATIONID"
+            )
+        ) mustBe true
+      }
+    }
+
+    "still succeed and log an error with the status when marking as read fails with an HttpStatusException" in new Fixture {
+      val record = notificationRecordGen.sample.map(_.copy(amlsRegistrationNumber = regNo, contactNumber = None))
+      when(viewNotificationController.notificationRepository.findById("NOTIFICATIONID")) thenReturn Future.successful(
+        record
+      )
+      when(viewNotificationController.notificationRepository.markAsRead("NOTIFICATIONID")) thenReturn
+        Future.failed(HttpStatusException(INTERNAL_SERVER_ERROR, None))
+
+      withCaptureOfLoggingFrom(controllerLogger) { logs =>
+        status(
+          viewNotificationController.viewNotification("accountType", "ref", regNo, "NOTIFICATIONID")(request)
+        ) mustBe OK
+
+        eventually(backgroundPatience, pollInterval) {
+          logs.exists(e =>
+            e.getLevel == Level.ERROR &&
+              e.getFormattedMessage.contains(
+                "[ViewNotificationController][markNotificationAsRead] - HttpStatusException marking notification as read - status: 500, notificationId: NOTIFICATIONID"
+              )
+          ) mustBe true
+        }
+      }
+    }
+
+    "still succeed and log an error with the exception attached when marking as read fails unexpectedly" in new Fixture {
+      val record = notificationRecordGen.sample.map(_.copy(amlsRegistrationNumber = regNo, contactNumber = None))
+      when(viewNotificationController.notificationRepository.findById("NOTIFICATIONID")) thenReturn Future.successful(
+        record
+      )
+      when(viewNotificationController.notificationRepository.markAsRead("NOTIFICATIONID")) thenReturn
+        Future.failed(new RuntimeException("mongo down"))
+
+      withCaptureOfLoggingFrom(controllerLogger) { logs =>
+        status(
+          viewNotificationController.viewNotification("accountType", "ref", regNo, "NOTIFICATIONID")(request)
+        ) mustBe OK
+
+        eventually(backgroundPatience, pollInterval) {
+          val event = logs.find(
+            _.getFormattedMessage.contains(
+              "[ViewNotificationController][markNotificationAsRead] - Unexpected exception marking notification as read"
+            )
+          )
+          event.map(_.getLevel) mustBe Some(Level.ERROR)
+          Option(event.get.getThrowableProxy).map(_.getMessage) mustBe Some("mongo down")
+        }
       }
     }
   }

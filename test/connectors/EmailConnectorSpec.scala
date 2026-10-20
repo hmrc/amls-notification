@@ -28,6 +28,9 @@ import play.api.libs.json.Json
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
 import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
+import ch.qos.logback.classic.Level
+import play.api.Logger
+import uk.gov.hmrc.play.bootstrap.tools.LogCapturing
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -37,7 +40,8 @@ class EmailConnectorSpec
     with ScalaFutures
     with IntegrationPatience
     with GuiceOneAppPerSuite
-    with BeforeAndAfterAll {
+    with BeforeAndAfterAll
+    with LogCapturing {
 
   trait Fixture {
     implicit val hc: HeaderCarrier    = HeaderCarrier()
@@ -93,6 +97,48 @@ class EmailConnectorSpec
     "handle multiple recipients" in new Fixture {
       stubHttp(Future.successful(HttpResponse(202, "")))
       await(emailConnector.sendNotificationReceivedTemplatedEmail(List("a@a.com", "b@b.com"))) must be(true)
+    }
+  }
+
+  private val emailLogger: Logger = Logger(classOf[EmailConnector])
+
+  "The Email connector logging" must {
+
+    "log an error with the status and template when the email service rejects the request" in new Fixture {
+      stubHttp(Future.successful(HttpResponse(400, "bad request")))
+
+      withCaptureOfLoggingFrom(emailLogger) { logs =>
+        await(emailConnector.sendNotificationReceivedTemplatedEmail(List(sendTo))) must be(false)
+
+        val event =
+          logs.find(_.getFormattedMessage.contains("[EmailConnector][sendEmail] - Email service rejected request"))
+        event.map(_.getLevel) mustBe Some(Level.ERROR)
+        event.get.getFormattedMessage must include("status: 400")
+        event.get.getFormattedMessage must include("template: amls_notification_received_template")
+      }
+    }
+
+    "log a warning with the exception attached when the HTTP call throws" in new Fixture {
+      val boom = new RuntimeException("connection refused")
+      stubHttp(Future.failed(boom))
+
+      withCaptureOfLoggingFrom(emailLogger) { logs =>
+        emailConnector.sendNotificationReceivedTemplatedEmail(List(sendTo)).failed.futureValue mustBe boom
+
+        val event =
+          logs.find(_.getFormattedMessage.contains("[EmailConnector][sendEmail] - Exception calling email service"))
+        event.map(_.getLevel) mustBe Some(Level.WARN)
+        Option(event.get.getThrowableProxy).map(_.getMessage) mustBe Some("connection refused")
+      }
+    }
+
+    "never log the recipient email address" in new Fixture {
+      stubHttp(Future.successful(HttpResponse(400, "")))
+
+      withCaptureOfLoggingFrom(emailLogger) { logs =>
+        await(emailConnector.sendNotificationReceivedTemplatedEmail(List(sendTo)))
+        logs.exists(_.getFormattedMessage.contains(sendTo)) mustBe false
+      }
     }
   }
 }

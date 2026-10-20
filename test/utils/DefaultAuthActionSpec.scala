@@ -28,6 +28,9 @@ import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.Retrieval
 import uk.gov.hmrc.auth.core.{AuthConnector, MissingBearerToken}
 import uk.gov.hmrc.http.HeaderCarrier
+import ch.qos.logback.classic.Level
+import play.api.Logger
+import uk.gov.hmrc.play.bootstrap.tools.LogCapturing
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
@@ -38,7 +41,8 @@ class DefaultAuthActionSpec
     with ScalaFutures
     with Matchers
     with IntegrationPatience
-    with GuiceOneAppPerSuite {
+    with GuiceOneAppPerSuite
+    with LogCapturing {
 
   val mockAuthConnector                   = mock[AuthConnector]
   implicit val headCarrier: HeaderCarrier = mock[HeaderCarrier]
@@ -70,6 +74,48 @@ class DefaultAuthActionSpec
         val controller = new Harness(authAction)
         val result     = controller.onPageLoad()(fakeRequest)
         status(result) mustBe OK
+      }
+    }
+  }
+
+  private val authLogger: Logger = Logger(classOf[DefaultAuthAction])
+
+  "Default Auth Action logging" must {
+
+    "log a warning with the reason and type when authorisation fails" in {
+      val controller = new Harness(new DefaultAuthAction(new FakeAuthConnector(Some(new MissingBearerToken)), mockCC))
+
+      withCaptureOfLoggingFrom(authLogger) { logs =>
+        status(controller.onPageLoad()(fakeRequest)) mustBe UNAUTHORIZED
+
+        val event =
+          logs.find(_.getFormattedMessage.contains("[DefaultAuthAction][filter] - Authorisation failed - reason:"))
+        event.map(_.getLevel) mustBe Some(Level.WARN)
+        event.get.getFormattedMessage must include("type: MissingBearerToken")
+      }
+    }
+
+    "log a warning with the exception attached and rethrow when the auth service call fails" in {
+      val boom       = new RuntimeException("auth service down")
+      val controller = new Harness(new DefaultAuthAction(new FakeAuthConnector(Some(boom)), mockCC))
+
+      withCaptureOfLoggingFrom(authLogger) { logs =>
+        controller.onPageLoad()(fakeRequest).failed.futureValue mustBe boom
+
+        val event = logs.find(
+          _.getFormattedMessage.contains("[DefaultAuthAction][filter] - Unexpected exception calling auth service")
+        )
+        event.map(_.getLevel) mustBe Some(Level.WARN)
+        Option(event.get.getThrowableProxy).map(_.getMessage) mustBe Some("auth service down")
+      }
+    }
+
+    "not log any warning when authorisation succeeds" in {
+      val controller = new Harness(new DefaultAuthAction(new FakeAuthConnector(None), mockCC))
+
+      withCaptureOfLoggingFrom(authLogger) { logs =>
+        status(controller.onPageLoad()(fakeRequest)) mustBe OK
+        logs.exists(_.getLevel == Level.WARN) mustBe false
       }
     }
   }

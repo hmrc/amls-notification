@@ -39,6 +39,9 @@ import play.api.test.Helpers._
 import repositories.NotificationMongoRepository
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
+import ch.qos.logback.classic.Level
+import play.api.Logger
+import uk.gov.hmrc.play.bootstrap.tools.LogCapturing
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -47,7 +50,8 @@ class NotificationControllerSpec
     with MockitoSugar
     with ScalaFutures
     with GuiceOneAppPerSuite
-    with BeforeAndAfter {
+    with BeforeAndAfter
+    with LogCapturing {
 
   val mockCC                     = app.injector.instanceOf[ControllerComponents]
   val mockEmailConnector         = mock[EmailConnector]
@@ -379,6 +383,167 @@ class NotificationControllerSpec
           notificationController.fetchNotificationsBySafeId("accountType", "ref", "an invalid safe ID")(getRequest)
 
         status(result) mustBe BAD_REQUEST
+      }
+    }
+  }
+
+  private val controllerLogger: Logger = Logger(classOf[NotificationController])
+  private val validRegNo               = "XAML00000567890"
+  private val validSafeId              = "XA8743294823094"
+
+  "NotificationController logging" must {
+
+    "return 500 and log an error when the notification insert is not acknowledged" in {
+      when(notificationController.notificationRepository.insertRecord(any())) thenReturn Future.successful(false)
+
+      withCaptureOfLoggingFrom(controllerLogger) { logs =>
+        status(notificationController.saveNotification(validRegNo)(postRequest)) mustBe INTERNAL_SERVER_ERROR
+
+        val event = logs.find(
+          _.getFormattedMessage.contains(
+            "[NotificationController][saveNotification] - Notification insert not acknowledged"
+          )
+        )
+        event.map(_.getLevel) mustBe Some(Level.ERROR)
+        event.get.getFormattedMessage must include(validRegNo)
+      }
+    }
+
+    "log a warning with the status when saving fails with an HttpStatusException" in {
+      when(notificationController.notificationRepository.insertRecord(any())) thenReturn
+        Future.failed(HttpStatusException(INTERNAL_SERVER_ERROR, Some("message")))
+
+      withCaptureOfLoggingFrom(controllerLogger) { logs =>
+        notificationController
+          .saveNotification(validRegNo)(postRequest)
+          .failed
+          .futureValue mustBe a[HttpStatusException]
+
+        logs.exists(e =>
+          e.getLevel == Level.WARN &&
+            e.getFormattedMessage.contains(
+              "[NotificationController][saveNotification] - HttpStatusException saving notification - status: 500"
+            )
+        ) mustBe true
+      }
+    }
+
+    "log a warning with the exception attached and rethrow when saving fails unexpectedly" in {
+      val boom = new RuntimeException("mongo down")
+      when(notificationController.notificationRepository.insertRecord(any())) thenReturn Future.failed(boom)
+
+      withCaptureOfLoggingFrom(controllerLogger) { logs =>
+        notificationController.saveNotification(validRegNo)(postRequest).failed.futureValue mustBe boom
+
+        val event = logs.find(
+          _.getFormattedMessage.contains(
+            "[NotificationController][saveNotification] - Unexpected exception saving notification"
+          )
+        )
+        event.map(_.getLevel) mustBe Some(Level.WARN)
+        Option(event.get.getThrowableProxy).map(_.getMessage) mustBe Some("mongo down")
+      }
+    }
+
+    "log the invalid json paths, and no email address at warn level, when the payload is invalid" in {
+      val invalidRequest = FakeRequest("POST", "/")
+        .withHeaders(CONTENT_TYPE -> "application/json")
+        .withBody[JsValue](Json.obj("email" -> "secret@test.com"))
+
+      withCaptureOfLoggingFrom(controllerLogger) { logs =>
+        status(notificationController.saveNotification(validRegNo)(invalidRequest)) mustBe BAD_REQUEST
+
+        val event = logs.find(
+          _.getFormattedMessage.contains("[NotificationController][saveNotification] - Invalid notification payload")
+        )
+        event.map(_.getLevel) mustBe Some(Level.WARN)
+        event.get.getFormattedMessage must include("invalid paths:")
+        logs
+          .filter(_.getLevel.isGreaterOrEqual(Level.INFO))
+          .exists(_.getFormattedMessage.contains("secret@test.com")) mustBe false
+      }
+    }
+
+    "log a warning when saving with an invalid AMLS registration number" in {
+      withCaptureOfLoggingFrom(controllerLogger) { logs =>
+        status(notificationController.saveNotification("invalid")(postRequest)) mustBe BAD_REQUEST
+
+        logs.exists(e =>
+          e.getLevel == Level.WARN &&
+            e.getFormattedMessage.contains(
+              "[NotificationController][saveNotification] - Invalid AMLS registration number format"
+            )
+        ) mustBe true
+      }
+    }
+
+    "log a warning when fetching with an invalid AMLS registration number" in {
+      withCaptureOfLoggingFrom(controllerLogger) { logs =>
+        status(
+          notificationController.fetchNotifications("accountType", "ref", "invalid")(getRequest)
+        ) mustBe BAD_REQUEST
+
+        logs.exists(e =>
+          e.getLevel == Level.WARN &&
+            e.getFormattedMessage.contains(
+              "[NotificationController][fetchNotifications] - Invalid AMLS registration number format"
+            )
+        ) mustBe true
+      }
+    }
+
+    "log a warning with the exception attached and rethrow when fetching fails unexpectedly" in {
+      val boom = new RuntimeException("mongo down")
+      when(notificationController.notificationRepository.findByAmlsReference(any())) thenReturn Future.failed(boom)
+
+      withCaptureOfLoggingFrom(controllerLogger) { logs =>
+        notificationController
+          .fetchNotifications("accountType", "ref", validRegNo)(getRequest)
+          .failed
+          .futureValue mustBe boom
+
+        val event = logs.find(
+          _.getFormattedMessage.contains(
+            "[NotificationController][fetchNotifications] - Unexpected exception fetching notifications"
+          )
+        )
+        event.map(_.getLevel) mustBe Some(Level.WARN)
+        Option(event.get.getThrowableProxy).map(_.getMessage) mustBe Some("mongo down")
+      }
+    }
+
+    "log a warning when fetching with an invalid safeId" in {
+      withCaptureOfLoggingFrom(controllerLogger) { logs =>
+        status(
+          notificationController.fetchNotificationsBySafeId("accountType", "ref", "invalid")(getRequest)
+        ) mustBe BAD_REQUEST
+
+        logs.exists(e =>
+          e.getLevel == Level.WARN &&
+            e.getFormattedMessage.contains(
+              "[NotificationController][fetchNotificationsBySafeId] - Invalid SafeID format"
+            )
+        ) mustBe true
+      }
+    }
+
+    "log a warning with the exception attached and rethrow when fetching by safeId fails unexpectedly" in {
+      val boom = new RuntimeException("mongo down")
+      when(notificationController.notificationRepository.findBySafeId(any())) thenReturn Future.failed(boom)
+
+      withCaptureOfLoggingFrom(controllerLogger) { logs =>
+        notificationController
+          .fetchNotificationsBySafeId("accountType", "ref", validSafeId)(getRequest)
+          .failed
+          .futureValue mustBe boom
+
+        val event = logs.find(
+          _.getFormattedMessage.contains(
+            "[NotificationController][fetchNotificationsBySafeId] - Unexpected exception fetching notifications"
+          )
+        )
+        event.map(_.getLevel) mustBe Some(Level.WARN)
+        Option(event.get.getThrowableProxy).map(_.getMessage) mustBe Some("mongo down")
       }
     }
   }

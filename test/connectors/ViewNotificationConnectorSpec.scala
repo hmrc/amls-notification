@@ -37,6 +37,9 @@ import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.DataEvent
+import ch.qos.logback.classic.Level
+import play.api.Logger
+import uk.gov.hmrc.play.bootstrap.tools.LogCapturing
 
 import java.time.temporal.ChronoUnit
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -48,7 +51,8 @@ class ViewNotificationConnectorSpec
     with ScalaFutures
     with IntegrationPatience
     with GuiceOneAppPerSuite
-    with BeforeAndAfterAll {
+    with BeforeAndAfterAll
+    with LogCapturing {
 
   private var testClock: Clock   = Clock.systemDefaultZone()
   override def beforeAll(): Unit =
@@ -175,6 +179,73 @@ class ViewNotificationConnectorSpec
         case HttpStatusException(status, body) =>
           status mustEqual INTERNAL_SERVER_ERROR
           body mustEqual Some("message")
+      }
+    }
+  }
+
+  "ViewNotificationConnector logging" must {
+
+    "log the non-OK status and the HttpStatusException when DES returns 400" in new Fixture {
+      when(viewNotificationConnector.metrics.timer(eqTo(API11))).thenReturn(mockTimer)
+      setupHttpMock(Future.successful(HttpResponse(BAD_REQUEST, "")))
+
+      withCaptureOfLoggingFrom(Logger(viewNotificationConnector.getClass)) { logs =>
+        viewNotificationConnector
+          .getNotification(amlsRegistrationNumber, contactNumber)
+          .failed
+          .futureValue mustBe a[HttpStatusException]
+
+        logs.exists(e =>
+          e.getLevel == Level.WARN &&
+            e.getFormattedMessage.contains(
+              "[ViewNotificationConnector][getNotification] - Non-OK status or invalid JSON from DES API11 - status: 400"
+            )
+        ) mustBe true
+        logs.exists(e =>
+          e.getLevel == Level.WARN &&
+            e.getFormattedMessage.contains(
+              "[ViewNotificationConnector][getNotification] - HttpStatusException from DES API11 response"
+            )
+        ) mustBe true
+      }
+    }
+
+    "log the status when DES returns 200 with JSON that does not match the model" in new Fixture {
+      when(viewNotificationConnector.metrics.timer(eqTo(API11))).thenReturn(mockTimer)
+      setupHttpMock(Future.successful(HttpResponse(OK, """{"unexpected": true}""")))
+
+      withCaptureOfLoggingFrom(Logger(viewNotificationConnector.getClass)) { logs =>
+        viewNotificationConnector
+          .getNotification(amlsRegistrationNumber, contactNumber)
+          .failed
+          .futureValue mustBe a[HttpStatusException]
+
+        logs.exists(e =>
+          e.getLevel == Level.WARN &&
+            e.getFormattedMessage.contains(
+              "[ViewNotificationConnector][getNotification] - Non-OK status or invalid JSON from DES API11 - status: 200"
+            )
+        ) mustBe true
+      }
+    }
+
+    "log a warning with the exception attached and fail with a 500 when the HTTP call throws" in new Fixture {
+      when(viewNotificationConnector.metrics.timer(eqTo(API11))).thenReturn(mockTimer)
+      setupHttpMock(Future.failed(new RuntimeException("connection refused")))
+
+      withCaptureOfLoggingFrom(Logger(viewNotificationConnector.getClass)) { logs =>
+        val failure =
+          viewNotificationConnector.getNotification(amlsRegistrationNumber, contactNumber).failed.futureValue
+        failure mustBe a[HttpStatusException]
+        failure.asInstanceOf[HttpStatusException].status mustBe INTERNAL_SERVER_ERROR
+
+        val event = logs.find(
+          _.getFormattedMessage.contains(
+            "[ViewNotificationConnector][getNotification] - Unexpected exception calling DES API11, returning 500"
+          )
+        )
+        event.map(_.getLevel) mustBe Some(Level.WARN)
+        Option(event.get.getThrowableProxy).map(_.getMessage) mustBe Some("connection refused")
       }
     }
   }
