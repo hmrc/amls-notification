@@ -162,6 +162,9 @@ class NotificationController @Inject() (
                 templatePackageVersion = x.templatePackageVersion orElse Some(amlsConfig.defaultTemplatePackageVersion)
               )
             )
+            logger.info(
+              s"$prefix[fetchNotifications] - Returning ${newResponse.size} notification(s) - amlsRegNo: $amlsRegistrationNumber"
+            )
             logger.debug(s"$prefix[fetchNotifications] - Response: ${Json.toJson(newResponse)}")
             Ok(Json.toJson(newResponse))
           } recoverWith {
@@ -194,6 +197,9 @@ class NotificationController @Inject() (
             x.copy(templatePackageVersion =
               x.templatePackageVersion orElse Some(amlsConfig.defaultTemplatePackageVersion)
             )
+          )
+          logger.info(
+            s"$prefix[fetchNotificationsBySafeId] - Returning ${newResponse.size} notification(s) - safeId: $safeId"
           )
           logger.debug(s"$prefix[fetchNotificationsBySafeId] - Response: ${Json.toJson(newResponse)}")
           Ok(Json.toJson(newResponse))

@@ -49,7 +49,7 @@ class EmailConnector @Inject() (val config: ApplicationConfig, val httpClientV2:
     val prefix  = "[EmailConnector][sendEmail]"
     val postUrl = s"$serviceURL$sendEmailURI"
 
-    logger.debug(s"$prefix - Sending email template: ${request.templateId} to ${request.to.size} recipient(s)")
+    logger.info(s"$prefix - Sending email template: ${request.templateId} to ${request.to.size} recipient(s)")
 
     httpClientV2
       .post(url"$postUrl")
@@ -58,7 +58,7 @@ class EmailConnector @Inject() (val config: ApplicationConfig, val httpClientV2:
       .map { response =>
         response.status match {
           case 202    =>
-            logger.debug(s"$prefix - Email accepted by email service - template: ${request.templateId}")
+            logger.info(s"$prefix - Email accepted by email service - template: ${request.templateId}")
             true
           case status =>
             logger.error(

@@ -119,12 +119,12 @@ class ViewNotificationController @Inject() (
       Ok(Json.toJson(response))
     } recoverWith {
       case e @ HttpStatusException(status, _) =>
-        logger.warn(
+        logger.error(
           s"$prefix[markNotificationAsRead] - HttpStatusException marking notification as read - status: $status, notificationId: $id"
         )
         Future.failed(e)
       case e                                  =>
-        logger.warn(
+        logger.error(
           s"$prefix[markNotificationAsRead] - Unexpected exception marking notification as read - notificationId: $id",
           e
         )

@@ -397,7 +397,7 @@ class ViewNotificationControllerSpec
       }
     }
 
-    "still succeed and log a warning with the status when marking as read fails with an HttpStatusException" in new Fixture {
+    "still succeed and log an error with the status when marking as read fails with an HttpStatusException" in new Fixture {
       val record = notificationRecordGen.sample.map(_.copy(amlsRegistrationNumber = regNo, contactNumber = None))
       when(viewNotificationController.notificationRepository.findById("NOTIFICATIONID")) thenReturn Future.successful(
         record
@@ -412,7 +412,7 @@ class ViewNotificationControllerSpec
 
         eventually(backgroundPatience, pollInterval) {
           logs.exists(e =>
-            e.getLevel == Level.WARN &&
+            e.getLevel == Level.ERROR &&
               e.getFormattedMessage.contains(
                 "[ViewNotificationController][markNotificationAsRead] - HttpStatusException marking notification as read - status: 500, notificationId: NOTIFICATIONID"
               )
@@ -421,7 +421,7 @@ class ViewNotificationControllerSpec
       }
     }
 
-    "still succeed and log a warning with the exception attached when marking as read fails unexpectedly" in new Fixture {
+    "still succeed and log an error with the exception attached when marking as read fails unexpectedly" in new Fixture {
       val record = notificationRecordGen.sample.map(_.copy(amlsRegistrationNumber = regNo, contactNumber = None))
       when(viewNotificationController.notificationRepository.findById("NOTIFICATIONID")) thenReturn Future.successful(
         record
@@ -440,7 +440,7 @@ class ViewNotificationControllerSpec
               "[ViewNotificationController][markNotificationAsRead] - Unexpected exception marking notification as read"
             )
           )
-          event.map(_.getLevel) mustBe Some(Level.WARN)
+          event.map(_.getLevel) mustBe Some(Level.ERROR)
           Option(event.get.getThrowableProxy).map(_.getMessage) mustBe Some("mongo down")
         }
       }
